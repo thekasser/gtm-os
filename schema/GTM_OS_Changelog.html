@@ -1024,7 +1024,7 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
   <div class="version-hdr">
     <span class="version-pill">v20 → v21</span>
     <span class="version-date">Layer 7 — Measurement &amp; Feedback</span>
-    <span class="version-summary">3 agents specced (AGT-703 gap preserved) — Rep performance, GTM health, win-loss/forecast accuracy, business reviews. 8 new tables. FP&amp;APlan versioning extended.</span>
+    <span class="version-summary">4 agents specced — Rep performance, GTM health, win-loss/forecast accuracy, business reviews. 11 new tables.</span>
   </div>
 
   <div class="entry" data-layer="L7" data-type="new">
@@ -1067,18 +1067,23 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
     </div>
   </div>
 
-  <div class="entry" data-layer="L7" data-type="update">
+  <div class="entry" data-layer="L7" data-type="new">
     <div class="entry-hdr" onclick="tog(this)">
       <span class="agent-id">AGT-703<span class="layer-tag lt-l7">L7</span></span>
-      <span class="agent-name">— Intentionally blank —</span>
-      <div class="change-type"><span class="ct ct-update">Registry gap</span></div>
-      <span class="entry-summary">AGT-703 slot preserved intentionally. Same pattern as AGT-306. Win-Loss &amp; Forecast Accuracy assigned to the next available slot.</span>
+      <span class="agent-name">Win-Loss &amp; Forecast Accuracy</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Win-loss pattern analysis + systematic forecast accuracy measurement. 3 new tables. Calibration signals feed back to L1/L2/L4.</span>
       <span class="chevron">▼</span>
     </div>
     <div class="entry-body">
       <div class="detail-grid">
-        <div class="detail-lbl">Decision</div><div class="detail-val">AGT-703 is intentionally blank. The Win-Loss &amp; Forecast Accuracy agent was originally scoped as AGT-703 but the slot was preserved blank during spec session due to agent consolidation decisions. Same pattern as AGT-306 (Rep Daily Briefing). Registry records the gap as a deliberate decision, not an omission.</div>
-        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">No functional impact. Total OS agent count is 39, not 40. Do not renumber. Do not backfill.</span></div>
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Two analysis modes: (1) Win-loss pattern analysis on closed opportunities — loss reason clustering, competitive pattern detection, segment/vertical win rate divergence. (2) Forecast accuracy measurement — rep commit vs closed outcome, stage-weighted vs actual, AGT-402/AGT-404 forecast vs realized. Reads MetricsCalcLog for historical metric context.</div>
+        <div class="detail-lbl">Calibration signals</div><div class="detail-val">CalibrationSignalLog generates typed signals when analysis reveals systematic divergence: quota calibration (persistent miss/overachieve patterns → AGT-101), ICP weight recalibration (win rate divergence by segment/vertical → AGT-201), forecast model adjustment (systematic over/under-forecast → AGT-402/AGT-404), competitive KB update (new competitor patterns → AGT-403). Signals are notifications — humans decide whether to act. Dismissed signals are not re-opened; if the pattern recurs, a new signal is generated.</div>
+        <div class="detail-lbl">Rep commit accuracy</div><div class="detail-val">Rep-level forecast accuracy (commit vs closed) routed to AGT-701 as a coaching input. This is not a public accuracy leaderboard — it feeds the coaching engine to improve rep forecasting behavior.</div>
+        <div class="detail-lbl">Confidence gates</div><div class="detail-val">Minimum sample sizes enforced before pattern conclusions are drawn. Win-loss requires N closed opps per cohort (configurable, default 10). Forecast accuracy requires 2+ completed periods. Below threshold: data surfaced as directional only, not as calibration signals.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>WinLossLog</code> — per analysis cycle: win/loss patterns by segment, vertical, competitor, loss reason clusters. <code>ForecastAccuracyLog</code> — per period per forecast method: predicted vs actual, variance, directional accuracy. <code>CalibrationSignalLog</code> — typed calibration signals with target agent, signal strength, supporting evidence, status (pending/acknowledged/actioned/dismissed).</div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 7 spec session — net new agent.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes the loop between forecast methodology and outcomes</span> — the OS can now systematically measure whether its own forecasting agents are accurate and surface recalibration signals when they aren't. <span class="impact-green">Win-loss patterns feed AGT-403 competitive KB</span> with structured loss reason data rather than ad-hoc rep notes. <span class="impact-neutral">AGT-704 surfaces CalibrationSignalLog in MBR section 6 for leadership review.</span></div>
       </div>
     </div>
   </div>
