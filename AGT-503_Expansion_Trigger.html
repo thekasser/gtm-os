@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-503 — Expansion Trigger Agent</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-ripple{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.wire-box{background:#E6F1FB;border:1px solid #85B7EB;color:#0C447C;font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-bottom:10px}
+.imm{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dig{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-503 — Expansion Trigger Agent</h1>
+<div class="subtitle">Layer 5: Post-Sale Retention · 5-signal expansion scoring · Churn risk gate · Open opp check · UsageMeteringLog as usage signal source</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L5 · Agent 03</span>
+  <span class="badge badge-status">Specced · v19 original + v25 ripple update</span>
+  <span class="badge badge-ripple">L8 ripple: UsageMeteringLog explicitly named as usage signal source for overage and seat utilization signals</span>
+</div>
+
+<!-- ── L8 RIPPLE UPDATE ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">L8 ripple update (v25)</div>
+  <div class="wire-box">
+    <strong>Update — usage signals explicitly source from UsageMeteringLog</strong><br>
+    Two expansion signals previously referenced "AGT-804 usage data" without specifying the schema table. UsageMeteringLog now exists as the canonical source.<br><br>
+    <strong>Consumption overage signal (+40 pts — immediate):</strong><br>
+    &nbsp;· Reads: <code>UsageMeteringLog WHERE account_id = [account] AND overage_units &gt; 0 AND period_end = [most recent closed period]</code><br>
+    &nbsp;· Trigger: any consumption SKU showing overage in the most recent metering period → immediate expansion evaluation, bypasses scheduled daily cycle<br>
+    &nbsp;· AGT-804 pushes UsageMeteringLog writes in real-time as metering periods close — AGT-503 listens for new records on this account<br><br>
+    <strong>Seat utilization &gt;80% signal (+30 pts — immediate):</strong><br>
+    &nbsp;· Reads: <code>UsageMeteringLog WHERE account_id = [account] AND sku_id LIKE 'SKU-SEAT%' ORDER BY period_end DESC LIMIT 2</code><br>
+    &nbsp;· Trigger: <code>(units_consumed / commit_units) &gt; 0.80</code> for 2 or more consecutive metering periods → immediate expansion evaluation<br>
+    &nbsp;· Requires 2+ consecutive periods to avoid false positives from one-time utilization spikes<br><br>
+    Both signals bypass AGT-503's scheduled daily cycle when they fire. UsageMeteringLog is the single integration point — AGT-503 does not query the product metering system directly.
+  </div>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-503 detects expansion opportunities across the customer base and routes plays to the AM. It never creates a play without first running a churn risk gate (suppresses High/Critical risk accounts) and an open opportunity check (avoids duplicate plays when expansion is already in progress). It is the first agent in the OS to quantify NRR upside — expansion ACV estimates feed AGT-402's bottoms-up forecast and AGT-702's MetricsCalcLog.</p>
+</div>
+
+<!-- ── ENTRY PATHS ────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Entry paths</div>
+  <table>
+    <tr><th>Path</th><th>Source</th><th>Cycle behavior</th></tr>
+    <tr><td>AGT-502 Low-tier pass</td><td>ChurnRiskLog.expansion_candidate = TRUE (AGT-502 sets when risk tier = Low)</td><td>Scheduled daily cycle. Runs after AGT-502 completes.</td></tr>
+    <tr><td>UsageMeteringLog threshold event</td><td>New UsageMeteringLog record with overage_units &gt; 0 OR seat utilization &gt; 0.80 for 2+ periods</td><td>Immediate — bypasses scheduled cycle. Fires on AGT-804 write.</td></tr>
+  </table>
+</div>
+
+<!-- ── GATES ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Gates (run before any signal scoring)</div>
+  <table>
+    <tr><th>Gate</th><th>Logic</th><th>Result</th></tr>
+    <tr><td>Churn risk gate</td><td>Read CustomerHealthLog.health_score (AGT-501)</td><td>High/Critical = suppress entirely. Medium = CSM confirm required before play. Low = proceed.</td></tr>
+    <tr><td>Open opportunity check</td><td>Query Opportunities for open expansion opp on this account</td><td>Open opp exists = enrichment path only (append context to existing opp, single update to AM). No new play created.</td></tr>
+  </table>
+</div>
+
+<!-- ── 5-SIGNAL SCORING MODEL ────────────────────────────── -->
+<div class="section">
+  <div class="section-title">5-signal expansion scoring</div>
+  <table>
+    <tr><th>Signal</th><th>Pts</th><th>Mode</th><th>Source</th></tr>
+    <tr><td>Consumption overage</td><td>+40</td><td><span class="imm">Immediate</span></td><td><code>UsageMeteringLog.overage_units &gt; 0</code> — most recent closed period</td></tr>
+    <tr><td>Seat utilization &gt;80% for 2+ months</td><td>+30</td><td><span class="imm">Immediate</span></td><td><code>UsageMeteringLog (units_consumed / commit_units) &gt; 0.80</code> — 2+ consecutive periods</td></tr>
+    <tr><td>ConvIntelligence feature inquiry + positive sentiment</td><td>+30</td><td><span class="imm">Immediate</span></td><td><code>ConvIntelligence</code> — feature inquiry keyword pattern + overall_sentiment = positive in same conversation</td></tr>
+    <tr><td>New stakeholder engaged</td><td>+20</td><td><span class="dig">Digest</span></td><td><code>Contacts</code> — new persona record created or first engagement logged for this account</td></tr>
+    <tr><td>Cross-sell peer cohort gap</td><td>+15–25</td><td><span class="dig">Digest</span></td><td>Peer cohort: segment × vertical × size band, minimum 5 accounts, ≥60% match rate. Gap = peer accounts on SKU that this account doesn't have.</td></tr>
+  </table>
+  <div class="note">Immediate signals bypass the scheduled cycle and trigger AGT-503 directly. Digest signals accumulate and are evaluated on the next scheduled run. An account can have both immediate and digest signals; they are scored together on whichever run processes them.</div>
+</div>
+
+<!-- ── PLAY TYPES ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Play types</div>
+  <table>
+    <tr><th>Play type</th><th>When</th><th>Action</th></tr>
+    <tr><td>New play</td><td>No open expansion opp, churn gate passes, signal threshold met</td><td>Expansion play created and routed to AM via TerritoryDefinitions (not RepBook)</td></tr>
+    <tr><td>Enrichment path</td><td>Open expansion opp already exists</td><td>Context appended to existing opp, single contextual update to AM. No new play.</td></tr>
+    <tr><td>Suppressed</td><td>High/Critical churn risk, or Medium churn without CSM confirmation</td><td>No play. suppressed_reason logged in ExpansionLog.</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  AGT-503 Expansion Trigger Agent · Layer 5 · Schema v19 (original) + v25 (L8 ripple)<br>
+  v25 changes: consumption overage and seat utilization signals explicitly read UsageMeteringLog; immediate bypass of scheduled cycle confirmed on UsageMeteringLog threshold events<br>
+  Reads from: UsageMeteringLog (AGT-804 — usage signals), CustomerHealthLog (AGT-501 — churn gate), ChurnRiskLog (AGT-502 — entry path), ConvIntelligence (feature inquiry), Contacts (stakeholder), TerritoryDefinitions (AM routing), Opportunities (open opp check)<br>
+  Writes to: ExpansionLog<br>
+  Feeds: AGT-402 (expansion ACV in bottoms-up forecast), AGT-702 MetricsCalcLog (NRR upside quantification)
+</div>
+</body>
+</html>

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rep Agent Builder Guide v2</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+.doc-title{font-size:22px;font-weight:600;margin-bottom:4px}
+.doc-sub{font-size:13px;color:#666;margin-bottom:6px;line-height:1.6}
+.doc-note{font-size:12px;color:#888;padding:8px 12px;background:#f5f5f5;border-radius:8px;margin-bottom:28px;border-left:3px solid #ddd;line-height:1.6}
+.version-note{font-size:11px;color:#555;padding:6px 12px;background:#E6F1FB;border-radius:6px;border-left:3px solid #85B7EB;margin-bottom:24px;line-height:1.6}
+.section{margin-bottom:32px}
+.sec-title{font-size:15px;font-weight:600;margin-bottom:12px;padding-bottom:6px;border-bottom:1.5px solid #e8e8e8;color:#111}
+.role-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.role-tag{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.rt-ae{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.rt-csm{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.rt-am{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.rt-sdr{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.rt-all{background:#f0f0f0;color:#444;border:1px solid #ccc}
+.uc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;margin-bottom:8px}
+.uc-card{border:1px solid #e4e4e4;border-radius:10px;overflow:hidden}
+.uc-hdr{padding:10px 14px;background:#fafafa;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:8px}
+.uc-icon{font-size:14px}
+.uc-title{font-size:12px;font-weight:700;color:#111}
+.uc-body{padding:10px 14px 12px}
+.uc-lbl{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.lb-table{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.lb-field{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.lb-ex{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.uc-row{display:flex;gap:6px;margin-bottom:6px;align-items:flex-start;font-size:11px;line-height:1.5}
+.uc-text{color:#333}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.layer-hdr{font-size:11px;font-weight:700;padding:5px 10px;background:#e8e8e8;color:#444;border-bottom:1px solid #ddd}
+.prompt-block{background:#f9f9f9;border:1px solid #e8e8e8;border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.prompt-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#999;margin-bottom:8px;display:flex;gap:8px;align-items:center}
+.prompt-text{font-family:monospace;font-size:11.5px;color:#222;line-height:1.75;white-space:pre-wrap}
+.rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rule-card{border:1px solid #e4e4e4;border-radius:10px;padding:12px 14px}
+.rule-title{font-size:12px;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.rule-body{font-size:11px;color:#555;line-height:1.6}
+.badge-do{font-size:10px;padding:1px 6px;border-radius:6px;background:#E1F5EE;color:#085041;border:1px solid #5DCAA5;font-weight:600}
+.badge-dont{font-size:10px;padding:1px 6px;border-radius:6px;background:#FCEBEB;color:#791F1F;border:1px solid #F09595;font-weight:600}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<div class="doc-title">Rep Agent Builder Guide</div>
+<div class="doc-sub">Build personal workflow and briefing agents on top of GTM OS data and agent outputs.</div>
+<div class="doc-note"><strong>How this works:</strong> The GTM OS runs continuously — scoring accounts, tracking deals, monitoring customers, measuring performance. All of that work is written to structured tables. Your personal agent reads from those tables to build exactly the briefing or workflow tool you want, without duplicating any of the underlying logic. This guide tells you which tables and agents to reference, and what data is available in each.</div>
+<div class="version-note"><strong>v2 — updated for L5–L7:</strong> This version adds customer health, expansion, churn risk, QBR prep, onboarding status, coaching plan, and performance tables now available from L5 (Post-Sale), L6 (Customer Lifecycle), and L7 (Measurement &amp; Feedback) agents.</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- USE CASES                                                  -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="sec-title">Use case reference — what to pull for common needs</div>
+
+  <div style="margin-bottom:8px;font-size:11px;color:#888">Role tags: which roles each use case is most relevant for</div>
+
+  <div class="uc-grid">
+
+    <div class="uc-card">
+      <div class="uc-hdr"><span class="uc-icon">⚡</span><div><div class="uc-title">My priority accounts today</div><div style="margin-top:3px;display:flex;gap:4px"><span class="role-tag rt-ae">AE</span><span class="role-tag rt-sdr">SDR</span></div></div></div>
+      <div class="uc-body">
+        <div class="uc-row"><span class="uc-lbl lb-table">table</span><span class="uc-text"><strong>AccountPriorityScore</strong> — filter by employee_crm_id, sort by composite_score DESC</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-field">key fields</span><span class="uc-text">composite_score, rank_in_book, rank_delta (↑↓ vs yesterday), trigger_event, rep_pin</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-ex">example ask</span><span class="uc-text">"Show my top 5 accounts by priority score. Include why each one ranked where it did and whether it moved up or down."</span></div>
+      </div>
+    </div>
+
+    <div class="uc-card">
+      <div class="uc-hdr"><span class="uc-icon">📋</span><div><div class="uc-title">Pre-meeting brief</div><div style="margin-top:3px;display:flex;gap:4px"><span class="role-tag rt-ae">AE</span><span class="role-tag rt-am">AM</span></div></div></div>
+      <div class="uc-body">
+        <div class="uc-row"><span class="uc-lbl lb-table">table</span><span class="uc-text"><strong>DiscoveryBriefLog</strong> (pre-deal) or <strong>OpportunityBriefLog</strong> (deal-active) — filter by meeting date</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-field">key fields</span><span class="uc-text">All 7 sections pre-populated by AGT-305 / AGT-405. Your edits are in rep_edit fields.</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-ex">example ask</span><span class="uc-text">"Pull my meeting brief for [account] this afternoon. Summarize what I should focus on in 3 bullets."</span></div>
+      </div>
+    </div>
+
+    <div class="uc-card">
+      <div class="uc-hdr"><span class="uc-icon">🏥</span><div><div class="uc-title">Pipeline deal health</div><div style="margin-top:3px;display:flex;gap:4px"><span class="role-tag rt-ae">AE</span></div></div></div>
+      <div class="uc-body">
+        <div class="uc-row"><span class="uc-lbl lb-table">table</span><span class="uc-text"><strong>Opportunities</strong> + <strong>CustomerHealthLog</strong> (via account_id) — filter by assigned rep</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-field">key fields</span><span class="uc-text">deal_health_score (from AGT-401), health_band (Green/Amber/Red), next_best_action, score_delta</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-ex">example ask</span><span class="uc-text">"Show my open deals sorted by health score. Flag any that dropped more than 10 points this week."</span></div>
+      </div>
+    </div>
+
+    <div class="uc-card">
+      <div class="uc-hdr"><span class="uc-icon">🔔</span><div><div class="uc-title">Customer health alerts</div><div style="margin-top:3px;display:flex;gap:4px"><span class="role-tag rt-am">AM</span><span class="role-tag rt-csm">CSM</span></div></div></div>
+      <div class="uc-body">
+        <div class="uc-row"><span class="uc-lbl lb-table">table</span><span class="uc-text"><strong>CustomerHealthLog</strong> + <strong>ChurnRiskLog</strong> — filter by assigned AM / CSM</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-field">key fields</span><span class="uc-text">health_score, score_delta, churn_risk_tier, renewal_proximity_days, effective_risk_score, recommended_action</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-ex">example ask</span><span class="uc-text">"Show my customer accounts where health score dropped more than 15 points this week or churn risk is High/Critical."</span></div>
+      </div>
+    </div>
+
+    <div class="uc-card">
+      <div class="uc-hdr"><span class="uc-icon">📈</span><div><div class="uc-title">Expansion opportunities</div><div style="margin-top:3px;display:flex;gap:4px"><span class="role-tag rt-am">AM</span><span class="role-tag rt-csm">CSM</span></div></div></div>
+      <div class="uc-body">
+        <div class="uc-row"><span class="uc-lbl lb-table">table</span><span class="uc-text"><strong>ExpansionLog</strong> — filter by routed_to_am = your rep ID, play_type = 'new_play'</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-field">key fields</span><span class="uc-text">expansion_score, expansion_play_type, acv_estimate, signal_sources (JSON), csm_confirm_required</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-ex">example ask</span><span class="uc-text">"Show active expansion plays on my accounts. Include the signal that triggered each one and the estimated ACV."</span></div>
+      </div>
+    </div>
+
+    <div class="uc-card">
+      <div class="uc-hdr"><span class="uc-icon">📊</span><div><div class="uc-title">QBR prep</div><div style="margin-top:3px;display:flex;gap:4px"><span class="role-tag rt-am">AM</span><span class="role-tag rt-csm">CSM</span></div></div></div>
+      <div class="uc-body">
+        <div class="uc-row"><span class="uc-lbl lb-table">table</span><span class="uc-text"><strong>QBRLog</strong> — filter by account_id, most recent record. Also read CustomerHealthLog + ExpansionLog for current state.</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-field">key fields</span><span class="uc-text">internal_brief (JSON — all 7 sections), health_score_at_prep, expansion_signals_included, renewal_proximity_days</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-ex">example ask</span><span class="uc-text">"Pull the QBR brief AGT-603 generated for [account]. Summarize my prep priorities: what to lead with, what risks to address, what expansion to discuss."</span></div>
+      </div>
+    </div>
+
+    <div class="uc-card">
+      <div class="uc-hdr"><span class="uc-icon">🚀</span><div><div class="uc-title">Onboarding status</div><div style="margin-top:3px;display:flex;gap:4px"><span class="role-tag rt-csm">CSM</span><span class="role-tag rt-am">AM</span></div></div></div>
+      <div class="uc-body">
+        <div class="uc-row"><span class="uc-lbl lb-table">table</span><span class="uc-text"><strong>OnboardingLog</strong> + <strong>MutualActionPlan</strong> — filter by account_id</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-field">key fields</span><span class="uc-text">milestone status (M1–M7), ttv_achieved_days vs ttv_target_days, map_id, comp_hold_active</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-ex">example ask</span><span class="uc-text">"Show the onboarding status for my accounts that are currently active. Flag any milestones that are overdue or at risk of missing TTV target."</span></div>
+      </div>
+    </div>
+
+    <div class="uc-card">
+      <div class="uc-hdr"><span class="uc-icon">🎯</span><div><div class="uc-title">My coaching plan</div><div style="margin-top:3px;display:flex;gap:4px"><span class="role-tag rt-all">All roles</span></div></div></div>
+      <div class="uc-body">
+        <div class="uc-row"><span class="uc-lbl lb-table">table</span><span class="uc-text"><strong>RepSkillAssessmentLog</strong> + <strong>RepCoachingLog</strong> — filter by rep_id = your ID</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-field">key fields</span><span class="uc-text">skill_gaps (JSON), recommended_focus, coaching_status (pending_delivery/delivered/acknowledged), delivery_date</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-ex">example ask</span><span class="uc-text">"What does my current coaching plan say? Summarize the top 2 areas to focus on this month and what I should be doing differently."</span></div>
+      </div>
+    </div>
+
+    <div class="uc-card">
+      <div class="uc-hdr"><span class="uc-icon">📬</span><div><div class="uc-title">New leads routed to me</div><div style="margin-top:3px;display:flex;gap:4px"><span class="role-tag rt-ae">AE</span><span class="role-tag rt-sdr">SDR</span></div></div></div>
+      <div class="uc-body">
+        <div class="uc-row"><span class="uc-lbl lb-table">table</span><span class="uc-text"><strong>Leads</strong> — filter by assigned_rep = your ID and routing_timestamp in last 24 hours</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-field">key fields</span><span class="uc-text">icp_tier, gtm_motion_at_routing, routing_rule_applied, first_contact_deadline (SLA), vertical</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-ex">example ask</span><span class="uc-text">"Show me leads routed to me in the last 24 hours. Include ICP tier, which routing rule applied, and my SLA deadline for first contact."</span></div>
+      </div>
+    </div>
+
+    <div class="uc-card">
+      <div class="uc-hdr"><span class="uc-icon">⚠️</span><div><div class="uc-title">Intent spike alert</div><div style="margin-top:3px;display:flex;gap:4px"><span class="role-tag rt-ae">AE</span><span class="role-tag rt-sdr">SDR</span></div></div></div>
+      <div class="uc-body">
+        <div class="uc-row"><span class="uc-lbl lb-table">table</span><span class="uc-text"><strong>AccountPriorityScore</strong> + <strong>Accounts</strong> — filter by trigger_event = 'intent_spike' and updated_at in last 48 hours</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-field">key fields</span><span class="uc-text">composite_score, rank_delta, intent_score (from Accounts enrichment), enrichment_last_updated</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-ex">example ask</span><span class="uc-text">"Alert me to any accounts in my book that triggered an intent spike in the last 48 hours. Tell me their current priority rank and what topics they're showing intent on."</span></div>
+      </div>
+    </div>
+
+    <div class="uc-card">
+      <div class="uc-hdr"><span class="uc-icon">📡</span><div><div class="uc-title">Cadence status</div><div style="margin-top:3px;display:flex;gap:4px"><span class="role-tag rt-ae">AE</span><span class="role-tag rt-sdr">SDR</span></div></div></div>
+      <div class="uc-body">
+        <div class="uc-row"><span class="uc-lbl lb-table">table</span><span class="uc-text"><strong>CadenceEventLog</strong> — filter by agent_id = your rep ID, most recent status per prospect</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-field">key fields</span><span class="uc-text">sequence_type, step_number, event_type, suppressed_reason, priority_score_at_queue, touch_cap_at_event</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-ex">example ask</span><span class="uc-text">"Show my active cadences. Flag any that are stalled (no activity in 7+ days) or held by the touch cap."</span></div>
+      </div>
+    </div>
+
+    <div class="uc-card">
+      <div class="uc-hdr"><span class="uc-icon">🔍</span><div><div class="uc-title">Single-account deep dive</div><div style="margin-top:3px;display:flex;gap:4px"><span class="role-tag rt-all">All roles</span></div></div></div>
+      <div class="uc-body">
+        <div class="uc-row"><span class="uc-lbl lb-table">tables</span><span class="uc-text"><strong>Accounts</strong> + <strong>AccountPriorityScore</strong> + <strong>CustomerHealthLog</strong> + <strong>ExpansionLog</strong> + <strong>ConvIntelligence</strong> — all filtered by account_id</span></div>
+        <div class="uc-row"><span class="uc-lbl lb-ex">example ask</span><span class="uc-text">"Give me a full picture of [account]. Cover ICP fit, priority score, health score, open expansion signals, and what came out of our last conversation."</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SCHEMA REFERENCE                                           -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="sec-title">Schema reference — available tables by layer</div>
+  <table>
+    <tr><th style="width:180px">Table</th><th>What it contains</th><th>Written by</th><th>Best for</th></tr>
+
+    <tr><td colspan="4" class="layer-hdr">L1 — Sales Planning &amp; Compensation</td></tr>
+    <tr><td><code>QuotaStore</code></td><td>Your quota target by period. Annual, quarterly, monthly breakdown.</td><td>AGT-101</td><td>Attainment tracking, personal forecasting</td></tr>
+    <tr><td><code>QuotaPlanDocLog</code></td><td>Your signed quota plan document. Payout curve, kickers, territory.</td><td>AGT-107</td><td>Reference your plan terms</td></tr>
+    <tr><td><code>TerritoryDefinitions</code></td><td>Your named accounts or territory rules.</td><td>AGT-106</td><td>Understanding your book scope</td></tr>
+
+    <tr><td colspan="4" class="layer-hdr">L2 — ICP &amp; Lead Management</td></tr>
+    <tr><td><code>Accounts</code></td><td>All account firmographic, enrichment, and ICP fields.</td><td>AGT-201, AGT-204</td><td>Account research, ICP tier, intent signals</td></tr>
+    <tr><td><code>Leads</code></td><td>Routed leads with ICP score, routing rule, GTM motion, SLA deadline.</td><td>AGT-202</td><td>New lead review</td></tr>
+    <tr><td><code>AccountPriorityScore</code></td><td>Priority score, rank, rank delta, trigger event. Rep pin field is yours to write.</td><td>AGT-206</td><td>Daily prioritization</td></tr>
+    <tr><td><code>Contacts</code></td><td>Persona-typed contacts: economic buyer, champion, technical evaluator.</td><td>AGT-204</td><td>Stakeholder mapping, multi-threading</td></tr>
+
+    <tr><td colspan="4" class="layer-hdr">L3 — Outreach &amp; Cadence</td></tr>
+    <tr><td><code>CadenceEventLog</code></td><td>Every cadence step: status, channel, touch count, suppression reason, priority score at queue.</td><td>AGT-301, AGT-302</td><td>Cadence health, stall detection</td></tr>
+    <tr><td><code>DiscoveryBriefLog</code></td><td>Pre-deal meeting brief (7 sections). AGT-305 generates; your edits tracked in rep_edit fields.</td><td>AGT-305</td><td>Pre-first-meeting prep</td></tr>
+
+    <tr><td colspan="4" class="layer-hdr">L4 — Deal &amp; Forecast Management</td></tr>
+    <tr><td><code>Opportunities</code></td><td>Deal records with health score, stage, close date, rep commit.</td><td>AGT-401</td><td>Pipeline review, deal health</td></tr>
+    <tr><td><code>OpportunityBriefLog</code></td><td>Deal-active meeting brief (7 sections). AGT-405 generates.</td><td>AGT-405</td><td>Pre-meeting deal prep</td></tr>
+    <tr><td><code>ConvIntelligence</code></td><td>Post-call analysis: sentiment, next steps, objections, competitor mentions, call_owner_role.</td><td>AGT-407</td><td>Post-call review, follow-up drafting</td></tr>
+    <tr><td><code>QuoteLog</code></td><td>Quote state, approval status, per-viewer interaction tracking.</td><td>AGT-406</td><td>Quote status, buyer engagement signals</td></tr>
+
+    <tr><td colspan="4" class="layer-hdr">L5 — Post-Sale Retention</td></tr>
+    <tr><td><code>CustomerHealthLog</code></td><td>Daily health score per account. 7 dimensions + ConvIntelligence adj + payment modifier. Sponsor departure flag.</td><td>AGT-501</td><td>Customer health monitoring, churn early warning</td></tr>
+    <tr><td><code>ChurnRiskLog</code></td><td>Effective risk score (with renewal proximity multiplier), churn tier, recommended action, renewal proximity days.</td><td>AGT-502</td><td>Renewal risk, escalation triggers</td></tr>
+    <tr><td><code>ExpansionLog</code></td><td>Active expansion plays: signal sources, ACV estimate, play type, suppressed reason.</td><td>AGT-503</td><td>Expansion opportunity pipeline</td></tr>
+
+    <tr><td colspan="4" class="layer-hdr">L6 — Customer Lifecycle</td></tr>
+    <tr><td><code>OnboardingLog</code></td><td>Milestone-level onboarding progress (M1–M7). TTV target vs actual. CSM activity log.</td><td>AGT-601</td><td>Onboarding health, TTV tracking</td></tr>
+    <tr><td><code>MutualActionPlan</code></td><td>MAP commitments, open action items, selected value events, MAP sign-off status.</td><td>AGT-601</td><td>Close execution, post-sale handoff reference</td></tr>
+    <tr><td><code>QBRLog</code></td><td>QBR brief (internal + customer-facing artifact), health score at prep, expansion signals, commitments agreed.</td><td>AGT-603</td><td>QBR prep, prior QBR outcome review</td></tr>
+    <tr><td><code>VoCSynthesisLog</code></td><td>Monthly synthesis of customer feedback themes: feature requests, objection patterns, competitive mentions.</td><td>AGT-604</td><td>Customer sentiment, messaging gaps</td></tr>
+
+    <tr><td colspan="4" class="layer-hdr">L7 — Measurement &amp; Feedback</td></tr>
+    <tr><td><code>RepSkillAssessmentLog</code></td><td>Your skill gap assessment by role-specific dimensions. Updated monthly.</td><td>AGT-701</td><td>Understanding your coaching focus areas</td></tr>
+    <tr><td><code>RepCoachingLog</code></td><td>Your coaching plan: recommended focus, delivery status, manager approval state.</td><td>AGT-701</td><td>Accessing your current coaching plan</td></tr>
+    <tr><td><code>MetricsCalcLog</code></td><td>Org-level GTM efficiency metrics: Magic Number, NRR, GRR, R40, CAC Payback. Read-only context.</td><td>AGT-702</td><td>Understanding org performance context</td></tr>
+    <tr><td><code>BusinessReviewLog</code></td><td>WBR/MBR/exec QBR artifacts. Action items from reviews.</td><td>AGT-704</td><td>Reviewing agreed priorities and action items from reviews</td></tr>
+    <tr><td><code>ActionItemLog</code></td><td>Action items from business reviews with owner, due date, and status.</td><td>AGT-704</td><td>Tracking your assigned action items from WBR/MBR</td></tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- EXAMPLE PROMPTS                                            -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="sec-title">Example prompts — ready to use or adapt</div>
+
+  <div class="prompt-block">
+    <div class="prompt-label"><span class="role-tag rt-ae">AE</span> Morning pipeline briefing</div>
+    <div class="prompt-text">You are my personal GTM assistant. Pull my pipeline and priority accounts for today.
+
+1. From Opportunities: Show my open deals sorted by deal health score (lowest first). For any Amber or Red deals, include the AGT-401 next_best_action recommendation.
+
+2. From AccountPriorityScore: Show my top 3 priority accounts that don't have an open deal yet. Include the trigger_event that drove their rank.
+
+3. From DiscoveryBriefLog or OpportunityBriefLog: Flag any meetings I have today and pull the brief summary.
+
+Filter everything to employee_crm_id = [YOUR_ID].</div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-label"><span class="role-tag rt-am">AM</span> <span class="role-tag rt-csm">CSM</span> Customer health and renewal focus</div>
+    <div class="prompt-text">You are my personal GTM assistant. Give me my customer book health summary.
+
+1. From CustomerHealthLog: Show all my accounts where health_score dropped more than 10 points in the last 7 days, or where health_band = 'Critical' or 'High Risk'.
+
+2. From ChurnRiskLog: For those same accounts, show churn_risk_tier and renewal_proximity_days. Flag any with renewals inside 90 days.
+
+3. From ExpansionLog: Show any active expansion plays on my accounts where play_type = 'new_play'. Include signal_sources and acv_estimate.
+
+Filter to accounts where assigned_am or assigned_csm = [YOUR_ID].</div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-label"><span class="role-tag rt-am">AM</span> <span class="role-tag rt-csm">CSM</span> QBR prep for a specific account</div>
+    <div class="prompt-text">You are my personal GTM assistant. Help me prep for the QBR with [ACCOUNT NAME].
+
+1. From QBRLog: Pull the most recent QBR brief AGT-603 generated for this account. Summarize sections 1, 2, and 3 (usage, ROI vs MAP, health).
+
+2. From CustomerHealthLog: What is the current health score, and which dimensions are the weakest?
+
+3. From ExpansionLog: Are there any active expansion signals? What is the estimated ACV?
+
+4. From ChurnRiskLog: What is the current renewal proximity and risk tier?
+
+5. From MutualActionPlan: Are there any open MAP commitments I should reference in the QBR?
+
+Give me a 5-bullet prep summary: what to lead with, what risks to address, what expansion to discuss, what MAP items to close, what next commitments to get.</div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-label"><span class="role-tag rt-all">All roles</span> Single account deep dive</div>
+    <div class="prompt-text">You are my personal GTM assistant. Give me a complete picture of [ACCOUNT NAME].
+
+Pull from: Accounts (ICP score, intent signals, enrichment), AccountPriorityScore (current priority rank and trigger), CustomerHealthLog (health score and top risk dimension), ExpansionLog (any active expansion plays), ConvIntelligence (summary of the last 2 conversations), Opportunities (any open deals or renewals).
+
+Give me: a 3-sentence account summary, the top risk to flag, the top opportunity to pursue, and what I should do before my next interaction.</div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-label"><span class="role-tag rt-all">All roles</span> My coaching plan this month</div>
+    <div class="prompt-text">You are my personal GTM assistant. Pull my current coaching plan.
+
+1. From RepSkillAssessmentLog: What skill gaps were identified in my most recent assessment? Filter by rep_id = [YOUR_ID].
+
+2. From RepCoachingLog: What is my current coaching plan? What are the top 2 recommended focus areas? Has my manager approved and delivered it?
+
+Summarize in plain language: what I should be working on this month and why it matters for my performance metrics.</div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- GUARDRAILS                                                 -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="sec-title">Guardrails — what to do and not do</div>
+  <div class="rules-grid">
+    <div class="rule-card">
+      <div class="rule-title"><span class="badge-do">do</span>Always filter by your rep ID</div>
+      <div class="rule-body">Most tables carry <code>employee_crm_id</code>, <code>assigned_am</code>, or <code>assigned_csm</code>. Always scope queries to your ID. Without a filter your agent will pull data across the whole org.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-title"><span class="badge-dont">don't</span>Re-score or re-route anything</div>
+      <div class="rule-body">ICP scores, priority scores, health scores, and routing assignments are all managed by the GTM OS. Your agent surfaces these — it doesn't recalculate them. Use rep_pin in AccountPriorityScore if you want to flag a disagreement.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-title"><span class="badge-do">do</span>Reference tables by name</div>
+      <div class="rule-body">"Pull from CustomerHealthLog written by AGT-501" is clearer and more reliable than describing the data you want from scratch. The agent knows the table structure when you name it explicitly.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-title"><span class="badge-dont">don't</span>Duplicate GTM OS logic</div>
+      <div class="rule-body">If you're writing prompts like "score my accounts based on…" or "decide which customers are at risk…" — stop. The GTM OS already did that work. Your agent presents those decisions, it doesn't re-make them.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-title"><span class="badge-do">do</span>Use coaching plan data, not raw metrics</div>
+      <div class="rule-body">RepCoachingLog has your structured coaching recommendations already synthesized by AGT-701. Use that rather than trying to derive coaching insights from raw ConvIntelligence or OpportunityBriefLog scoring fields yourself.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-title"><span class="badge-dont">don't</span>Share internal-only QBR content externally</div>
+      <div class="rule-body">QBRLog contains both an internal brief and a customer-facing artifact. The internal brief includes churn risk language and ACV estimates that are not for customer consumption. Always use the customer_artifact field for anything going to the customer.</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  GTM OS Rep Agent Builder Guide v2 · Schema v25 · All layers L1–L7 covered<br>
+  Tables written in real-time by GTM OS agents. Priority scores refresh on signal events. Health scores update daily. QBR briefs refresh 10 business days before QBR due date.<br>
+  Questions on available data: RevOps. Questions on agent behavior: GTM OS documentation.
+</div>
+
+</body>
+</html>

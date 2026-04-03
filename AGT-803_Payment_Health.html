@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-803 — Payment Health Monitor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-schema{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.status-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px}
+.s-current{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.s-overdue{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.s-failed{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.s-suspended{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-803 — Payment Health Monitor</h1>
+<div class="subtitle">Layer 8: Revenue Operations · Payment tracking · Retry orchestration · Delinquency escalation · AGT-501 feed · Finance-owned</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L8 · Agent 03</span>
+  <span class="badge badge-status">Specced · v25</span>
+  <span class="badge badge-schema">Schema adds: PaymentEventLog</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-803 monitors payment status across all invoices, orchestrates payment retries on failure, escalates delinquencies through the appropriate notification chain, and writes payment_health_status to CustomerHealthLog as a read-only feed for AGT-501. It is the source of the payment health modifier that caps or floors AGT-501 health scores. Every payment event — success, failure, retry, escalation — is logged in PaymentEventLog.</p>
+</div>
+
+<!-- ── PAYMENT HEALTH STATES ──────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Payment health states</div>
+  <table>
+    <tr><th>State</th><th>Definition</th><th>AGT-501 modifier</th></tr>
+    <tr><td><span class="status-pill s-current">Current</span></td><td>All invoices paid within terms. No outstanding failures.</td><td>No effect on health score.</td></tr>
+    <tr><td><span class="status-pill s-overdue">Overdue</span></td><td>Invoice past due date. Payment failed on retry 1 or 2. Still in retry window.</td><td>Health score capped at 77 — cannot reach Low risk tier regardless of other dimensions.</td></tr>
+    <tr><td><span class="status-pill s-failed">Failed</span></td><td>All 3 retries exhausted. Invoice unpaid. Awaiting Finance intervention.</td><td>Health score capped at 62 — cannot reach Medium tier.</td></tr>
+    <tr><td><span class="status-pill s-suspended">Suspended</span></td><td>Finance has suspended account access pending payment resolution.</td><td>Health score floored at Critical (0–44) regardless of all other dimensions.</td></tr>
+  </table>
+  <div class="note">States are per-account, not per-invoice. An account with one overdue invoice is in Overdue state even if other invoices are current. State resolves to Current only when all outstanding invoices are paid.</div>
+</div>
+
+<!-- ── RETRY LOGIC ────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Retry logic</div>
+  <table>
+    <tr><th>Attempt</th><th>Timing</th><th>Escalation</th></tr>
+    <tr><td>Initial payment attempt</td><td>On invoice due date</td><td>None on success. Failure triggers Retry 1.</td></tr>
+    <tr><td>Retry 1</td><td>10–20 minutes after initial failure</td><td>Finance notified. Payment status → Overdue. No AM notification yet.</td></tr>
+    <tr><td>Retry 2</td><td>Next business day</td><td>Finance notified (updated status). No AM notification yet.</td></tr>
+    <tr><td>Retry 3</td><td>Following business day (2 business days after initial failure)</td><td>Finance + AM notified simultaneously on failure. Payment status → Failed.</td></tr>
+    <tr><td>Post-retry (Failed)</td><td>No further automatic retries</td><td>Finance owns manual collection process. SLM notified. AM has visibility.</td></tr>
+    <tr><td>Suspended</td><td>Finance-initiated — no automatic trigger</td><td>Finance + AM + SLM notified. AGT-501 modifier → floor at Critical.</td></tr>
+  </table>
+  <div class="note">Retry 1 uses the same payment method as the initial attempt. Retries 2 and 3 may use an alternate payment method if one exists on file — Finance can configure fallback payment methods per account.</div>
+</div>
+
+<!-- ── ESCALATION CHAIN ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Escalation chain</div>
+  <table>
+    <tr><th>Event</th><th>Finance</th><th>AM</th><th>SLM</th></tr>
+    <tr><td>Retry 1 failure</td><td>✓ Notified</td><td>—</td><td>—</td></tr>
+    <tr><td>Retry 2 failure</td><td>✓ Updated</td><td>—</td><td>—</td></tr>
+    <tr><td>Retry 3 failure (→ Failed)</td><td>✓ Notified</td><td>✓ Simultaneous</td><td>—</td></tr>
+    <tr><td>Suspended</td><td>✓ Notified</td><td>✓ Simultaneous</td><td>✓ Simultaneous</td></tr>
+  </table>
+  <div class="note">Finance is always the first notified. AM involvement begins at Failed status — the relationship owner needs to know before the customer realizes access may be affected. AGT-501 modifier fires immediately on status change, meaning the account's health score adjusts before the AM's first notification arrives.</div>
+</div>
+
+<!-- ── AGT-501 FEED ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">AGT-501 integration</div>
+  <p class="prose">AGT-803 writes <code>payment_health_status</code> to <code>CustomerHealthLog</code> on every status change. This is a non-blocking read-only feed — if AGT-803 is not live, AGT-501 skips the payment modifier and scores on the 7 behavioral dimensions alone. When live, AGT-501 applies the modifier last in its scoring sequence (after all dimension scores are computed) so the cap/floor is visible as a distinct adjustment in the log.</p>
+</div>
+
+<div class="footer">
+  AGT-803 Payment Health Monitor · Layer 8 · Finance-owned · Schema v25<br>
+  New tables: PaymentEventLog<br>
+  Triggered by: InvoiceLog.due_date (payment attempt), payment failure events from billing system<br>
+  Reads from: InvoiceLog (AGT-802), Accounts (payment method on file)<br>
+  Writes to: PaymentEventLog, CustomerHealthLog.payment_health_status (AGT-501 feed)<br>
+  Feeds: AGT-501 Customer Health Monitor (payment_health_status modifier — cap/floor model)
+</div>
+</body>
+</html>

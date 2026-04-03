@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-302 — Cadence Coordinator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-ripple{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.wire-box{background:#E6F1FB;border:1px solid #85B7EB;color:#0C447C;font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-bottom:10px}
+.gate-block{border:1px solid #e4e4e4;border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.gate-num{font-size:11px;font-weight:700;color:#0D1B2A;margin-bottom:4px}
+.gate-body{font-size:12px;color:#333;line-height:1.6}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-302 — Cadence Coordinator</h1>
+<div class="subtitle">Layer 3: Outreach &amp; Cadence · Real-time orchestration · Single source of truth for all active cadences · Compliance gatekeeper</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L3 · Agent 02</span>
+  <span class="badge badge-status">Specced · v18 original + v22 wire update</span>
+  <span class="badge badge-ripple">L2 ripple wired: ABM backstop check + suppressed_reason write</span>
+</div>
+
+<!-- ── L2 WIRE ITEM ────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">L2 wire item (v22)</div>
+
+  <div class="wire-box">
+    <strong>Wire 3 — ABM backstop check added to coordination gate</strong><br>
+    AGT-302 is the single orchestration point for all cadence activation. The ABM suppression gate in AGT-304 (Marketing Nurture) handles the primary exclusion, but AGT-302 adds a coordination backstop to ensure no nurture-type sequence is activated for an ABM-active account through any path.<br><br>
+    <strong>When AGT-302 receives a sequence activation request:</strong><br>
+    &nbsp;· If <code>sequence_type = 'nurture'</code> AND <code>Accounts.abm_active = TRUE</code>:<br>
+    &nbsp;&nbsp;&nbsp;→ Block activation<br>
+    &nbsp;&nbsp;&nbsp;→ Write <code>CadenceEventLog.suppressed_reason = 'abm_active_suppression'</code><br>
+    &nbsp;&nbsp;&nbsp;→ Log event_type = 'suppressed' in CadenceEventLog<br>
+    &nbsp;&nbsp;&nbsp;→ Notify originating agent (AGT-304) of suppression<br>
+    &nbsp;· All other sequence types: no ABM check applied here — ABM only modifies nurture behavior<br><br>
+    <strong>Why a backstop?</strong> AGT-304 is the primary gate but AGT-302 has no visibility into whether future sequence routing paths might bypass AGT-304 (e.g. a marketing automation trigger sending a nurture-type sequence directly). The backstop ensures the OS-level constraint holds regardless of origination path. The suppressed_reason field makes the block traceable in AGT-303 cadence intelligence analysis.
+  </div>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-302 is the single source of truth for all active cadences in the OS. Every sequence activation, step execution, transition, and termination is registered here. It enforces the 3-touch-per-week cap system-wide (non-transactional cadences only), resolves conflicts between concurrent agent sequences, and owns compliance — unsubscribe and opt-out propagation is AGT-302's responsibility. AGT-301 drafts and queues; AGT-302 executes and governs.</p>
+</div>
+
+<!-- ── EXECUTION ORDER ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Coordination gate — execution order</div>
+  <p class="prose" style="margin-bottom:12px">Every sequence activation request passes through these gates in order. A block at any gate prevents execution and logs the reason.</p>
+
+  <div class="gate-block">
+    <div class="gate-num">Gate 1 — Compliance check (always first)</div>
+    <div class="gate-body">Read <code>Leads.unsubscribe_flag</code> and <code>opt_out_flag</code>. If either is TRUE: hard block. No sequence type bypasses this. Log <code>suppressed_reason = 'compliance_block'</code>.</div>
+  </div>
+
+  <div class="gate-block">
+    <div class="gate-num">Gate 2 — ABM nurture backstop (new — v22)</div>
+    <div class="gate-body">If <code>sequence_type = 'nurture'</code> AND <code>Accounts.abm_active = TRUE</code>: block activation. Log <code>suppressed_reason = 'abm_active_suppression'</code>. Notify originating agent.</div>
+  </div>
+
+  <div class="gate-block">
+    <div class="gate-num">Gate 3 — Touch cap check</div>
+    <div class="gate-body">Count non-transactional touches to this prospect in the rolling 7-day window from CadenceEventLog. If count ≥ 3: hold step in queue, do not send. AGT-302 automatically dequeues and sends when the window clears. Log <code>suppressed_reason = 'touch_cap_exceeded'</code> on the held event.</div>
+  </div>
+
+  <div class="gate-block">
+    <div class="gate-num">Gate 4 — Concurrency check + conflict resolution</div>
+    <div class="gate-body">Check for active sequences on this prospect across all agents. If concurrent sequences detected, apply conflict resolution matrix (see below). If conflict resolved by queuing: log <code>suppressed_reason = 'conflict_resolved_queued'</code> on the deferred event.</div>
+  </div>
+
+  <div class="gate-block">
+    <div class="gate-num">Gate 5 — State transition validation + execution</div>
+    <div class="gate-body">Validate that the requested sequence type is a legal transition from current state. Execute if valid. Write CadenceEventLog record. Notify rep and/or auto-send per AGT-301 send rules.</div>
+  </div>
+</div>
+
+<!-- ── CONFLICT RESOLUTION ────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Conflict resolution matrix</div>
+  <p class="prose" style="margin-bottom:10px">When two agents want to contact the same prospect simultaneously, AGT-302 resolves autonomously based on ICP tier and signal recency.</p>
+  <table>
+    <tr><th>ICP Tier</th><th>Signal recency</th><th>Resolution</th></tr>
+    <tr><td>T1</td><td>Sales signal fresher</td><td>Sales cadence wins. Marketing queued.</td></tr>
+    <tr><td>T1</td><td>Marketing signal fresher</td><td>Sales cadence still wins. T1 always favors sales — cost of missed outreach window exceeds delayed marketing touch.</td></tr>
+    <tr><td>T2</td><td>Sales signal fresher</td><td>Sales cadence wins. Marketing queued 48 hrs.</td></tr>
+    <tr><td>T2</td><td>Marketing signal fresher</td><td>Marketing continues. Sales queued 48 hrs.</td></tr>
+    <tr><td>T3</td><td>Any</td><td>Marketing always wins. Sales should never be active for T3 — flag as routing error to AGT-202.</td></tr>
+  </table>
+</div>
+
+<!-- ── PROACTIVE FLAGS ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Proactive flags (scheduled checks)</div>
+  <table>
+    <tr><th>Condition</th><th>Flag</th><th>Action</th></tr>
+    <tr><td>Touch cap about to be breached (1 touch remaining this week)</td><td>Cap warning</td><td>Notify rep before hard stop fires. No autonomous action.</td></tr>
+    <tr><td>Prospect in sales AND marketing cadence simultaneously</td><td>Concurrency flag</td><td>Conflict resolution matrix applied immediately.</td></tr>
+    <tr><td>Cadence stalled — no activity logged for 7+ days</td><td>Stall flag</td><td>Notify rep. If no action in 3 business days, pass to AGT-303 for analysis recommendation.</td></tr>
+    <tr><td>Rep has 10+ prospects in paused state</td><td>Backlog risk</td><td>Notify rep and manager. AGT-303 analyzes whether automated resolution is appropriate.</td></tr>
+  </table>
+</div>
+
+<!-- ── SCHEMA WRITES ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema writes</div>
+  <table>
+    <tr><th>Table</th><th>Field</th><th>When written</th></tr>
+    <tr><td><code>CadenceEventLog</code></td><td><code>suppressed_reason</code></td><td>On any gate block: abm_active_suppression / touch_cap_exceeded / compliance_block / conflict_resolved_queued. NULL when no suppression. (v22)</td></tr>
+    <tr><td><code>CadenceEventLog</code></td><td>All standard event fields</td><td>Per-step: event_type, coordinator_action, resolution, touch_cap_at_event, compliance_status, timestamp.</td></tr>
+    <tr><td><code>Leads</code></td><td>Cadence status fields</td><td>Active sequence ID, current step, last touch timestamp, unsubscribe/opt-out propagation.</td></tr>
+  </table>
+  <div class="note">AGT-302 is the only agent that writes <code>suppressed_reason</code>. AGT-304 logs suppression in NurtureRecommendations (its own write surface) — AGT-302 logs it in CadenceEventLog so AGT-303 has a unified suppression audit trail across all sequence types.</div>
+</div>
+
+<div class="footer">
+  AGT-302 Cadence Coordinator · Layer 3 · Schema v18 (original spec) + v22 (ABM backstop wire)<br>
+  v22 addition to CadenceEventLog: suppressed_reason (ABM backstop + all gate blocks)<br>
+  Reads from: CadenceEventLog (active sequence state), Accounts (abm_active — Gate 2), Leads (compliance flags — Gate 1), AccountPriorityScore (via AGT-301 sequence registration payload)<br>
+  Coordinates with: AGT-301 (sequence activation requests), AGT-303 (stall flags + analysis), AGT-304 (nurture suppression — primary gate; AGT-302 is backstop)<br>
+  Touch cap: 3 non-transactional touches per prospect per rolling 7-day window. Transactional comms (AGT-504) exempt.
+</div>
+
+</body>
+</html>

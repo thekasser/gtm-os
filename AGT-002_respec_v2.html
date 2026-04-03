@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-002 Lead Router v2.0</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:860px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.bu{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.db{background:#185FA5}.dt{background:#0F6E56}.da{background:#854F0B}.dp{background:#534AB7}.dr{background:#A32D2D}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.cascade{display:flex;flex-direction:column;gap:0}
+.step{display:flex;gap:0;align-items:stretch}
+.snum{width:34px;flex-shrink:0;display:flex;flex-direction:column;align-items:center}
+.scircle{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:9px}
+.sline{width:1px;background:#e0e0e0;flex:1;margin:0 auto}
+.sbody{flex:1;padding:8px 0 10px 8px;border-bottom:1px solid #f0f0f0}
+.step:last-child .sbody{border-bottom:none}
+.stitle{font-size:12px;font-weight:600;color:#111;margin-bottom:2px}
+.sdetail{font-size:11px;color:#555;line-height:1.55;margin-bottom:3px}
+.action{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-right:4px;margin-top:2px}
+.ar{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.af{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.ah{background:#FCEBEB;color:#791F1F;border:1px solid #F09595}
+.ae{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.at{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.cn-gray{background:#F1EFE8;color:#5F5E5A;border:1px solid #B4B2A9}
+.cn-blue{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.cn-teal{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.cn-amber{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.cn-purple{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.cn-red{background:#FCEBEB;color:#791F1F;border:1px solid #F09595}
+.dp2{font-size:10px;padding:1px 6px;border-radius:8px;background:#FAEEDA;color:#633806;border:1px solid #EF9F27;margin-left:6px;vertical-align:middle}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tr{font-size:10px;padding:1px 6px;border-radius:8px;background:#F1EFE8;color:#5F5E5A;border:1px solid #B4B2A9;white-space:nowrap}
+.tu{font-size:10px;padding:1px 6px;border-radius:8px;background:#FAEEDA;color:#633806;border:1px solid #EF9F27;white-space:nowrap}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}
+.dep-row:last-child{border-bottom:none}
+.da2{min-width:170px;font-weight:600;color:#111}
+.dd{font-size:11px;padding:2px 8px;border-radius:8px;font-weight:600}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.up{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-002 — Lead router <span style="font-size:13px;font-weight:400;color:#888">v2.0</span></h1>
+<div class="hsub">Layer 2 · ICP & lead management · Event-triggered · Full orchestration</div>
+<div class="badges">
+  <span class="badge bv">v2.0 re-specced</span>
+  <span class="badge bl">Layer 2</span>
+  <span class="badge bu">TerritoryDefinitions integration</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">What changed from v1.0</div>
+  <div class="card">
+    <div class="phi"><div class="dot da"></div><div class="pt"><strong>Routing authority source changed.</strong> RepBook is no longer the routing lookup. TerritoryDefinitions (AGT-106) is authoritative. RepBook remains operational context but AGT-002 reads rules from TerritoryDefinitions.</div></div>
+    <div class="phi"><div class="dot da"></div><div class="pt"><strong>routing_eligible gate added.</strong> Every assignment checks TerritoryDefinitions.routing_eligible. Ineligible rep → named_account_hold (named accounts) or next-priority match (rules-based).</div></div>
+    <div class="phi"><div class="dot da"></div><div class="pt"><strong>Motion gate inserted before tier gate.</strong> PLG and inbound signals bypass SDR entirely, route directly to AE regardless of ICP tier. SDRs are purely outbound — hard rule, not a preference.</div></div>
+    <div class="phi"><div class="dot da"></div><div class="pt"><strong>Vertical preference tier added (P2).</strong> Rules-based AE routing checks segment + geo + vertical before falling back to segment + geo only. TerritoryDefinitions.vertical_primary drives priority 2.</div></div>
+    <div class="phi"><div class="dot da"></div><div class="pt"><strong>Workload imbalance threshold specified.</strong> Flag when rep's lead share exceeds 1.5 standard deviations above the segment mean in a rolling 30-day window.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Core philosophy — unchanged</div>
+  <div class="card">
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>No lead is ever permanently unassigned.</strong> Every unresolvable scenario has a deterministic fallback: segment manager → round robin any active rep.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Territory ownership is the first constraint.</strong> Named account = route to owning rep. Rules-based territory = route within matching pool.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Duplicates enrich, never create parallel pipeline.</strong> New contact or signal is added to existing record. No new opportunity without rep intervention.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Workload imbalance flags, never blocks.</strong> Statistical threshold triggers RevOps notification. Assignment proceeds.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Routing cascade</div>
+  <div class="cascade">
+
+    <div class="step">
+      <div class="snum"><div class="scircle cn-gray">R0</div><div class="sline"></div></div>
+      <div class="sbody">
+        <div class="stitle">ICP score gate</div>
+        <div class="sdetail">icp_score missing → trigger AGT-001 synchronously. Block until score returned.</div>
+        <span class="action at">triggers AGT-001</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum"><div class="scircle cn-gray">R1</div><div class="sline"></div></div>
+      <div class="sbody">
+        <div class="stitle">Duplicate check</div>
+        <div class="sdetail">account_id has open Opportunity or prior Lead → enrich existing record. routing_action = enriched_existing. Notify assigned rep. No new pipeline.</div>
+        <span class="action ae">enrich existing — stop cascade</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum"><div class="scircle cn-purple">R2</div><div class="sline"></div></div>
+      <div class="sbody">
+        <div class="stitle">Motion gate <span class="dp2">new v2</span></div>
+        <div class="sdetail">gtm_motion = PLG or inbound → bypass SDR, proceed to territory lookup for AE. Apply tier SLA (motion does not change urgency). Sales-led/outbound → apply standard tier-based rep type below.</div>
+        <span class="action ar">PLG/inbound → AE direct</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum"><div class="scircle cn-gray">R3</div><div class="sline"></div></div>
+      <div class="sbody">
+        <div class="stitle">Rep type by ICP tier (sales-led only)</div>
+        <div class="sdetail">T1 → AE. T2 → SDR sequence. T3 → Marketing nurture (AGT-006), no AE or SDR.</div>
+        <span class="action ar">tier → rep type</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum"><div class="scircle cn-teal">R4</div><div class="sline"></div></div>
+      <div class="sbody">
+        <div class="stitle">P1 — Named account match <span class="dp2">updated v2</span></div>
+        <div class="sdetail">TerritoryDefinitions: assignment_mode = named AND named_account_id = account_id. routing_eligible = TRUE → assign to named rep. routing_eligible = FALSE → assign to segment manager, named_account_hold = TRUE. Rep reclaims when routing_eligible resets.</div>
+        <span class="action ar">eligible → named rep</span>
+        <span class="action ah">ineligible → hold + mgr</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum"><div class="scircle cn-blue">R5</div><div class="sline"></div></div>
+      <div class="sbody">
+        <div class="stitle">P2 — Segment + geo + vertical match <span class="dp2">new v2</span></div>
+        <div class="sdetail">Rules-based reps: segment match AND geo match AND (vertical_primary OR vertical_secondary = account.industry) AND routing_eligible = TRUE. Multiple matches → lowest rolling 30-day lead share.</div>
+        <span class="action ar">vertical preferred</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum"><div class="scircle cn-blue">R6</div><div class="sline"></div></div>
+      <div class="sbody">
+        <div class="stitle">P3 — Segment + geo match (no vertical)</div>
+        <div class="sdetail">No vertical match or all vertical-matched reps ineligible. Segment + geo match AND routing_eligible = TRUE. Log geo_fallback flag.</div>
+        <span class="action ar">geo fallback</span>
+        <span class="action af">log geo_fallback</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum"><div class="scircle cn-amber">R7</div><div class="sline"></div></div>
+      <div class="sbody">
+        <div class="stitle">P4 — All matched reps routing_eligible = FALSE</div>
+        <div class="sdetail">All segment+geo reps at capacity. Assign to segment manager. Flag RevOps: capacity constraint. If segment manager breaches SLA → auto-reassign round robin to any active rep in segment.</div>
+        <span class="action ah">capacity fallback → segment mgr</span>
+        <span class="action af">flag RevOps</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum"><div class="scircle cn-red">R8</div><div class="sline"></div></div>
+      <div class="sbody">
+        <div class="stitle">No pool exists for segment</div>
+        <div class="sdetail">No TerritoryDefinitions rows match segment. Structural gap. Assign to segment manager. Flag RevOps: routing_structural_gap.</div>
+        <span class="action ah">segment manager</span>
+        <span class="action af">structural gap → RevOps</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum"><div class="scircle cn-gray" style="margin-top:9px">R9</div></div>
+      <div class="sbody" style="border-bottom:none">
+        <div class="stitle">Workload imbalance check (non-blocking)</div>
+        <div class="sdetail">Rep's rolling 30-day lead share > segment_mean + 1.5 × segment_std → workload_flag = TRUE. Notify RevOps. Assignment stands.</div>
+        <span class="action af">statistical flag — non-blocking</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">SLA assignment</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>ICP tier</th><th>SLA</th><th>Standard rep type</th><th>PLG/inbound override</th></tr></thead>
+      <tbody>
+        <tr><td>T1 (≥80)</td><td>2 hours</td><td>AE</td><td>AE direct (same SLA)</td></tr>
+        <tr><td>T2 (60–79)</td><td>24 hours</td><td>SDR sequence</td><td>AE direct (T2 SLA — 24hrs)</td></tr>
+        <tr style="border-bottom:none"><td>T3 (&lt;60)</td><td>72 hours</td><td>Marketing nurture</td><td>AE direct (T3 SLA — 72hrs)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:5px">Motion changes rep type. Motion does not change SLA urgency.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema changes</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Change</th><th>Fields</th></tr></thead>
+      <tbody>
+        <tr><td><strong>TerritoryDefinitions</strong></td><td><span class="tr">reads</span></td><td class="mono">assignment_mode, named_account_id, segment, geo, vertical_primary, vertical_secondary, routing_eligible</td></tr>
+        <tr><td><strong>Leads</strong></td><td><span class="tu">extended</span></td><td class="mono">Add: gtm_motion_at_routing, routing_rule_applied (R0–R9), named_account_hold (bool), vertical_match (bool), workload_flag (bool)</td></tr>
+        <tr style="border-bottom:none"><td><strong>RepBook</strong></td><td><span class="tr">reads</span></td><td class="mono">Operational context only. No longer routing authority.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da2">TerritoryDefinitions</span><span class="dd reads">reads</span><span class="dd2">Primary routing authority. Set by AGT-106 daily.</span></div>
+    <div class="dep-row"><span class="da2">AGT-001 ICP Scorer</span><span class="dd trig">triggers</span><span class="dd2">Triggered synchronously if icp_score missing.</span></div>
+    <div class="dep-row"><span class="da2">Accounts</span><span class="dd reads">reads</span><span class="dd2">icp_score, icp_tier, gtm_motion, industry, segment.</span></div>
+    <div class="dep-row"><span class="da2">Opportunities</span><span class="dd reads">reads</span><span class="dd2">Duplicate check — open opps for account_id.</span></div>
+    <div class="dep-row"><span class="da2">Leads</span><span class="dd writes">writes</span><span class="dd2">routing_action, assigned rep, sla_deadline, all routing flags.</span></div>
+    <div class="dep-row"><span class="da2">AGT-003 Outreach</span><span class="dd trig">triggers</span><span class="dd2">Fires post-routing. Passes gtm_motion, icp_tier, vertical.</span></div>
+    <div class="dep-row"><span class="da2">AGT-006 Nurture</span><span class="dd trig">triggers</span><span class="dd2">T3 leads routed to nurture track.</span></div>
+    <div class="dep-row"><span class="da2">AGT-106 Territory</span><span class="dd up">upstream</span><span class="dd2">Writes TerritoryDefinitions. AGT-002 is a downstream consumer.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-002, the Lead Router for a B2B SaaS GTM OS.
+
+ROLE: Full orchestration — route, assign, set SLA, notify rep, update lead status.
+AUTHORITY SOURCE: TerritoryDefinitions. RepBook is operational context only.
+PHILOSOPHY: No lead is ever permanently unassigned. Every scenario resolves deterministically.
+
+R0 — ICP GATE: icp_score NULL → trigger AGT-001 synchronously. Block until returned.
+
+R1 — DUPLICATE CHECK: account_id has open Opportunity OR prior Lead →
+  routing_action = 'enriched_existing'. Enrich record. Notify assigned rep. Stop.
+
+R2 — MOTION GATE: gtm_motion IN ('plg','inbound','product_led') →
+  bypass SDR. Proceed to territory lookup for AE. Apply tier SLA (not motion SLA).
+
+R3 — REP TYPE (sales-led only): T1→AE, T2→SDR, T3→nurture (AGT-006).
+
+R4 — P1 NAMED: TerritoryDefinitions assignment_mode='named' AND named_account_id=account_id.
+  routing_eligible=TRUE → assign named rep.
+  routing_eligible=FALSE → segment_manager + named_account_hold=TRUE.
+
+R5 — P2 VERTICAL: rules_based reps, segment+geo+vertical match, routing_eligible=TRUE.
+  Tie-break: lowest rolling_30d_lead_share.
+
+R6 — P3 GEO FALLBACK: segment+geo match, routing_eligible=TRUE.
+  Log vertical_match=FALSE, routing_flag='geo_fallback'.
+
+R7 — P4 ALL INELIGIBLE: all segment+geo reps routing_eligible=FALSE →
+  segment_manager. Flag RevOps. SLA breach → round robin any active rep.
+
+R8 — NO POOL: no TerritoryDefinitions rows for segment →
+  segment_manager. Flag RevOps: routing_structural_gap.
+
+R9 — WORKLOAD (non-blocking): rep lead_share > mean + 1.5×std (30-day) →
+  workload_flag=TRUE. Notify RevOps. Assignment stands.
+
+FINALIZE: Set routing_rule_applied, sla_deadline, gtm_motion_at_routing,
+  assignment_reason. Notify rep. Trigger AGT-003 (icp_tier, gtm_motion, vertical).</pre>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-107 — Quota Plan Document Agent</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-schema{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-amber{background:#FAEEDA;border:1px solid #EF9F27;color:#633806;font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-top:8px}
+.alert-green{background:#E1F5EE;border:1px solid #5DCAA5;color:#085041;font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-top:8px}
+.decision-block{border:1px solid #e4e4e4;border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.decision-title{font-size:12px;font-weight:700;color:#0D1B2A;margin-bottom:6px}
+.decision-body{font-size:12px;color:#333;line-height:1.6}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-107 — Quota Plan Document Agent</h1>
+<div class="subtitle">Layer 1: Sales Planning &amp; Compensation · Legally deployable plan document generation · E-signature gate · Three output formats</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L1 · Agent 07</span>
+  <span class="badge badge-status">Specced · v23</span>
+  <span class="badge badge-schema">Schema adds: QuotaPlanDocLog</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-107 generates legally deployable quota plan documents from AGT-101 and AGT-102 approved outputs. It is a document execution agent — not a planning agent. It never sets quota, never designs comp plans, and never modifies plan terms. Its job begins when human approvals are complete and ends when the rep has e-signed the document. Plan is not legally active until e-signature is received. AGT-104 audits signature completeness as part of its plan approval gate control.</p>
+</div>
+
+<!-- ── TRIGGERS ────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Triggers</div>
+  <table>
+    <tr><th>Trigger</th><th>Source</th><th>Document type produced</th></tr>
+    <tr><td><strong>AGT-102 comp plan final approval</strong></td><td>CompPlans.approval_status transitions to <code>approved</code></td><td>Full quota plan document. Primary annual trigger — fires for all reps in the approved plan cohort.</td></tr>
+    <tr><td><strong>New rep hire</strong></td><td>HiringPlan record created + start date within 30 days</td><td>Full quota plan document with ramp schedule prominently displayed. Uses the approved comp plan for the rep's role + segment + start date cohort.</td></tr>
+    <tr><td><strong>Mid-year amendment</strong></td><td>AGT-104 ExceptionLog record with <code>exception_type = 'quota_amendment'</code></td><td>Full reissue or addendum — RevOps selects from agent recommendation (see amendment logic below).</td></tr>
+  </table>
+  <div class="note">AGT-107 does not fire on rep request. If a rep needs a copy of their current plan, that is a retrieval from QuotaPlanDocLog, not a new generation event. The structured data payload output handles downstream retrieval.</div>
+</div>
+
+<!-- ── DOCUMENT CONTENTS ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Document contents</div>
+  <p class="prose" style="margin-bottom:12px">Contents are assembled from approved L1 schema records — no manual entry. Every field in the document is traceable to a source table record.</p>
+  <table>
+    <tr><th>Section</th><th>Content</th><th>Source table</th></tr>
+    <tr><td><strong>1. Plan identification</strong></td><td>Plan ID, effective date, plan period, rep name + role + segment, manager, version number</td><td><code>CompPlans</code>, <code>QuotaStore</code></td></tr>
+    <tr><td><strong>2. Quota targets</strong></td><td>Annual quota. Quarterly breakdowns. Monthly breakdowns where applicable (configurable per segment — SMB defaults to monthly, MM/Enterprise to quarterly). All expressed in revenue, not ARR.</td><td><code>QuotaStore</code> — quota_amount by period + segment + role</td></tr>
+    <tr><td><strong>3. Ramp schedule</strong></td><td>Deployed quota % by month-in-seat (25% → 50% → 75% → 100%). Applied quota target per ramp month. Only included for reps in ramp cohort — omitted for fully ramped reps.</td><td><code>RampSchedules</code> — role + month-in-seat → deployed %</td></tr>
+    <tr><td><strong>4. Payout curve</strong></td><td>Attainment tiers and corresponding payout multipliers. Gate thresholds (below which variable pays $0). Accelerator rates above 100% attainment. Quadratic usage curve parameters if applicable.</td><td><code>CompPlans</code> — payout curve fields</td></tr>
+    <tr><td><strong>5. Kickers &amp; accelerators</strong></td><td>Named kicker programs (e.g. new logo kicker, enterprise kicker). Qualifying criteria, payout terms, expiry. Accelerator rates and attainment thresholds. Excludes SPIFs — those are separate short-term documents.</td><td><code>Kickers</code>, <code>CompPlans</code> — accelerator fields</td></tr>
+    <tr><td><strong>6. Draw terms</strong></td><td>Draw type (recoverable / non-recoverable), draw amount per period, recovery schedule, maximum draw duration. <em>Section omitted entirely if rep has no draw on their plan.</em></td><td><code>CompPlans</code> — draw fields; <code>DrawLedger</code> — if active draw exists</td></tr>
+    <tr><td><strong>7. Territory / account assignment</strong></td><td>Named account list for AM/CSM/Enterprise AE. Rules-based territory definition (segment × geo × vertical) for SMB/MM AE. Effective date of territory assignment.</td><td><code>TerritoryDefinitions</code>, <code>TerritoryAssignmentLog</code></td></tr>
+    <tr><td><strong>8. Plan governance</strong></td><td>Amendment process summary (how quota changes are initiated). Clawback policy reference. SPIFs excluded notice. Effective date and expiry.</td><td>Static legal language + CompPlans.effective_date</td></tr>
+  </table>
+  <div class="note">OTE split (base vs variable) is deliberately excluded. OTE is governed by offer letter and HR systems, not the quota plan document. Including it would create a conflicting legal artifact.</div>
+</div>
+
+<!-- ── OUTPUT FORMATS ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output formats (all three produced on every generation)</div>
+  <table>
+    <tr><th>Format</th><th>Purpose</th><th>Details</th></tr>
+    <tr><td><strong>HTML (URL-based)</strong></td><td>Rep-facing view and e-signature surface</td><td>Hosted at a unique per-rep URL. Read-only — no editing. E-signature button embedded. URL deactivates after signature is collected or plan is superseded. Same pattern as AGT-406 quote URL.</td></tr>
+    <tr><td><strong>PDF</strong></td><td>Legal record</td><td>Generated at signature time (not at document generation time) — PDF reflects the signed state, not a draft. Stored in QuotaPlanDocLog with signed_at timestamp. Accessible to rep, manager, HR, and RevOps.</td></tr>
+    <tr><td><strong>Structured data payload</strong></td><td>Downstream system consumption</td><td>JSON record of all plan fields. Enables HRIS, payroll, and any future system to consume plan terms without parsing the PDF. Written to QuotaPlanDocLog at generation time. Does not contain signature status — that is a separate field updated on signature receipt.</td></tr>
+  </table>
+</div>
+
+<!-- ── E-SIGNATURE GATE ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">E-signature gate</div>
+  <p class="prose" style="margin-bottom:10px">Plan is not legally active until e-signature is received. AGT-104 monitors signature completeness as part of its plan approval gate control.</p>
+  <table>
+    <tr><th>State</th><th>Plan status</th><th>Comp behavior</th></tr>
+    <tr><td>Document generated, not yet signed</td><td><code>pending_signature</code></td><td>AGT-103 can compute attainment but AGT-104 flags payout as held pending signature. No payout released.</td></tr>
+    <tr><td>E-signature received</td><td><code>active</code></td><td>Plan active. AGT-104 clears signature hold. AGT-103 payout proceeds normally.</td></tr>
+    <tr><td>Signature not received within 5 business days</td><td><code>overdue_signature</code></td><td>Manager notified. HR notified. AGT-104 flags in CompAuditLog. Payout continues to be held.</td></tr>
+    <tr><td>Plan superseded (amendment or reissue)</td><td><code>superseded</code></td><td>Prior plan URL deactivated. PDF archived in QuotaPlanDocLog. New plan enters pending_signature state.</td></tr>
+  </table>
+  <div class="alert-amber">E-signature integration (DocuSign or equivalent) is a v1 hook — the field model and state machine are specced now; the API integration is wired in the live deployment. In pre-integration operation, HR manually marks signature_received = TRUE in QuotaPlanDocLog and AGT-104 reads that field.</div>
+</div>
+
+<!-- ── AMENDMENT LOGIC ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Mid-year amendment logic</div>
+  <p class="prose" style="margin-bottom:10px">When AGT-104 exception path fires a quota amendment, AGT-107 evaluates the change scope and recommends a format. RevOps makes the final call before the document is generated.</p>
+
+  <div class="decision-block">
+    <div class="decision-title">Agent recommendation: Addendum</div>
+    <div class="decision-body">Recommended when the amendment is quota-only — quota target changes but no structural plan terms change. Kickers, accelerators, draw terms, territory, and payout curve are all unchanged. Addendum is a short delta document: shows prior quota vs new quota, effective date of change, reason code from ExceptionLog, and RevOps approver. Attached to the original signed plan as an amendment exhibit. Original plan PDF is not replaced.</div>
+  </div>
+
+  <div class="decision-block">
+    <div class="decision-title">Agent recommendation: Full reissue</div>
+    <div class="decision-body">Recommended when structural plan terms change — new kicker program, territory reassignment, draw terms modification, payout curve change, or role change. Full reissue voids and archives the original plan, generates a complete new document with updated terms, and requires a new e-signature. Prior plan is marked <code>superseded</code> in QuotaPlanDocLog. Rep and manager notified of reissue requirement.</div>
+  </div>
+
+  <div class="alert-green">RevOps human selects addendum or full reissue from the agent recommendation before document generation begins. Agent never auto-selects. Selection is logged in QuotaPlanDocLog with the approver's ID and rationale. If RevOps overrides the recommendation, the override reason is logged.</div>
+
+  <div class="note">Recommendation is deterministic, not probabilistic. The criteria above are hard rules — if any structural term changed, the agent always recommends full reissue. RevOps may override (e.g. territory change was minor and agreed verbally) but must log the rationale.</div>
+</div>
+
+<!-- ── SCHEMA ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema additions (v23)</div>
+  <div class="subsection-title">QuotaPlanDocLog — net new table</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+    <tr><td><code>doc_id</code></td><td>PK</td><td>One row per document generation event</td></tr>
+    <tr><td><code>rep_id</code></td><td>FK → employee_crm_id</td><td>Rep the plan applies to</td></tr>
+    <tr><td><code>plan_id</code></td><td>FK → CompPlans</td><td>Source comp plan record</td></tr>
+    <tr><td><code>quota_store_id</code></td><td>FK → QuotaStore</td><td>Source quota record</td></tr>
+    <tr><td><code>trigger_type</code></td><td>enum</td><td>annual_approval / new_hire / amendment</td></tr>
+    <tr><td><code>doc_type</code></td><td>enum</td><td>full_plan / addendum / full_reissue</td></tr>
+    <tr><td><code>doc_version</code></td><td>integer</td><td>Increments on each generation for the same rep in the same plan year. v1 = original, v2 = first amendment, etc.</td></tr>
+    <tr><td><code>doc_status</code></td><td>enum</td><td>pending_signature / active / overdue_signature / superseded</td></tr>
+    <tr><td><code>html_url</code></td><td>string</td><td>Per-rep URL for HTML view. Deactivated on signature or supersession.</td></tr>
+    <tr><td><code>structured_payload</code></td><td>JSON</td><td>All plan fields as structured data. Generated at doc creation time.</td></tr>
+    <tr><td><code>pdf_url</code></td><td>string, nullable</td><td>Generated at signature time. NULL until signed.</td></tr>
+    <tr><td><code>generated_at</code></td><td>datetime</td><td>Document generation timestamp</td></tr>
+    <tr><td><code>signature_received</code></td><td>boolean</td><td>FALSE until e-signature confirmed. AGT-104 reads this field.</td></tr>
+    <tr><td><code>signed_at</code></td><td>datetime, nullable</td><td>E-signature timestamp. NULL until signed.</td></tr>
+    <tr><td><code>signature_overdue_notified</code></td><td>boolean</td><td>TRUE when 5-business-day alert has been sent</td></tr>
+    <tr><td><code>superseded_by_doc_id</code></td><td>FK → QuotaPlanDocLog, nullable</td><td>If this plan was superseded, points to the replacement doc_id</td></tr>
+    <tr><td><code>amendment_recommendation</code></td><td>enum, nullable</td><td>addendum / full_reissue. Agent recommendation — only set for amendment trigger_type.</td></tr>
+    <tr><td><code>amendment_selection</code></td><td>enum, nullable</td><td>RevOps final selection. May differ from recommendation.</td></tr>
+    <tr><td><code>amendment_selection_by</code></td><td>string, nullable</td><td>RevOps approver ID who made the selection</td></tr>
+    <tr><td><code>amendment_override_rationale</code></td><td>string, nullable</td><td>Required if amendment_selection differs from amendment_recommendation</td></tr>
+    <tr><td><code>exception_log_id</code></td><td>FK → ExceptionLog, nullable</td><td>Links amendment docs back to the AGT-104 exception that triggered them</td></tr>
+  </table>
+</div>
+
+<!-- ── AGT-104 INTEGRATION ────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">AGT-104 integration</div>
+  <p class="prose" style="margin-bottom:10px">AGT-107 creates a new dependency surface for AGT-104's plan approval gate control. Two existing AGT-104 controls now read from QuotaPlanDocLog:</p>
+  <table>
+    <tr><th>AGT-104 control</th><th>What it checks</th></tr>
+    <tr><td>Plan approval gate</td><td>QuotaPlanDocLog.doc_status = 'active' for all reps in the cohort before AGT-103 payouts are released. Reps with pending_signature are individually held, not the full cohort.</td></tr>
+    <tr><td>Signature completeness audit</td><td>QuotaPlanDocLog WHERE doc_status = 'overdue_signature' — flags in CompAuditLog, notifies manager and HR. AGT-104 does not hold payouts beyond the existing payout hold — it audits and escalates.</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  AGT-107 Quota Plan Document Agent · Layer 1 · Schema v23<br>
+  New table: QuotaPlanDocLog (22 fields)<br>
+  Reads from: CompPlans, QuotaStore, RampSchedules, Kickers, DrawLedger, TerritoryDefinitions, TerritoryAssignmentLog, HiringPlan, ExceptionLog (AGT-104)<br>
+  Writes to: QuotaPlanDocLog<br>
+  Feeds: AGT-104 (signature_received field — plan approval gate + signature completeness audit)<br>
+  E-signature integration: v1 hook (manual HR fallback). DocuSign or equivalent in live deployment.<br>
+  SPIFs excluded from plan document — separate short-term program documents outside AGT-107 scope.
+</div>
+
+</body>
+</html>

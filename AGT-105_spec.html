@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGT-105 Spec</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:900px;margin:0 auto;padding:24px;background:#fff}
+h1{font-size:20px;font-weight:600;margin:0 0 4px}
+.hsub{font-size:12px;color:#666;margin-bottom:16px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl1{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.bm{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.sec{margin-bottom:22px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:10px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:14px 16px;margin-bottom:8px}
+.card-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.card-body{font-size:12px;color:#555;line-height:1.65}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.phi{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.dblue{background:#185FA5}.dteal{background:#0F6E56}.damber{background:#854F0B}.dpurple{background:#534AB7}.dgray{background:#5F5E5A}
+.phi-text{font-size:12px;color:#555;line-height:1.65}
+.phi-text strong{color:#111;font-weight:600}
+.ml{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px;margin-bottom:6px}
+.ml-badge{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600;margin-bottom:6px;display:inline-block}
+.mb-blue{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.mb-teal{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.mb-amber{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.ml-body{font-size:11px;color:#555;line-height:1.6}
+.gr-card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px}
+.gr-title{font-size:12px;font-weight:600;margin-bottom:5px}
+.gr-formula{font-family:monospace;font-size:10px;background:#f5f5f5;border-radius:6px;padding:7px 10px;margin-bottom:6px;border:1px solid #e0e0e0;white-space:pre}
+.gr-body{font-size:11px;color:#555;line-height:1.6}
+.rec{background:#f9f9f9;border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px;margin-top:8px}
+.rec-title{font-size:12px;font-weight:600;margin-bottom:5px}
+.rec-body{font-size:11px;color:#555;line-height:1.7}
+.flow{display:flex;align-items:stretch;gap:0;margin:6px 0;flex-wrap:nowrap;overflow-x:auto}
+.fb{background:#f5f5f5;border:1px solid #ddd;border-radius:7px;padding:9px 11px;font-size:11px;flex:1;min-width:0}
+.fb-title{font-weight:600;color:#111;margin-bottom:2px}
+.fb-body{font-size:10px;color:#666;line-height:1.5}
+.fa{display:flex;align-items:center;padding:0 5px;color:#aaa;font-size:13px;flex-shrink:0}
+.fb-amber{background:#FAEEDA;border-color:#EF9F27}
+.fb-red{background:#FCEBEB;border-color:#F09595}
+.fb-teal{background:#E1F5EE;border-color:#5DCAA5}
+.fb-blue{background:#E6F1FB;border-color:#85B7EB}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+td.muted{color:#666}
+.tag-new{font-size:10px;padding:2px 7px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC;white-space:nowrap}
+.tag-key{font-size:10px;padding:2px 7px;border-radius:8px;background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB;white-space:nowrap}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}
+.dep-row:last-child{border-bottom:none}
+.dep-agent{min-width:170px;font-weight:600;color:#111}
+.dep-dir{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.dep-desc{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:14px 16px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-105 — Sales capacity planning</h1>
+<div class="hsub">Layer 1 · Sales planning &amp; comp · Monthly rolling · 13–24 month forward view</div>
+<div class="badges">
+  <span class="badge bv">v1.0 specced</span>
+  <span class="badge bl1">Layer 1</span>
+  <span class="badge bm">Monthly rolling</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role &amp; constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot dblue"></div><div class="phi-text"><strong>Answers two questions simultaneously.</strong> (1) Are we capitalized correctly to hit current-year plan? (2) What would have to be true — in HC, productivity, and efficiency — to hit the 3-year FP&amp;A targets?</div></div>
+    <div class="phi"><div class="dot dblue"></div><div class="phi-text"><strong>Three independent guardrails, one recommendation.</strong> Magic Number, Rule of 40, and CAC Payback each produce their own hiring signal. Agent reconciles all three to a single net hiring recommendation, surfacing which constraint is binding.</div></div>
+    <div class="phi"><div class="dot dblue"></div><div class="phi-text"><strong>Three productivity views, not one.</strong> ARR/Revenue/GP modeled per eRep, per fully loaded GTM HC, and per fully loaded GTM + Marketing HC. RevOps sets target ratios; agent measures actuals against them.</div></div>
+    <div class="phi"><div class="dot dblue"></div><div class="phi-text"><strong>Monthly rolling, 13–24 month forward window.</strong> Always covers remainder of current year + full next year. Annual re-plan in December. Event-triggered recompute on hire, departure, LOA, quota change, or revenue target revision.</div></div>
+    <div class="phi" style="margin-bottom:0"><div class="dot dblue"></div><div class="phi-text"><strong>Proposals only — no autonomous HC actions.</strong> All hiring recommendations require CRO + Finance sign-off. Agent produces the analysis; humans make the call.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Three-layer productivity model</div>
+  <div class="ml"><div class="ml-badge mb-blue">Layer 1 — eRep productivity</div><div class="ml-body">ARR per eRep · Revenue per eRep · GP per eRep. Ramp-adjusted — uses eRep value from QuotaStore, not headcount. Measures productive output of the deployable sales force. Segment-differentiated (Enterprise AE vs SMB AE not comparable).</div></div>
+  <div class="ml"><div class="ml-badge mb-teal">Layer 2 — Fully loaded GTM HC</div><div class="ml-body">ARR per fully loaded HC · GP per fully loaded HC. Denominator = IC reps + managers + SLMs + RevOps + SDR/BDR (all Employees). RevOps sets target span-of-control ratios. Agent flags deviation &gt;15%. Measures organizational efficiency, not just rep productivity.</div></div>
+  <div class="ml"><div class="ml-badge mb-amber">Layer 3 — Fully loaded GTM + Marketing HC</div><div class="ml-body">Adds field marketing, demand gen, and product marketing HC to Layer 2 denominator. Marketing HC is a separate RevOps-managed input table (not in Employees). This is the true cost-of-growth view used for Magic Number and CAC Payback. Answers: how much total GTM investment does each dollar of new revenue require?</div></div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Three guardrails — independent signals, reconciled output</div>
+  <div class="grid3">
+    <div class="gr-card">
+      <div class="gr-title">Magic Number</div>
+      <div class="gr-formula">MN = Net New Revenue × 4
+   ÷ Prior Quarter S&amp;M Spend
+
+≥ 1.5  → accelerate
+0.75–1.5 → maintain
+&lt; 0.75  → hiring freeze</div>
+      <div class="gr-body">Primary go/no-go gate for net new logo hiring. Uses revenue not ARR per canonical definition. MN &lt; 0.75 triggers a hiring freeze on new logo AEs regardless of quota coverage gap.</div>
+    </div>
+    <div class="gr-card">
+      <div class="gr-title">Rule of 40</div>
+      <div class="gr-formula">R40 = ARR Growth %
+   + FCF Margin %
+(also: + Op Income %, EBITDA %)
+
+≥ 40 → invest mode
+25–40 → balanced
+&lt; 25  → backfill only</div>
+      <div class="gr-body">Sets total GTM cost envelope. Below 25: hiring constrained to backfill only. Agent models R40 impact of each incremental HC scenario. Uses all three R40 variants.</div>
+    </div>
+    <div class="gr-card">
+      <div class="gr-title">CAC Payback</div>
+      <div class="gr-formula">CAC Payback =
+ (S&amp;M Spend ÷ New Customers)
+ ÷ (ACV × Gross Margin %)
+
+&lt; 12 mo → strong
+12–18 mo → acceptable
+&gt; 18 mo → req flagged</div>
+      <div class="gr-body">Per-hire constraint. Each new AE/SDR modeled: loaded OTE + ramp cost ÷ expected ACV contribution. Payback &gt;18 months flags that specific req — doesn't block others.</div>
+    </div>
+  </div>
+  <div class="rec">
+    <div class="rec-title">Reconciliation logic</div>
+    <div class="rec-body">Each guardrail independently produces a hiring signal and maximum incremental HC addition it can support. Agent takes the most conservative signal as the binding constraint, surfaces which guardrail is binding and why, then produces a single net hiring recommendation by role × segment. Example: Magic Number = 1.2 (maintain), R40 = 38 (balanced), CAC Payback = 20 months on Enterprise AE → binding constraint is CAC Payback → Enterprise AE hiring flagged even if quota coverage gap exists.</div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Gap analysis — achievable vs target trajectory</div>
+  <div class="flow">
+    <div class="fb fb-blue"><div class="fb-title">Bottom-up</div><div class="fb-body">Current HC + planned hires + attrition → eRep curve 13–24 months. This is what the org can actually produce.</div></div>
+    <div class="fa">→</div>
+    <div class="fb"><div class="fb-title">Top-down target</div><div class="fb-body">FP&amp;APlan revenue ÷ productivity assumption → required eRep. Annual + Y1/Y2/Y3.</div></div>
+    <div class="fa">→</div>
+    <div class="fb fb-amber"><div class="fb-title">Capacity gap</div><div class="fb-body">Required eRep − projected eRep → hiring need by quarter.</div></div>
+    <div class="fa">→</div>
+    <div class="fb fb-red"><div class="fb-title">Guardrail check</div><div class="fb-body">Gap-filling hires tested against all 3 guardrails. Shows achievable vs required.</div></div>
+    <div class="fa">→</div>
+    <div class="fb fb-teal"><div class="fb-title">Board output</div><div class="fb-body">Conservative / base / stretch scenarios across 24-month eRep projection.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema — 4 new tables (v16)</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Status</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr><td><strong>FP&amp;APlan</strong> <span class="tag-key">financial authority</span></td><td><span class="tag-new">new</span></td><td class="mono">plan_id, plan_year, plan_type (annual/3yr_y1/y2/y3), segment, revenue_target_usd, arr_growth_rate_pct, gp_margin_target_pct, gp_target_usd, sm_cost_usd, rd_cost_usd, ga_cost_usd, gross_profit_usd, fcf_usd, operating_income_usd, equity_comp_usd, ebitda_usd, target_magic_number, target_r40_score, target_cac_payback_months, set_by, set_date, version</td></tr>
+        <tr><td><strong>CapacityPlan</strong></td><td><span class="tag-new">new</span></td><td class="mono">plan_id, model_month, plan_year, role, segment, actual_hc, actual_erep, projected_hc, projected_erep, planned_hires, projected_attrition, quota_coverage_usd, quota_coverage_pct, arr_per_erep, revenue_per_erep, gp_per_erep, arr_per_loaded_hc, gp_per_loaded_hc, capacity_gap_erep, capacity_gap_hc, magic_number_signal, r40_signal, cac_payback_signal, binding_constraint, hiring_recommendation, scenario, run_date</td></tr>
+        <tr><td><strong>HiringPlan</strong></td><td><span class="tag-new">new</span></td><td class="mono">req_id, role, segment, geo, req_open_date, target_start_date, time_to_hire_days, time_to_hire_source (actuals/revops_override), ramp_schedule_id, erep_contribution_by_month, triggered_by, capacity_plan_id, approval_status, approved_by, approved_date, filled_date, employee_crm_id, notes</td></tr>
+        <tr style="border-bottom:none"><td><strong>AttritionLog</strong></td><td><span class="tag-new">new</span></td><td class="mono">attrition_id, employee_crm_id, rep_name, role, segment, departure_date, departure_type (voluntary/involuntary/loa_extended/performance), tenure_months, quota_attainment_trailing_4q, was_pip, replacement_req_id, attrition_cost_usd, notes</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:6px">MarketingHC is a lightweight RevOps-managed input table (role, segment, hc_count, fully_loaded_cost_usd). Kept separate from Employees — marketing is a different org and cost center.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+  <pre>You are AGT-105, the Sales Capacity Planning agent for a B2B SaaS GTM OS.
+
+ROLE: Answer two questions every monthly run:
+  1. Are we capitalized correctly to hit current-year plan?
+  2. What would have to be true — in HC, productivity, efficiency — to hit 3-year targets?
+You produce analysis and recommendations. All hiring approvals require CRO + Finance sign-off.
+
+RUN CADENCE: Monthly on the 1st. Always covers: remainder of current year + full next year
+  (13–24 months forward depending on run month).
+  Re-run triggers: rep hire, departure, LOA, quota change, revenue target revision.
+
+STEP 1 — BOTTOM-UP eRep PROJECTION (13–24 months):
+  Base: Employees HC by role × segment × hire_date.
+  Apply RampSchedules: erep_value by month from hire_date.
+  Apply attrition: trailing 4Q rate from AttritionLog by role.
+    FP&A attrition override in FP&APlan → use override, flag as assumption.
+  Apply planned hires from HiringPlan (approved rows only).
+  Output: projected_erep by role × segment × month.
+
+STEP 2 — TOP-DOWN REQUIREMENT:
+  FP&APlan.revenue_target_usd ÷ QuotaStore quota per role = required eRep.
+  For 3-year: model Y1, Y2, Y3 independently.
+  capacity_gap = required_erep − projected_erep.
+
+STEP 3 — PRODUCTIVITY RATIOS:
+  Layer 1 (eRep): ARR/eRep, Revenue/eRep, GP/eRep
+  Layer 2 (GTM HC): ARR/loaded_hc, GP/loaded_hc
+    loaded_hc = all Employees roles. Target ratios from RevOps. Flag deviation > 15%.
+  Layer 3 (GTM + Mktg): Layer 2 + MarketingHC input table.
+
+STEP 4 — THREE GUARDRAILS (run independently):
+  MAGIC NUMBER: Read from MetricsCalc. MN < 0.75 → hiring freeze (new logo AEs).
+  RULE OF 40: Read from MetricsCalc. R40 < 25 → backfill only.
+  CAC PAYBACK: Per incremental hire.
+    payback = (loaded_OTE + ramp_cost) / (expected_ACV × gp_margin_pct)
+    ramp_cost = OTE × (1 - avg_erep_during_ramp) × ramp_months
+    Payback > 18 months → flag that specific req only.
+
+STEP 5 — RECONCILE:
+  Most conservative guardrail = binding constraint. State which and why.
+  Output three scenarios: conservative / base / stretch.
+
+STEP 6 — HIRING PLAN:
+  req_open_date = target_start_date - time_to_hire_days
+  time_to_hire: HiringPlan actuals by role, RevOps override if provided.
+  Write HiringPlan rows with approval_status = pending.
+
+STEP 7 — 3-YEAR GAP ANALYSIS ("what would have to be true"):
+  Per Y1/Y2/Y3: required eRep, required ARR/eRep improvement,
+    required GP/loaded_hc efficiency to satisfy guardrails at target revenue.
+  Output narrative: "To hit Y2 target of $Xm, ARR/eRep must reach $Y
+    (current: $Z) AND Magic Number must remain ≥ 1.0."</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-703 — Win-Loss & Forecast Accuracy</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-schema{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #eee;vertical-align:top;line-height:1.6}
+tr:nth-child(even) td{background:#f9f9f9}
+.pill{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;white-space:nowrap}
+.pill-green{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.pill-amber{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.pill-red{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.pill-blue{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.pill-neutral{background:#f0f0f0;color:#333;border:1px solid #ccc}
+.pill-purple{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.note{font-size:11px;color:#888;padding:8px 12px;background:#f5f5f5;border-radius:8px;border-left:3px solid #ddd;line-height:1.6;margin-top:8px}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-green{background:#E1F5EE;border-left:3px solid #5DCAA5;color:#085041}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.flow-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.step-num{font-size:11px;font-weight:700;background:#0D1B2A;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-body{font-size:12px;color:#333;line-height:1.6}
+.step-body strong{color:#111}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.dim-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.dim-card{border:1px solid #e4e4e4;border-radius:8px;padding:10px 12px;font-size:11px}
+.dim-name{font-weight:700;color:#0D1B2A;margin-bottom:4px;font-size:12px}
+.dim-detail{color:#555;line-height:1.5}
+</style>
+</head>
+<body>
+
+<h1>AGT-703 — Win-Loss & Forecast Accuracy</h1>
+<div class="subtitle">Layer 7: Measurement & Feedback · Pattern analysis on deal outcomes and forecast quality · Calibration signal generator</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L7 · Agent 03</span>
+  <span class="badge badge-status">Specced · v21</span>
+  <span class="badge badge-schema">Schema adds: WinLossLog, ForecastAccuracyLog, CalibrationSignalLog</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-703 owns two distinct but related measurement functions: win-loss pattern analysis across closed deals, and forecast accuracy measurement across both the bottoms-up (AGT-402) and top-down (AGT-404) models. It detects systematic patterns in deal outcomes and forecast deviations, generates calibration signals for upstream agents and L0 config tables, and surfaces those signals through AGT-704 MBR synthesis. AGT-703 flags signals — humans decide whether and how to act on them. It does not write to ICP, quota, or competitive KB tables directly.</p>
+</div>
+
+<!-- ── TWO FUNCTIONAL MODULES ─────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Two functional modules</div>
+  <div class="two-col">
+    <div>
+      <div class="subsection-title"><span class="pill pill-blue">Module A</span> Win-Loss Analysis</div>
+      <p class="prose">Pattern detection across closed-won and closed-lost deals. Derives loss reasons from deal data when rep entry is missing. Identifies systematic gaps in win rate by dimension. Generates calibration signals to ICP model, competitive KB, and sales methodology.</p>
+    </div>
+    <div>
+      <div class="subsection-title"><span class="pill pill-purple">Module B</span> Forecast Accuracy</div>
+      <p class="prose">Measures AGT-402 bottoms-up and AGT-404 top-down forecast accuracy independently, then compares them. Isolates rep commit accuracy as a distinct coaching input to AGT-701. Identifies systematic bias patterns (consistent over vs under-forecast).</p>
+    </div>
+  </div>
+  <div class="note">Both modules write to separate tables (WinLossLog, ForecastAccuracyLog) but share CalibrationSignalLog as the unified output surface for upstream recommendations.</div>
+</div>
+
+<!-- ── MODULE A: WIN-LOSS ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Module A — Win-Loss Analysis</div>
+
+  <div class="subsection-title">Input model — how AGT-703 gets loss reason data</div>
+  <p class="prose" style="margin-bottom:10px">Rep entry is optional. The agent always attempts to derive loss reason from deal data first; rep entry enriches and validates but is never a hard dependency.</p>
+
+  <div class="flow-step"><div class="step-num">1</div><div class="step-body"><strong>Agent-derived loss reason</strong> — primary source. AGT-703 reads stage history (where did deal stall), ConvIntelligence (competitor mentions, unaddressed objections, sentiment trajectory), QuoteLog (approval exceptions, discount depth at loss), AGT-401 deal health dimension scores at close. Derives a structured loss reason with confidence rating.</div></div>
+  <div class="flow-step"><div class="step-num">2</div><div class="step-body"><strong>Rep-entered loss reason</strong> — enrichment layer. If rep has logged a loss reason in Opportunities (structured field — not a free-text note), AGT-703 compares it against the agent-derived reason. Agreement = higher confidence. Disagreement = flagged for RevOps review — systematic disagreement between rep-stated and agent-derived reasons is itself a signal.</div></div>
+  <div class="flow-step"><div class="step-num">3</div><div class="step-body"><strong>Gap handling</strong> — if no rep entry and agent confidence is low (insufficient ConvIntelligence data, no stage history detail), the deal is logged in WinLossLog with <code>analysis_confidence = low</code> and excluded from pattern aggregation. Low-confidence records accumulate — if a rep's deals consistently produce low confidence, AGT-701 is notified as a data quality coaching signal.</div></div>
+
+  <div class="subsection-title">Win-loss analysis dimensions</div>
+  <div class="dim-grid">
+    <div class="dim-card">
+      <div class="dim-name">Segment</div>
+      <div class="dim-detail">Win rate by SMB / Mid-Market / Enterprise. Cross-tabbed against all other dimensions.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-name">Vertical</div>
+      <div class="dim-detail">Win rate across 8-vertical taxonomy aligned to TerritoryDefinitions and ICP Scorer.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-name">Competitive scenario</div>
+      <div class="dim-detail">Won outright / lost to named competitor / lost to no decision. Competitor breakdown feeds CalibrationSignalLog → AGT-403.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-name">Rep</div>
+      <div class="dim-detail">Individual win rate vs segment + vertical benchmark. Systematic underperformance feeds AGT-701 coaching input.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-name">Deal size band</div>
+      <div class="dim-detail">Win rate by ACV band (e.g. &lt;$50K / $50–$150K / $150–$500K / $500K+). Identifies sweet spot and ceiling risk.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-name">Sales cycle length</div>
+      <div class="dim-detail">Actual cycle days vs segment benchmark. Deals won faster or slower than benchmark — directional signal for methodology and ICP fit.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-name">Discount depth</div>
+      <div class="dim-detail">Win/loss rate by discount tier. Identifies whether discounting is correlated with wins or signals desperation discounting on losing deals.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-name">Stage lost</div>
+      <div class="dim-detail">Where in the funnel did the deal die — Discovery / Technical Eval / Proposal / Negotiation / Close. Identifies methodology gaps by stage.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-name">Persona coverage at close</div>
+      <div class="dim-detail">Economic buyer engaged Y/N at deal close. Deals lost without economic buyer engagement are a distinct pattern — feeds ICP multi-threading signal.</div>
+    </div>
+  </div>
+
+  <div class="subsection-title">Minimum sample sizes for pattern aggregation</div>
+  <p class="prose" style="margin-bottom:8px">Single-deal observations are noise. AGT-703 only surfaces a dimension pattern when minimum sample thresholds are met. Below threshold, data accumulates but no signal is generated.</p>
+  <table>
+    <tr><th>Dimension level</th><th>Minimum deals</th><th>Notes</th></tr>
+    <tr><td>Org-level pattern (e.g. overall win rate)</td><td>20 closed deals</td><td>Baseline for any org-level conclusion</td></tr>
+    <tr><td>Segment × vertical cross-tab</td><td>10 closed deals in cell</td><td>Below 10: cell flagged as insufficient data</td></tr>
+    <tr><td>Rep-level pattern</td><td>8 closed deals per rep</td><td>Below 8: rep data included in org aggregation but no individual rep pattern surfaced</td></tr>
+    <tr><td>Competitive scenario</td><td>5 deals against named competitor</td><td>Below 5: competitor grouped into "other" category</td></tr>
+  </table>
+</div>
+
+<!-- ── MODULE B: FORECAST ACCURACY ───────────────────────── -->
+<div class="section">
+  <div class="section-title">Module B — Forecast Accuracy</div>
+
+  <div class="subsection-title">What is measured</div>
+  <table>
+    <tr><th>Forecast source</th><th>Accuracy metric</th><th>Source tables</th></tr>
+    <tr>
+      <td><strong>AGT-402 bottoms-up</strong><br><span class="pill pill-blue" style="margin-top:4px">Measured independently</span></td>
+      <td>Forecast vs closed revenue for same period. Measured at 30-day, 60-day, and 90-day prior-to-close horizons. Systematic over/under bias flagged separately from variance magnitude.</td>
+      <td><code>Opportunities</code> (AGT-402 forecast snapshots), <code>Revenue</code> (actuals), <code>QuotaRetirementLedger</code></td>
+    </tr>
+    <tr>
+      <td><strong>AGT-404 top-down</strong><br><span class="pill pill-purple" style="margin-top:4px">Measured independently</span></td>
+      <td>Cohort conversion model output vs actual close rates by cohort. Measures whether the pipeline-to-close conversion assumptions are calibrated correctly.</td>
+      <td><code>Opportunities</code> (stage history + close dates), <code>Revenue</code>, <code>FP&APlan</code></td>
+    </tr>
+    <tr>
+      <td><strong>Bottoms-up vs top-down delta</strong><br><span class="pill pill-green" style="margin-top:4px">Compared</span></td>
+      <td>When both forecasts agree, confidence is high. When they diverge materially (>15% delta), the divergence pattern is analyzed — which model has been more accurate historically in this segment / period type?</td>
+      <td>ForecastAccuracyLog (historical rows)</td>
+    </tr>
+    <tr>
+      <td><strong>Rep commit accuracy</strong><br><span class="pill pill-amber" style="margin-top:4px">Distinct output → AGT-701</span></td>
+      <td>Individual rep commit vs actual closed. Systematic over-committers and under-committers identified. This output routes to AGT-701 as a rep-level coaching input — not an org-level forecast signal.</td>
+      <td><code>QuotaRetirementLedger</code>, <code>Opportunities</code></td>
+    </tr>
+  </table>
+
+  <div class="subsection-title">Bias detection model</div>
+  <p class="prose" style="margin-bottom:8px">Variance magnitude alone is insufficient. AGT-703 distinguishes between random variance and systematic bias.</p>
+  <table>
+    <tr><th>Pattern type</th><th>Definition</th><th>Signal generated</th></tr>
+    <tr><td>Systematic over-forecast</td><td>AGT-402 forecast exceeds actuals by &gt;10% in 3+ consecutive periods</td><td>Calibration signal to AGT-402 — pipeline conversion assumptions may be too optimistic</td></tr>
+    <tr><td>Systematic under-forecast</td><td>AGT-402 forecast below actuals by &gt;10% in 3+ consecutive periods</td><td>Calibration signal to AGT-402 — deal qualification bar may be too conservative</td></tr>
+    <tr><td>Cohort conversion drift</td><td>AGT-404 stage conversion rates deviate from actuals by &gt;15% for same cohort</td><td>Calibration signal to AGT-404 — conversion assumptions need recalibration for affected cohort</td></tr>
+    <tr><td>Rep commit pattern</td><td>Individual rep commit accuracy outside ±20% of actual for 2+ consecutive quarters</td><td>Routed to AGT-701 RepCoachingLog as forecast accuracy coaching input</td></tr>
+    <tr><td>Model divergence</td><td>Bottoms-up and top-down disagree by &gt;15% at 60-day horizon</td><td>Flagged in ForecastAccuracyLog. Historical accuracy by model type determines which is cited in AGT-704 WBR.</td></tr>
+  </table>
+</div>
+
+<!-- ── CALIBRATION OUTPUT MODEL ───────────────────────────── -->
+<div class="section">
+  <div class="section-title">Calibration output model</div>
+  <p class="prose" style="margin-bottom:12px">AGT-703 flags signals — humans decide. Three simultaneous outputs on every calibration signal. All three fire together; none replaces the others.</p>
+
+  <div class="flow-step"><div class="step-num">1</div><div class="step-body"><strong>CalibrationSignalLog (write)</strong> — structured record of the signal: source module (win-loss or forecast), dimension, pattern detected, confidence level, recommended action type, owning agent or L0 table. Persists all signals with full traceability.</div></div>
+  <div class="flow-step"><div class="step-num">2</div><div class="step-body"><strong>AGT-704 MBR surface</strong> — CalibrationSignalLog is pulled by AGT-704 at MBR synthesis. Calibration signals are a standing MBR section — not buried in appendix. RevOps and Finance see them in the monthly review cadence and decide whether to act.</div></div>
+  <div class="flow-step"><div class="step-num">3</div><div class="step-body"><strong>Owning agent or L0 table notification</strong> — the agent or table that would need to change receives a direct flag. ICP signal → AGT-201 config flag. Forecast bias → AGT-402 or AGT-404 config flag. Competitive gap → AGT-403 KB flag. Quota methodology → AGT-101 flag. These are notification flags — the owning agent does not auto-update. Human approval required for any config change.</div></div>
+
+  <div class="note">CalibrationSignalLog is the audit trail. Every signal ever generated is persisted with its status (open / actioned / dismissed) and who actioned or dismissed it. This creates traceability between observed pattern and the decision made — essential for evaluating whether calibrations improved outcomes.</div>
+
+  <div class="subsection-title">Calibration signal routing by type</div>
+  <table>
+    <tr><th>Signal type</th><th>Owning agent / table notified</th><th>Human decision required</th></tr>
+    <tr><td>ICP fit pattern — win rate diverges from ICP tier prediction</td><td>AGT-201 (ICP Scorer config)</td><td>RevOps recalibrates dimension weights</td></tr>
+    <tr><td>Competitive displacement gap — consistent loss to named competitor</td><td>AGT-403 (Competitive KB)</td><td>RevOps + Sales leadership update competitive playbook</td></tr>
+    <tr><td>Forecast bias — systematic AGT-402 over/under</td><td>AGT-402 prompt config</td><td>RevOps adjusts pipeline conversion assumptions</td></tr>
+    <tr><td>Cohort conversion drift — AGT-404 mismatch</td><td>AGT-404 prompt config</td><td>RevOps recalibrates cohort conversion model</td></tr>
+    <tr><td>Quota methodology gap — win rate diverges by segment in ways that suggest quota levels are misaligned with market reality</td><td>AGT-101 (Quota Setting)</td><td>CRO + FP&A review — high threshold for action</td></tr>
+    <tr><td>Persona coverage pattern — economic buyer absent on lost deals at &gt;60% rate</td><td>AGT-201 (multi-threading weight), AGT-701 (coaching signal)</td><td>RevOps + Sales leadership methodology review</td></tr>
+    <tr><td>Rep commit accuracy — individual pattern</td><td>AGT-701 (RepCoachingLog)</td><td>Manager coaching action</td></tr>
+  </table>
+</div>
+
+<!-- ── CADENCE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cadence</div>
+  <table>
+    <tr><th>Run type</th><th>Trigger</th><th>Scope</th><th>Output</th></tr>
+    <tr>
+      <td><strong>Quarterly deep analysis</strong></td>
+      <td>First business day after quarter close</td>
+      <td>Full win-loss analysis across all dimensions. Full forecast accuracy review for both models. All calibration signals generated and routed. Rep commit accuracy cohort published to AGT-701.</td>
+      <td>WinLossLog (full refresh). ForecastAccuracyLog (quarterly rows). CalibrationSignalLog (all new signals). Full payload to AGT-704 exec QBR.</td>
+    </tr>
+    <tr>
+      <td><strong>Monthly lightweight</strong></td>
+      <td>First business day after month close</td>
+      <td>Win-loss summary for deals closed in month (no dimension deep-dive below minimum sample thresholds). Forecast accuracy delta from prior month. New calibration signals only — no re-analysis of prior signals.</td>
+      <td>WinLossLog (monthly rows). ForecastAccuracyLog (monthly rows). CalibrationSignalLog (new signals only). Payload to AGT-704 MBR.</td>
+    </tr>
+    <tr>
+      <td><strong>Triggered — significant forecast miss</strong></td>
+      <td>AGT-402 or AGT-404 actual vs forecast delta exceeds 20% at period close</td>
+      <td>Focused forecast accuracy analysis only — not full win-loss. Identifies root cause of miss: pipeline composition, conversion assumption, rep commit pattern, or external factor. Generates targeted calibration signal.</td>
+      <td>ForecastAccuracyLog (triggered row, flagged <code>trigger_type = forecast_miss</code>). CalibrationSignalLog (targeted signal). Direct flag to RevOps — does not wait for AGT-704 MBR cycle.</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── SCHEMA ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema — tables written by AGT-703</div>
+
+  <div class="subsection-title">WinLossLog</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+    <tr><td><code>wl_id</code></td><td>PK</td><td>Unique per deal analysis record</td></tr>
+    <tr><td><code>opportunity_id</code></td><td>FK</td><td>Links to Opportunities table</td></tr>
+    <tr><td><code>analysis_date</code></td><td>Date</td><td>When analysis was run</td></tr>
+    <tr><td><code>run_type</code></td><td>Enum</td><td>quarterly / monthly / triggered</td></tr>
+    <tr><td><code>outcome</code></td><td>Enum</td><td>won / lost_competitor / lost_no_decision / lost_internal (pricing, timing, etc.)</td></tr>
+    <tr><td><code>loss_reason_source</code></td><td>Enum</td><td>agent_derived / rep_entered / both / conflict</td></tr>
+    <tr><td><code>loss_reason_agent</code></td><td>String</td><td>Agent-derived loss reason with confidence rating</td></tr>
+    <tr><td><code>loss_reason_rep</code></td><td>String</td><td>Rep-entered loss reason (NULL if not entered)</td></tr>
+    <tr><td><code>analysis_confidence</code></td><td>Enum</td><td>high / medium / low — low excludes from pattern aggregation</td></tr>
+    <tr><td><code>segment</code> / <code>vertical</code> / <code>rep_id</code></td><td>String</td><td>Dimension fields — denormalized for cohort analysis without joins</td></tr>
+    <tr><td><code>deal_size_band</code></td><td>String</td><td>ACV band at close</td></tr>
+    <tr><td><code>sales_cycle_days</code> / <code>cycle_vs_benchmark</code></td><td>Int / Decimal</td><td>Actual days + delta vs segment benchmark</td></tr>
+    <tr><td><code>discount_depth_pct</code></td><td>Decimal</td><td>Final discount % from QuoteLog</td></tr>
+    <tr><td><code>stage_lost</code></td><td>String</td><td>Last active stage before close-lost</td></tr>
+    <tr><td><code>economic_buyer_engaged</code></td><td>Bool</td><td>Persona coverage at close — from Contacts table</td></tr>
+    <tr><td><code>competitor_named</code></td><td>String</td><td>Named competitor if loss_reason = lost_competitor</td></tr>
+    <tr><td><code>calibration_signals_generated</code></td><td>JSON</td><td>Array of CalibrationSignalLog IDs triggered by this record</td></tr>
+  </table>
+
+  <div class="subsection-title">ForecastAccuracyLog</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+    <tr><td><code>fa_id</code></td><td>PK</td><td>Unique per forecast accuracy record</td></tr>
+    <tr><td><code>analysis_date</code></td><td>Date</td><td></td></tr>
+    <tr><td><code>run_type</code></td><td>Enum</td><td>quarterly / monthly / triggered</td></tr>
+    <tr><td><code>trigger_type</code></td><td>Enum</td><td>scheduled / forecast_miss (triggered run only)</td></tr>
+    <tr><td><code>period_start</code> / <code>period_end</code></td><td>Date</td><td>Measurement window</td></tr>
+    <tr><td><code>agt402_forecast</code> / <code>agt402_actual</code> / <code>agt402_variance_pct</code></td><td>Decimal</td><td>Bottoms-up accuracy</td></tr>
+    <tr><td><code>agt404_forecast</code> / <code>agt404_actual</code> / <code>agt404_variance_pct</code></td><td>Decimal</td><td>Top-down accuracy</td></tr>
+    <tr><td><code>model_delta_pct</code></td><td>Decimal</td><td>AGT-402 vs AGT-404 divergence at 60-day horizon</td></tr>
+    <tr><td><code>more_accurate_model</code></td><td>Enum</td><td>bottoms_up / top_down / tied — historical accuracy determination</td></tr>
+    <tr><td><code>agt402_bias</code> / <code>agt404_bias</code></td><td>Enum</td><td>over / under / none — systematic bias detection</td></tr>
+    <tr><td><code>consecutive_bias_periods</code></td><td>Int</td><td>Count of consecutive periods with same bias direction — triggers calibration signal at 3</td></tr>
+    <tr><td><code>rep_commit_accuracy</code></td><td>JSON</td><td>Array of rep_id + commit_vs_actual_pct + bias_direction. Routed to AGT-701.</td></tr>
+    <tr><td><code>root_cause_summary</code></td><td>String</td><td>For triggered runs — agent-generated root cause narrative</td></tr>
+  </table>
+
+  <div class="subsection-title">CalibrationSignalLog</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+    <tr><td><code>signal_id</code></td><td>PK</td><td></td></tr>
+    <tr><td><code>signal_date</code></td><td>Date</td><td></td></tr>
+    <tr><td><code>source_module</code></td><td>Enum</td><td>win_loss / forecast_accuracy</td></tr>
+    <tr><td><code>signal_type</code></td><td>String</td><td>Category from calibration routing table above</td></tr>
+    <tr><td><code>pattern_description</code></td><td>String</td><td>Human-readable description of the detected pattern</td></tr>
+    <tr><td><code>confidence</code></td><td>Enum</td><td>high / medium / low — based on sample size and consistency</td></tr>
+    <tr><td><code>owning_agent</code></td><td>String</td><td>AGT-ID of the agent or L0 table that owns the recommended change</td></tr>
+    <tr><td><code>recommended_action</code></td><td>String</td><td>Specific, actionable recommendation — human decides whether to act</td></tr>
+    <tr><td><code>notified_agent</code></td><td>Bool</td><td>Whether owning agent has been flagged</td></tr>
+    <tr><td><code>status</code></td><td>Enum</td><td>open / actioned / dismissed</td></tr>
+    <tr><td><code>actioned_by</code> / <code>actioned_date</code></td><td>String / Date</td><td>Who resolved and when</td></tr>
+    <tr><td><code>outcome_note</code></td><td>String</td><td>Optional: what changed and whether it improved the metric</td></tr>
+    <tr><td><code>source_record_ids</code></td><td>JSON</td><td>WinLossLog or ForecastAccuracyLog IDs that generated this signal — full traceability</td></tr>
+  </table>
+</div>
+
+<!-- ── TABLES READ ────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema — tables read by AGT-703</div>
+  <table>
+    <tr><th>Table</th><th>Module</th><th>Data used</th></tr>
+    <tr><td><code>Opportunities</code></td><td>Both</td><td>Stage history, close date, ACV, rep, segment, vertical, outcome</td></tr>
+    <tr><td><code>ConvIntelligence</code></td><td>Win-loss</td><td>Competitor mentions, unaddressed objections, sentiment trajectory for loss reason derivation</td></tr>
+    <tr><td><code>QuoteLog</code></td><td>Win-loss</td><td>Discount depth at close, approval exceptions</td></tr>
+    <tr><td><code>Contacts</code></td><td>Win-loss</td><td>Persona coverage — economic buyer engaged Y/N</td></tr>
+    <tr><td><code>CustomerHealthLog</code></td><td>Win-loss</td><td>AGT-401 deal health dimension scores at close</td></tr>
+    <tr><td><code>Revenue</code></td><td>Forecast accuracy</td><td>Closed revenue actuals for forecast comparison</td></tr>
+    <tr><td><code>QuotaRetirementLedger</code></td><td>Forecast accuracy</td><td>Rep commit vs closed — commit accuracy module</td></tr>
+    <tr><td><code>FP&APlan</code></td><td>Forecast accuracy</td><td>Versioned plan targets for AGT-404 cohort comparison</td></tr>
+    <tr><td><code>MetricsCalc</code></td><td>Both</td><td>Historical efficiency metric context for calibration signal framing</td></tr>
+    <tr><td><code>TerritoryDefinitions</code></td><td>Win-loss</td><td>Rep-to-segment-vertical mapping for dimension analysis</td></tr>
+  </table>
+</div>
+
+<!-- ── DOWNSTREAM ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Downstream consumers</div>
+  <table>
+    <tr><th>Consumer</th><th>What they receive</th><th>Cadence</th></tr>
+    <tr><td>AGT-704 Business Review Orchestrator</td><td>WinLossLog summary + CalibrationSignalLog open items surfaced in MBR and exec QBR sections</td><td>Monthly (MBR) + quarterly (exec QBR)</td></tr>
+    <tr><td>AGT-701 Rep Performance & Coaching</td><td>Rep commit accuracy payload from ForecastAccuracyLog.rep_commit_accuracy JSON</td><td>Quarterly deep + monthly where material</td></tr>
+    <tr><td>AGT-201 ICP Scorer</td><td>CalibrationSignalLog notification flag when ICP fit pattern detected</td><td>On signal generation</td></tr>
+    <tr><td>AGT-403 Competitive Intelligence</td><td>CalibrationSignalLog notification flag when competitive displacement gap detected</td><td>On signal generation</td></tr>
+    <tr><td>AGT-402 / AGT-404</td><td>CalibrationSignalLog notification flag when forecast bias detected</td><td>On signal generation or triggered miss</td></tr>
+    <tr><td>AGT-101 Quota Setting</td><td>CalibrationSignalLog notification flag when quota methodology gap signal generated — high threshold</td><td>Quarterly only</td></tr>
+    <tr><td>RevOps</td><td>Direct flag on triggered forecast miss runs — does not wait for MBR cycle</td><td>On trigger</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN GUARDRAILS ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design guardrails</div>
+  <div class="alert-box alert-green">AGT-703 flags signals — humans decide. It never writes to ICP config, quota tables, competitive KB, or forecast model parameters. Every calibration signal requires a human to action it. CalibrationSignalLog status field enforces accountability: open signals with no action after 60 days are re-surfaced in the next MBR.</div>
+  <div class="alert-box alert-amber" style="margin-top:8px">Low-confidence win-loss records are excluded from pattern aggregation. A pattern built on low-confidence data is worse than no pattern — it creates false calibration signals. Confidence gates are non-negotiable.</div>
+  <div class="alert-box alert-blue" style="margin-top:8px">Rep commit accuracy is routed to AGT-701 as a coaching input — it is not a forecast credibility score that managers see independently. The goal is to improve rep forecasting behavior, not create a public accuracy leaderboard that incentivizes gaming.</div>
+  <div class="alert-box alert-red" style="margin-top:8px">AGT-703 does not re-open closed calibration signals that were dismissed. If a dismissed signal pattern resurfaces in a subsequent analysis cycle, a new signal is generated. This prevents stale signals from cluttering the log and ensures each cycle is evaluated on its own evidence.</div>
+</div>
+
+<div class="footer">
+  AGT-703 Win-Loss & Forecast Accuracy · Layer 7 · Schema v21<br>
+  New tables: WinLossLog, ForecastAccuracyLog, CalibrationSignalLog<br>
+  Reads from: Opportunities, ConvIntelligence, QuoteLog, Contacts, CustomerHealthLog, Revenue, QuotaRetirementLedger, FP&APlan, MetricsCalc, TerritoryDefinitions<br>
+  Feeds: AGT-704 (MBR/exec QBR calibration signals), AGT-701 (rep commit accuracy), AGT-201 / AGT-403 / AGT-402 / AGT-404 / AGT-101 (calibration notification flags), RevOps (triggered miss alerts)
+</div>
+
+</body>
+</html>

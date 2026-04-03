@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-504 — Customer Communications Agent</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f9fa;color:#1a1a1a;padding:2rem;font-size:13px}
+.wrap{max-width:1020px;margin:0 auto}
+.agent-block{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff;margin-bottom:28px}
+.agent-hdr{padding:18px 20px 14px;border-bottom:1px solid #f0f0f0;background:linear-gradient(135deg,#faf5ff 0%,#ede9fe 100%)}
+.agent-id{font-family:monospace;font-size:11px;font-weight:700;letter-spacing:.04em;color:#6d28d9;margin-bottom:5px}
+.agent-name{font-size:20px;font-weight:700;color:#111;margin-bottom:4px}
+.agent-purpose{font-size:13px;color:#4b5563;line-height:1.6;max-width:820px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.badge{font-size:10px;font-weight:600;padding:2px 9px;border-radius:6px}
+.b-layer{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd}
+.b-scan{background:#fef9c3;color:#854d0e;border:1px solid #fde047}
+.b-event{background:#fce7f3;color:#9d174d;border:1px solid #f9a8d4}
+.b-new{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.b-approval{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5}
+.body-pad{padding:20px}
+.section{margin-bottom:24px}
+.section-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:10px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.card-title{font-size:12px;font-weight:600;color:#111;margin-bottom:5px}
+.card-body{font-size:12px;color:#4b5563;line-height:1.7}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#f9fafb;text-align:left;padding:7px 10px;font-weight:600;color:#374151;border-bottom:1px solid #e5e7eb;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f3f4f6;color:#4b5563;vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:none}
+.schema-pill{display:inline-block;font-family:monospace;font-size:10px;background:#f0f0f0;padding:1px 6px;border-radius:4px;color:#444;border:1px solid #e0e0e0}
+.new-pill{display:inline-block;font-size:9px;font-weight:700;background:#dcfce7;color:#166534;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #86efac}
+.upd-pill{display:inline-block;font-size:9px;font-weight:700;background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #7dd3fc}
+.l0-pill{display:inline-block;font-size:9px;font-weight:700;background:#ede9fe;color:#5b21b6;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #c4b5fd}
+.step-list{display:flex;flex-direction:column;gap:0}
+.step-row{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #f3f4f6}
+.step-row:last-child{border-bottom:none}
+.step-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;background:#ede9fe;color:#5b21b6}
+.step-title{font-size:12px;font-weight:600;color:#111;margin-bottom:3px}
+.step-body{font-size:12px;color:#4b5563;line-height:1.6}
+.comm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
+.comm-card{border-radius:8px;padding:12px 14px;border:1px solid}
+.cc-price{background:#fef9c3;border-color:#fde047}
+.cc-tos{background:#e0f2fe;border-color:#7dd3fc}
+.cc-eol{background:#fce7f3;border-color:#f9a8d4}
+.comm-type{font-size:12px;font-weight:700;margin-bottom:5px}
+.cc-price .comm-type{color:#854d0e}
+.cc-tos .comm-type{color:#0369a1}
+.cc-eol .comm-type{color:#9d174d}
+.comm-detail{font-size:11px;color:#4b5563;line-height:1.6}
+.comm-label{font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;margin-top:7px;margin-bottom:2px}
+.trigger-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.trigger-card{border-radius:8px;padding:12px 14px;border:1px solid}
+.tc-scan{background:#fef9c3;border-color:#fde047}
+.tc-queue{background:#f0fdf4;border-color:#86efac}
+.trigger-type{font-size:12px;font-weight:700;margin-bottom:5px}
+.tc-scan .trigger-type{color:#854d0e}
+.tc-queue .trigger-type{color:#166534}
+.priority-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.priority-card{border-radius:8px;padding:10px 12px;border:1px solid #e5e7eb;background:#f9fafb}
+.pri-label{font-size:11px;font-weight:700;color:#111;margin-bottom:4px}
+.pri-detail{font-size:11px;color:#4b5563;line-height:1.5}
+.pri-source{font-size:10px;color:#9ca3af;margin-top:4px;font-style:italic}
+.contact-grid{display:grid;gap:0;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
+.contact-row{display:grid;grid-template-columns:160px 1fr 1fr;gap:0;border-bottom:1px solid #f3f4f6}
+.contact-row:last-child{border-bottom:none}
+.contact-row-hdr{background:#f9fafb;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase}
+.contact-cell{padding:8px 12px;font-size:12px;color:#4b5563;line-height:1.5;border-right:1px solid #f3f4f6}
+.contact-cell:last-child{border-right:none}
+.contact-type{font-weight:600;color:#111}
+.generic-path{background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:12px 14px;margin-top:8px}
+.generic-title{font-size:12px;font-weight:600;color:#c2410c;margin-bottom:6px}
+.generic-step{font-size:12px;color:#4b5563;padding:3px 0;border-bottom:1px solid #fed7aa;line-height:1.5}
+.generic-step:last-child{border-bottom:none}
+.approval-flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}
+.ap-node{background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;color:#374151}
+.ap-arrow{font-size:12px;color:#9ca3af}
+.ap-node-approval{background:#fee2e2;border-color:#fca5a5;color:#b91c1c}
+.ap-node-send{background:#dcfce7;border-color:#86efac;color:#166534}
+.window-note{background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:8px 12px;font-size:11px;color:#166534;line-height:1.6;margin-top:8px}
+.decision-note{background:#faf5ff;border:1px solid #c4b5fd;border-radius:6px;padding:8px 12px;font-size:11px;color:#5b21b6;line-height:1.6;margin-bottom:12px}
+.field-row{display:flex;gap:6px;padding:3px 0;border-bottom:1px solid #f3f4f6;font-size:11px;align-items:baseline}
+.field-row:last-child{border-bottom:none}
+.field-name{font-family:monospace;color:#444;flex-shrink:0;min-width:220px}
+.field-type{color:#9ca3af;font-size:10px;min-width:55px}
+.field-desc{color:#4b5563;line-height:1.5}
+.schema-section{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.schema-card{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px}
+.schema-card-title{font-size:12px;font-weight:600;color:#111;margin-bottom:8px}
+.schema-card-full{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px;margin-bottom:10px}
+pre{background:#1e1e2e;color:#cdd6f4;border-radius:8px;padding:14px;font-size:11px;line-height:1.7;overflow-x:auto;font-family:'Fira Code',monospace;margin-top:4px}
+.io-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.io-card{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px}
+.io-title{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.io-row{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:12px;align-items:baseline}
+.io-row:last-child{border-bottom:none}
+.io-source{font-family:monospace;font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:3px;color:#555;flex-shrink:0}
+.io-desc{color:#4b5563;line-height:1.5}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="doc-title">AGT-504 — Customer Communications Agent</div>
+<div class="doc-sub">Layer 5 · Post-Sale Retention · Schema v19</div>
+<div class="agent-block">
+  <div class="agent-hdr">
+    <div class="agent-id">AGT-504 · Layer 5 · Post-Sale Retention</div>
+    <div class="agent-name">Customer Communications Agent</div>
+    <div class="agent-purpose">Executes all outbound transactional communications to customers: price increases, Terms of Service changes, and End of Sale / End of Life notices. Dual-track: generates an internal rep brief first (with priority flags for proactive outreach), then sends a formal external communication to the appropriate contacts after human approval. Never the detection layer — execution only.</div>
+    <div class="badges">
+      <span class="badge b-layer">L5</span>
+      <span class="badge b-scan">PricingConfig scan (price changes)</span>
+      <span class="badge b-event">CommEventQueue (EoS/EoL, ToS)</span>
+      <span class="badge b-approval">Human approval required — never auto-sends</span>
+      <span class="badge b-new">New tables: CommEventQueue, CommBriefLog, CommDeliveryLog</span>
+    </div>
+  </div>
+
+  <div class="body-pad">
+
+    <div class="decision-note">
+      <strong>Trigger model (locked):</strong> Hybrid. Price changes are auto-detected via <span class="schema-pill">PricingConfig</span> diff scan — AGT-504 detects when a future-dated rate change is published and initiates the process automatically. EoS/EoL and ToS changes are strategic decisions made outside the GTM OS; they enter via manual entry to <span class="schema-pill">CommEventQueue</span> (L0 table, RevOps-owned). AGT-504 is execution-only in both paths — it does not originate the decision to communicate, it executes the communication once the trigger condition is met or the queue entry is made.
+    </div>
+
+    <!-- COMM TYPES -->
+    <div class="section">
+      <div class="section-lbl">Communication types — contact scope + source</div>
+      <div class="comm-grid">
+        <div class="comm-card cc-price">
+          <div class="comm-type">Price Increase</div>
+          <div class="comm-label">Trigger</div>
+          <div class="comm-detail">PricingConfig scan: future-dated rate change detected with effective_date set. Auto-initiates process; no manual queue entry required.</div>
+          <div class="comm-label">External contact</div>
+          <div class="comm-detail">Billing contact on order form — written by L8 AGT-801, stored in <span class="schema-pill">OrderForm.billing_contact</span>. Generic email detection logic applies (see below).</div>
+          <div class="comm-label">Pricing reference</div>
+          <div class="comm-detail">PricingConfig (L0) — old rate, new rate, effective date, affected SKUs.</div>
+        </div>
+        <div class="comm-card cc-tos">
+          <div class="comm-type">ToS Change</div>
+          <div class="comm-label">Trigger</div>
+          <div class="comm-detail">Manual entry to CommEventQueue by Legal or RevOps. comm_type = 'tos_change'. Effective date and change summary required at entry.</div>
+          <div class="comm-label">External contact</div>
+          <div class="comm-detail">Billing contact on order form + any contacts in Contacts table with persona = legal or signatory. Generic email detection logic applies.</div>
+          <div class="comm-label">Pricing reference</div>
+          <div class="comm-detail">N/A. ToS comms reference the CommEventQueue change_summary field only.</div>
+        </div>
+        <div class="comm-card cc-eol">
+          <div class="comm-type">EoS / EoL Notice</div>
+          <div class="comm-label">Trigger</div>
+          <div class="comm-detail">Manual entry to CommEventQueue by Product. comm_type = 'eos_eol'. EoS and EoL treated identically — both require full user notification.</div>
+          <div class="comm-label">External contact</div>
+          <div class="comm-detail">All active users in <span class="schema-pill">Contacts</span> table for affected accounts (not billing contact only). If no Contacts records exist: fall back to billing contact + flag AM to identify users.</div>
+          <div class="comm-label">Affected accounts</div>
+          <div class="comm-detail">Filtered by product/SKU match against active subscriptions. Only accounts with the affected product receive comm.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRIGGER MODEL -->
+    <div class="section">
+      <div class="section-lbl">Trigger model detail</div>
+      <div class="trigger-grid">
+        <div class="trigger-card tc-scan">
+          <div class="trigger-type">PricingConfig scan — price changes</div>
+          <div class="card-body">AGT-504 scans PricingConfig daily for rows where <span class="schema-pill">effective_date</span> is set in the future AND <span class="schema-pill">rate_delta</span> is non-zero AND <span class="schema-pill">comm_initiated = FALSE</span>. On detection: set comm_initiated = TRUE, create CommEventQueue record automatically, begin audience segmentation. No human needed to start the process — the published rate card IS the trigger.</div>
+        </div>
+        <div class="trigger-card tc-queue">
+          <div class="trigger-type">CommEventQueue — EoS/EoL + ToS</div>
+          <div class="card-body">RevOps or Product manually creates a CommEventQueue record. Required fields at entry: comm_type, affected_skus (nullable for ToS), effective_date, lead_time_days (default 3), change_summary, initiated_by. AGT-504 polls CommEventQueue for records where <span class="schema-pill">status = 'pending'</span> and begins execution. RevOps owns the queue — no other team can initiate without RevOps entry or approval.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIORITY FLAGS -->
+    <div class="section">
+      <div class="section-lbl">Internal brief — priority customer flagging</div>
+      <div style="font-size:12px;color:#4b5563;margin-bottom:10px;line-height:1.6">Priority customers require proactive AM outreach before the external comm goes out. Any account meeting one or more of the following conditions is flagged as priority in the internal brief. AM receives explicit call-to-action: contact this customer before the external comm sends.</div>
+      <div class="priority-grid">
+        <div class="priority-card">
+          <div class="pri-label">Churn risk ≥ Medium</div>
+          <div class="pri-detail">ChurnRiskLog.churn_risk_tier IN ('medium', 'high', 'critical'). A transactional comm hitting a at-risk account without AM preparation is a retention risk multiplier.</div>
+          <div class="pri-source">Source: ChurnRiskLog (AGT-502)</div>
+        </div>
+        <div class="priority-card">
+          <div class="pri-label">Renewal ≤ 90 days</div>
+          <div class="pri-detail">Open renewal opportunity with close_date within 90 days. A price change or EoL comm landing during renewal negotiation must be AM-managed.</div>
+          <div class="pri-source">Source: Opportunities</div>
+        </div>
+        <div class="priority-card">
+          <div class="pri-label">ABM active</div>
+          <div class="pri-detail">Accounts.abm_active = TRUE. Bespoke relationship accounts should never receive a transactional comm without prior AM context-setting.</div>
+          <div class="pri-source">Source: Accounts</div>
+        </div>
+        <div class="priority-card">
+          <div class="pri-label">ACV threshold</div>
+          <div class="pri-detail">Configurable per comm event — set at CommEventQueue creation. Default: top 25% ACV within segment. RevOps can raise or lower per event.</div>
+          <div class="pri-source">Source: CommEventQueue.acv_priority_threshold</div>
+        </div>
+      </div>
+      <div class="window-note">
+        <strong>Lead time window:</strong> Default 3 business days between internal brief delivery and external comm send. Configurable per event via <span class="schema-pill">CommEventQueue.lead_time_days</span>. Clock starts when internal brief is delivered to AMs — not when the comm event is created. Human approval of the external comm draft can happen in parallel during this window; send is gated by both approval AND window expiry.
+      </div>
+    </div>
+
+    <!-- CONTACT VALIDATION -->
+    <div class="section">
+      <div class="section-lbl">Contact validation logic</div>
+      <div class="contact-grid">
+        <div class="contact-row contact-row-hdr">
+          <div class="contact-cell">Comm type</div>
+          <div class="contact-cell">Primary contact source</div>
+          <div class="contact-cell">Fallback / validation rule</div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-cell"><span class="contact-type">Price increase</span></div>
+          <div class="contact-cell">OrderForm.billing_contact (written by L8 AGT-801 at contract execution)</div>
+          <div class="contact-cell">Generic email detection applies (see below). If no order form exists: flag to AM, hold send.</div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-cell"><span class="contact-type">ToS change</span></div>
+          <div class="contact-cell">OrderForm.billing_contact + Contacts table where persona IN ('legal', 'signatory')</div>
+          <div class="contact-cell">Generic email detection applies to billing contact. Legal/signatory contacts supplemental — comm sends to billing contact even if no legal contacts exist.</div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-cell"><span class="contact-type">EoS / EoL</span></div>
+          <div class="contact-cell">All Contacts records for affected account where active_user = TRUE</div>
+          <div class="contact-cell">If Contacts table has no records for account: fall back to billing contact + flag AM to identify active users via AGT-204 enrichment request.</div>
+        </div>
+      </div>
+
+      <div class="generic-path">
+        <div class="generic-title">Generic billing email detection path</div>
+        <div class="generic-step"><strong>Step 1 — Detection:</strong> Regex pattern match on billing_contact email. Patterns: billing@, invoices@, ap@, accounts-payable@, finance@, noreply@, and similar. If matched: set <span class="schema-pill">generic_email_flag = TRUE</span>.</div>
+        <div class="generic-step"><strong>Step 2 — Human contact search:</strong> Query Contacts table for account — any record with is_human = TRUE. If found: add to recipient list alongside generic email (send to both).</div>
+        <div class="generic-step"><strong>Step 3 — Delay gate:</strong> If generic_email_flag = TRUE and no human contact found: delay external send by 1 business day. Flag AM immediately with specific ask: "Identify a human billing or financial contact at [Account] — required before price change communication sends."</div>
+        <div class="generic-step"><strong>Step 4 — Resolution:</strong> If AM identifies contact within 1 business day: add to recipient list, proceed. If 1 business day passes with no resolution: send to generic email anyway. Log <span class="schema-pill">unresolved_generic_flag = TRUE</span> on CommDeliveryLog. AM is not blocking the comm — delay is a courtesy window only.</div>
+        <div class="generic-step" style="border-bottom:none"><strong>Step 5 — Enrichment trigger:</strong> Regardless of resolution, trigger AGT-204 enrichment request for this account to find billing/financial contacts. Enrichment result populates Contacts table for future comm events — this is the persistent fix, not the delay.</div>
+      </div>
+    </div>
+
+    <!-- EXECUTION FLOW -->
+    <div class="section">
+      <div class="section-lbl">Execution flow</div>
+      <div class="card">
+        <div class="step-list">
+          <div class="step-row">
+            <div class="step-num">1</div>
+            <div><div class="step-title">Detect or receive trigger</div><div class="step-body">PricingConfig scan (daily): detect future-dated rate delta, auto-create CommEventQueue record. OR: CommEventQueue poll — status = 'pending' record found (EoS/EoL or ToS). Set status = 'in_progress'. All subsequent steps reference this CommEventQueue record as the event anchor.</div></div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">2</div>
+            <div><div class="step-title">Audience segmentation</div><div class="step-body">Identify all affected accounts. For price changes: accounts with affected SKU in active subscription. For EoS/EoL: accounts with affected product. For ToS: all active customer accounts. Output: affected account list with ACV, churn tier, renewal date, ABM status.</div></div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">3</div>
+            <div><div class="step-title">Contact validation</div><div class="step-body">For each affected account: resolve contacts per comm type logic above. Run generic email detection. Flag any accounts needing resolution. Set 1-day delay timer for unresolved generic email accounts.</div></div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">4</div>
+            <div><div class="step-title">Generate internal brief (per AM)</div><div class="step-body">One brief per AM scoped to their book of affected accounts. Sections: (a) event summary — what is changing, effective date, pricing delta or product change; (b) your affected accounts — full list with ACV, current churn risk tier, renewal proximity; (c) priority customers — accounts meeting any priority flag, each with specific call-to-action and recommended talking points; (d) window — "External communication sends in [N] business days. Contact priority customers before then." Deliver immediately on brief generation — clock starts here.</div></div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">5</div>
+            <div><div class="step-title">Generate external comm draft</div><div class="step-body">Draft transactional communication per comm type. Price increase: formal notice with old rate, new rate, effective date, SKU scope, and any transition terms from PricingConfig. ToS: change summary, effective date, acceptance instructions. EoS/EoL: product sunset timeline, migration path if available (from CommEventQueue.change_summary), support window. Draft written per recipient type — billing contact vs active user may receive different framing.</div></div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">6</div>
+            <div><div class="step-title">Human approval gate</div><div class="step-body">External comm draft submitted to RevOps (all comm types) + Comms/Legal (ToS and EoS/EoL). Approver reviews: content accuracy, tone, contact list, timing. Approval can happen in parallel with the internal brief lead time window — they are independent gates. Both must clear before external send proceeds. Set CommEventQueue.approval_status = 'approved' + approval_by + approval_timestamp.</div></div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">7</div>
+            <div><div class="step-title">External comm send gate check</div><div class="step-body">Two conditions must both be true before send: (a) approval_status = 'approved', (b) lead_time_days window has elapsed since internal brief delivery. If generic email delay is active on any accounts: those accounts wait their additional 1 business day. All other approved accounts send on schedule.</div></div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">8</div>
+            <div><div class="step-title">Send + log</div><div class="step-body">Send external comm to resolved contact list. Write one CommDeliveryLog record per recipient per event: contact, delivery timestamp, comm type, generic_email_flag, unresolved_generic_flag. Update CommEventQueue.status = 'sent'. Write CommBriefLog completion record.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- APPROVAL FLOW VISUAL -->
+    <div class="section">
+      <div class="section-lbl">Dual-gate before external send</div>
+      <div class="card">
+        <div class="card-body" style="margin-bottom:10px">Both gates run in parallel. External comm does not send until both clear. The lead time window protects the AM relationship; the approval gate protects content and legal accuracy.</div>
+        <div class="approval-flow">
+          <div class="ap-node">Trigger detected</div>
+          <div class="ap-arrow">→</div>
+          <div class="ap-node">Internal brief → AM</div>
+          <div class="ap-arrow">→</div>
+          <div class="ap-node" style="background:#fef9c3;border-color:#fde047;color:#854d0e">Lead time window<br><span style="font-size:10px;font-weight:400">default 3 biz days</span></div>
+          <div class="ap-arrow">+</div>
+          <div class="ap-node-approval">Human approval<br><span style="font-size:10px;font-weight:400">RevOps ± Legal</span></div>
+          <div class="ap-arrow">→ both cleared →</div>
+          <div class="ap-node-send">External comm sends</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- I/O -->
+    <div class="section">
+      <div class="section-lbl">Inputs and outputs</div>
+      <div class="io-grid">
+        <div class="io-card">
+          <div class="io-title">Reads</div>
+          <div class="io-row"><span class="io-source">PricingConfig</span><span class="io-desc">Future-dated rate changes for price increase detection</span></div>
+          <div class="io-row"><span class="io-source">CommEventQueue</span><span class="io-desc">Manual-entry events for EoS/EoL and ToS comm types</span></div>
+          <div class="io-row"><span class="io-source">OrderForm</span><span class="io-desc">billing_contact field (written by L8 AGT-801)</span></div>
+          <div class="io-row"><span class="io-source">Contacts</span><span class="io-desc">Human contacts, active users, legal/signatory personas</span></div>
+          <div class="io-row"><span class="io-source">Accounts</span><span class="io-desc">abm_active, active subscription / product flags</span></div>
+          <div class="io-row"><span class="io-source">ChurnRiskLog</span><span class="io-desc">Current churn_risk_tier for priority flagging</span></div>
+          <div class="io-row"><span class="io-source">Opportunities</span><span class="io-desc">Renewal close_date for ≤90 day proximity flag</span></div>
+          <div class="io-row"><span class="io-source">TerritoryDefinitions</span><span class="io-desc">AM assignment for internal brief routing</span></div>
+        </div>
+        <div class="io-card">
+          <div class="io-title">Writes</div>
+          <div class="io-row"><span class="io-source">CommEventQueue</span><span class="io-desc">status updates (in_progress → sent), approval fields</span></div>
+          <div class="io-row"><span class="io-source">CommBriefLog</span><span class="io-desc">One record per AM per event — brief content + delivery timestamp</span></div>
+          <div class="io-row"><span class="io-source">CommDeliveryLog</span><span class="io-desc">One record per recipient per event — delivery audit trail</span></div>
+          <div class="io-row"><span class="io-source">AGT-204 queue</span><span class="io-desc">Enrichment request on generic email detection (persistent fix)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAMPLE OUTPUT -->
+    <div class="section">
+      <div class="section-lbl">Sample internal brief (AM-facing, price increase)</div>
+<pre>{
+  "brief_type": "internal",
+  "comm_event_id": "EVT-2026-001",
+  "comm_type": "price_increase",
+  "to_am": "Hannah Brooks",
+  "subject": "Action required: Price change effective May 1 — your accounts",
+  "event_summary": {
+    "change": "Platform seat license: $420 → $480/seat/mo (+14.3%)",
+    "effective_date": "2026-05-01",
+    "affected_skus": ["SEAT-ENT", "SEAT-MM"],
+    "external_comm_sends": "2026-04-10 (3 business days from now)"
+  },
+  "affected_accounts": 8,
+  "total_acv_affected": 1840000,
+  "priority_customers": [
+    {
+      "account": "Apex Dynamics",
+      "acv": 280000,
+      "priority_reasons": ["churn_risk_high", "renewal_in_42_days"],
+      "action": "Contact CFO Jordan Park before April 10. Frame as advance notice — they should hear this from you, not from the automated email. Renewal is in 42 days; pre-empt objection before it enters negotiation.",
+      "contact": "Jordan Park, CFO — jp@apexdynamics.com"
+    },
+    {
+      "account": "Lumina Cloud",
+      "acv": 190000,
+      "priority_reasons": ["abm_active"],
+      "action": "ABM account — reach Sarah Park (CTO) directly before external comm sends. Bespoke relationship; transactional email should not be her first notification.",
+      "contact": "Sarah Park, CTO — sarah.park@luminacloud.io"
+    }
+  ],
+  "standard_accounts": [
+    { "account": "Ironwood Solutions", "acv": 95000, "priority_reasons": [] }
+  ],
+  "contact_flags": [
+    { "account": "Nexus Partners", "flag": "generic_billing_email", "action": "Identify human contact — 1-day delay applied to their send" }
+  ]
+}</pre>
+    </div>
+
+    <!-- SCHEMA -->
+    <div class="section">
+      <div class="section-lbl">Schema additions (v19)</div>
+      <div class="schema-card-full">
+        <div class="schema-card-title">CommEventQueue <span class="new-pill">new</span> <span class="l0-pill">L0 — RevOps owned</span></div>
+        <div class="field-row"><span class="field-name">comm_event_id</span><span class="field-type">PK</span><span class="field-desc">Unique event identifier</span></div>
+        <div class="field-row"><span class="field-name">comm_type</span><span class="field-type">enum</span><span class="field-desc">price_increase / tos_change / eos_eol</span></div>
+        <div class="field-row"><span class="field-name">status</span><span class="field-type">enum</span><span class="field-desc">pending / in_progress / awaiting_approval / approved / sent</span></div>
+        <div class="field-row"><span class="field-name">effective_date</span><span class="field-type">date</span><span class="field-desc">Date change takes effect (customer-facing)</span></div>
+        <div class="field-row"><span class="field-name">affected_skus</span><span class="field-type">JSON</span><span class="field-desc">Nullable — array of SKU codes. NULL = all products (ToS)</span></div>
+        <div class="field-row"><span class="field-name">change_summary</span><span class="field-type">text</span><span class="field-desc">Human-readable description used in external comm drafting</span></div>
+        <div class="field-row"><span class="field-name">lead_time_days</span><span class="field-type">int</span><span class="field-desc">Default 3. Business days between internal brief and external send.</span></div>
+        <div class="field-row"><span class="field-name">acv_priority_threshold</span><span class="field-type">varchar</span><span class="field-desc">Default 'segment_p75'. Configurable per event — e.g., 'segment_p50', '$100000'</span></div>
+        <div class="field-row"><span class="field-name">initiated_by</span><span class="field-type">FK</span><span class="field-desc">Employee ID of event creator</span></div>
+        <div class="field-row"><span class="field-name">auto_detected</span><span class="field-type">bool</span><span class="field-desc">TRUE if created by PricingConfig scan; FALSE if manually entered</span></div>
+        <div class="field-row"><span class="field-name">brief_delivered_at</span><span class="field-type">datetime</span><span class="field-desc">Timestamp internal briefs were sent to AMs — lead time clock starts here</span></div>
+        <div class="field-row"><span class="field-name">approval_status</span><span class="field-type">enum</span><span class="field-desc">pending / approved / rejected</span></div>
+        <div class="field-row"><span class="field-name">approval_by</span><span class="field-type">FK</span><span class="field-desc">Nullable — approver employee ID</span></div>
+        <div class="field-row"><span class="field-name">approval_timestamp</span><span class="field-type">datetime</span><span class="field-desc">Nullable</span></div>
+        <div class="field-row"><span class="field-name">send_timestamp</span><span class="field-type">datetime</span><span class="field-desc">Nullable — when external comm was sent</span></div>
+        <div class="field-row"><span class="field-name">total_recipients</span><span class="field-type">int</span><span class="field-desc">Count of external recipients — populated post-send</span></div>
+        <div class="field-row"><span class="field-name">pricing_config_ref</span><span class="field-type">FK</span><span class="field-desc">Nullable — reference to PricingConfig row that triggered (price_increase only)</span></div>
+      </div>
+      <div class="schema-section">
+        <div class="schema-card">
+          <div class="schema-card-title">CommBriefLog <span class="new-pill">new</span></div>
+          <div class="field-row"><span class="field-name">brief_log_id</span><span class="field-type">PK</span><span class="field-desc">Unique log entry</span></div>
+          <div class="field-row"><span class="field-name">comm_event_id</span><span class="field-type">FK</span><span class="field-desc">Reference to CommEventQueue</span></div>
+          <div class="field-row"><span class="field-name">am_id</span><span class="field-type">FK</span><span class="field-desc">AM who received this brief</span></div>
+          <div class="field-row"><span class="field-name">delivered_at</span><span class="field-type">datetime</span><span class="field-desc">Brief delivery timestamp</span></div>
+          <div class="field-row"><span class="field-name">affected_account_count</span><span class="field-type">int</span><span class="field-desc">Accounts in this AM's brief</span></div>
+          <div class="field-row"><span class="field-name">priority_account_count</span><span class="field-type">int</span><span class="field-desc">Accounts flagged as priority</span></div>
+          <div class="field-row"><span class="field-name">brief_content</span><span class="field-type">JSON</span><span class="field-desc">Full brief content including priority CTAs</span></div>
+          <div class="field-row"><span class="field-name">total_acv_in_brief</span><span class="field-type">decimal</span><span class="field-desc">Sum of ACV for accounts in brief</span></div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-card-title">CommDeliveryLog <span class="new-pill">new</span></div>
+          <div class="field-row"><span class="field-name">delivery_log_id</span><span class="field-type">PK</span><span class="field-desc">Unique log entry</span></div>
+          <div class="field-row"><span class="field-name">comm_event_id</span><span class="field-type">FK</span><span class="field-desc">Reference to CommEventQueue</span></div>
+          <div class="field-row"><span class="field-name">account_id</span><span class="field-type">FK</span><span class="field-desc">Account this delivery belongs to</span></div>
+          <div class="field-row"><span class="field-name">recipient_email</span><span class="field-type">varchar</span><span class="field-desc">Actual email address sent to</span></div>
+          <div class="field-row"><span class="field-name">contact_id</span><span class="field-type">FK</span><span class="field-desc">Nullable — FK to Contacts if known human</span></div>
+          <div class="field-row"><span class="field-name">sent_at</span><span class="field-type">datetime</span><span class="field-desc">Delivery timestamp</span></div>
+          <div class="field-row"><span class="field-name">generic_email_flag</span><span class="field-type">bool</span><span class="field-desc">TRUE if recipient matched generic pattern</span></div>
+          <div class="field-row"><span class="field-name">unresolved_generic_flag</span><span class="field-type">bool</span><span class="field-desc">TRUE if sent to generic after 1-day delay with no resolution</span></div>
+          <div class="field-row"><span class="field-name">delay_applied_days</span><span class="field-type">int</span><span class="field-desc">Business days of delay applied to this recipient</span></div>
+          <div class="field-row"><span class="field-name">priority_customer</span><span class="field-type">bool</span><span class="field-desc">TRUE if account was flagged as priority in AM brief</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="margin-top:8px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#9ca3af;line-height:1.7">
+  GTM OS · AGT-504 Customer Communications Agent · Layer 5 · Schema target: v19<br>
+  Key decisions: Hybrid trigger model (PricingConfig scan + CommEventQueue manual entry). Human approval always required — never auto-sends. Priority flags: churn ≥ Medium, renewal ≤90d, ABM active, ACV threshold (configurable, default segment P75). Generic email: 1-day delay + AM flag, then send regardless. Lead time: configurable, default 3 business days.<br>
+  Next: Schema v19 build · then Layer 5 complete → Changelog update
+</div>
+
+<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#9ca3af;line-height:1.7">GTM OS · AGT-504 · Customer Communications Agent · L5 · Schema v19</div>
+</div>
+</body>
+</html>

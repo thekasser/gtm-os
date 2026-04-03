@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-602 — Technical Implementation Agent</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f9fa;color:#1a1a1a;padding:2rem;font-size:13px}
+.wrap{max-width:1020px;margin:0 auto}
+.doc-title{font-size:22px;font-weight:700;color:#111;margin-bottom:4px}
+.doc-sub{font-size:12px;color:#6b7280;margin-bottom:6px;line-height:1.6}
+.doc-note{font-size:11px;color:#888;padding:8px 12px;background:#f5f5f5;border-radius:8px;margin-bottom:28px;border-left:3px solid #ddd;line-height:1.6}
+.agent-block{margin-bottom:44px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff}
+.hdr-601{background:linear-gradient(135deg,#faf5ff 0%,#ede9fe 100%)}
+.hdr-602{background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%)}
+.hdr-603{background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)}
+.hdr-604{background:linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%)}
+.agent-hdr{padding:18px 20px 14px;border-bottom:1px solid #f0f0f0}
+.agent-id{font-family:monospace;font-size:11px;font-weight:700;letter-spacing:.04em;margin-bottom:5px}
+.id-601{color:#6d28d9}.id-602{color:#0369a1}.id-603{color:#166534}.id-604{color:#c2410c}
+.agent-name{font-size:20px;font-weight:700;color:#111;margin-bottom:4px}
+.agent-purpose{font-size:13px;color:#4b5563;line-height:1.6;max-width:820px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.badge{font-size:10px;font-weight:600;padding:2px 9px;border-radius:6px}
+.b-new{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.b-schema{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd}
+.b-ripple{background:#faece7;color:#712B13;border:1px solid #F0997B}
+.b-comp{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5}
+.b-l4{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.body-pad{padding:20px}
+.section{margin-bottom:22px}
+.section-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:10px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.card-title{font-size:12px;font-weight:600;color:#111;margin-bottom:5px}
+.card-body{font-size:12px;color:#4b5563;line-height:1.7}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#f9fafb;text-align:left;padding:7px 10px;font-weight:600;color:#374151;border-bottom:1px solid #e5e7eb;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f3f4f6;color:#4b5563;vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:none}
+.schema-pill{display:inline-block;font-family:monospace;font-size:10px;background:#f0f0f0;padding:1px 6px;border-radius:4px;color:#444;border:1px solid #e0e0e0}
+.new-pill{font-size:9px;font-weight:700;background:#dcfce7;color:#166534;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #86efac;display:inline-block}
+.upd-pill{font-size:9px;font-weight:700;background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #7dd3fc;display:inline-block}
+.l0-pill{font-size:9px;font-weight:700;background:#ede9fe;color:#5b21b6;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #c4b5fd;display:inline-block}
+.comp-note{background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;padding:8px 12px;font-size:11px;color:#b91c1c;line-height:1.6;margin-bottom:12px}
+.ripple-note{background:#faece7;border:1px solid #F0997B;border-radius:6px;padding:8px 12px;font-size:11px;color:#712B13;line-height:1.6;margin-bottom:12px}
+.info-note{background:#f0f9ff;border:1px solid #7dd3fc;border-radius:6px;padding:8px 12px;font-size:11px;color:#0369a1;line-height:1.6;margin-bottom:12px}
+.step-list{display:flex;flex-direction:column}
+.step-row{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #f3f4f6}
+.step-row:last-child{border-bottom:none}
+.step-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.sn-601{background:#ede9fe;color:#5b21b6}
+.sn-602{background:#e0f2fe;color:#0369a1}
+.sn-603{background:#dcfce7;color:#166534}
+.sn-604{background:#ffedd5;color:#c2410c}
+.step-title{font-size:12px;font-weight:600;color:#111;margin-bottom:3px}
+.step-body{font-size:12px;color:#4b5563;line-height:1.6}
+.trigger-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.trigger-card{border-radius:8px;padding:12px 14px;border:1px solid}
+.tc-auto{background:#fef9c3;border-color:#fde047}
+.tc-manual{background:#f0fdf4;border-color:#86efac}
+.tc-close{background:#f0f9ff;border-color:#7dd3fc}
+.trigger-type{font-size:12px;font-weight:700;margin-bottom:5px}
+.tc-auto .trigger-type{color:#854d0e}
+.tc-manual .trigger-type{color:#166534}
+.tc-close .trigger-type{color:#0369a1}
+.milestone-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ms-card{border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;background:#f9fafb}
+.ms-num{font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:3px}
+.ms-name{font-size:12px;font-weight:600;color:#111;margin-bottom:3px}
+.ms-detail{font-size:11px;color:#4b5563;line-height:1.5}
+.comp-gate{background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:14px;margin-bottom:8px}
+.comp-gate-title{font-size:12px;font-weight:700;color:#b91c1c;margin-bottom:8px}
+.comp-row{font-size:12px;color:#4b5563;padding:5px 0;border-bottom:1px solid #fee2e2;line-height:1.5}
+.comp-row:last-child{border-bottom:none}
+.map-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.map-card{border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px}
+.map-card-title{font-size:11px;font-weight:700;color:#374151;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.map-detail{font-size:11px;color:#4b5563;line-height:1.6}
+.onb-health-flow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.ohf-card{border-radius:8px;padding:10px 12px;border:1px solid}
+.ohf-onb{background:#faf5ff;border-color:#c4b5fd}
+.ohf-trans{background:#f9fafb;border-color:#e5e7eb;text-align:center;display:flex;align-items:center;justify-content:center}
+.ohf-health{background:#f0fdf4;border-color:#86efac}
+.ohf-title{font-size:11px;font-weight:700;margin-bottom:4px}
+.ohf-onb .ohf-title{color:#5b21b6}
+.ohf-health .ohf-title{color:#166534}
+.ohf-body{font-size:11px;color:#4b5563;line-height:1.5}
+.section-card{border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:8px}
+.sc-row{display:grid;grid-template-columns:28px 160px 1fr 80px;gap:0;border-bottom:1px solid #f3f4f6;align-items:start}
+.sc-row:last-child{border-bottom:none}
+.sc-hdr{background:#f9fafb;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase}
+.sc-cell{padding:8px 10px;font-size:12px;color:#4b5563;border-right:1px solid #f3f4f6;line-height:1.5}
+.sc-cell:last-child{border-right:none}
+.sc-num{font-weight:700;color:#374151;text-align:center}
+.sc-name{font-weight:600;color:#111}
+.sc-owner{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;text-align:center}
+.own-am{background:#E6F1FB;color:#0C447C}
+.own-csm{background:#E1F5EE;color:#085041}
+.own-both{background:#EEEDFE;color:#3C3489}
+.voc-consumer-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.voc-card{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px}
+.voc-consumer{font-size:11px;font-weight:700;color:#374151;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.voc-gets{font-size:12px;color:#4b5563;line-height:1.6;margin-bottom:5px}
+.voc-feeds{font-size:11px;color:#9ca3af;font-style:italic}
+.schema-section{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.schema-card{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px;margin-bottom:10px}
+.schema-card-title{font-size:12px;font-weight:600;color:#111;margin-bottom:8px}
+.field-row{display:flex;gap:6px;padding:3px 0;border-bottom:1px solid #f3f4f6;font-size:11px;align-items:baseline}
+.field-row:last-child{border-bottom:none}
+.field-name{font-family:monospace;color:#444;flex-shrink:0;min-width:210px}
+.field-type{color:#9ca3af;font-size:10px;min-width:50px}
+.field-desc{color:#4b5563;line-height:1.5}
+.io-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.io-card{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px}
+.io-title{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.io-row{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:12px;align-items:baseline}
+.io-row:last-child{border-bottom:none}
+.io-source{font-family:monospace;font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:3px;color:#555;flex-shrink:0}
+.io-desc{color:#4b5563;line-height:1.5}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="doc-title">AGT-602 — Technical Implementation Agent</div>
+<div class="doc-sub">Layer 6 · Customer Lifecycle · Schema v20</div>
+<div class="agent-block">
+  <div class="agent-hdr hdr-602">
+    <div class="agent-id id-602">AGT-602 · Layer 6 · Customer Lifecycle</div>
+    <div class="agent-name">Technical Implementation Agent</div>
+    <div class="agent-purpose">Manages the technical workstream of customer onboarding. Active only when implementation services are on the quote. Runs in parallel with AGT-601 from close. Technical owner is the Implementation Engineer (or CSM when no dedicated IE). Reads the MAP and ImplementationSOW as its source of truth. When AGT-602 is not active, AGT-601 covers simplified technical milestones directly.</div>
+    <div class="badges">
+      <span class="badge b-new">New agent</span>
+      <span class="badge b-schema">New tables: ImplementationSOW, TechnicalMilestoneLog</span>
+      <span class="badge b-ripple">Parallel to AGT-601 — MAP is shared coordination layer</span>
+    </div>
+  </div>
+  <div class="body-pad">
+
+    <div class="info-note">
+      <strong>Activation gate:</strong> AGT-602 activates at deal close when <span class="schema-pill">QuoteLog</span> contains an implementation services line item OR when <span class="schema-pill">ImplementationSOW</span> record exists for the account. Not active = AGT-601 covers lightweight technical milestones (M1 only) with CSM as owner.
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Technical workstream scope</div>
+      <div class="card">
+        <table>
+          <tr><th>Technical milestone</th><th>Owner</th><th>Detection</th><th>Feeds AGT-601</th></tr>
+          <tr><td><strong>Environment provisioning</strong><br>Tenant/instance created, credentials issued</td><td>Implementation Engineer</td><td>Manual log</td><td>M1 progress</td></tr>
+          <tr><td><strong>Integration build</strong><br>API connections, data pipeline, SSO</td><td>Implementation Engineer</td><td>AGT-804 first data feed signal</td><td>M1 completion</td></tr>
+          <tr><td><strong>Data migration</strong><br>Historical data loaded and validated (where applicable)</td><td>Implementation Engineer</td><td>Manual log + row count validation</td><td>M1 completion</td></tr>
+          <tr><td><strong>Technical validation / UAT</strong><br>Customer confirms technical setup meets requirements</td><td>CSM (face) + IE (technical)</td><td>Manual sign-off from customer technical contact</td><td>M1 complete gate</td></tr>
+          <tr><td><strong>Technical go-live sign-off</strong><br>IE confirms production environment stable</td><td>Implementation Engineer</td><td>Manual log</td><td>M1 final completion</td></tr>
+          <tr><td><strong>Technical handoff to CSM</strong><br>IE formally hands technical ownership to CSM</td><td>Implementation Engineer → CSM</td><td>Manual — both parties confirm</td><td>Triggers AGT-601 to note AGT-602 workstream complete</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Relationship to AGT-601</div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Shared MAP coordination</div>
+          <div class="card-body">Both agents read <span class="schema-pill">MutualActionPlan</span>. AGT-602 reads technical win details, integration requirements, and customer technical stakeholder map. AGT-602 writes technical milestone completion back to MAP (via TechnicalMilestoneLog). AGT-601 reads AGT-602 progress to update M1 milestone status without duplicating the technical workstream.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">CSM visibility</div>
+          <div class="card-body">AGT-601 surfaces AGT-602 technical status to the CSM in a simplified summary — CSM is the customer-facing PM and needs to know what's happening technically without owning the detail. IE owns AGT-602 operational detail; CSM owns customer communication about it.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Schema additions (v20)</div>
+      <div class="schema-section">
+        <div class="schema-card">
+          <div class="schema-card-title">ImplementationSOW <span class="new-pill">new</span> <span class="l0-pill">L0</span></div>
+          <div class="field-row"><span class="field-name">sow_id</span><span class="field-type">PK</span></div>
+          <div class="field-row"><span class="field-name">account_id</span><span class="field-type">FK</span></div>
+          <div class="field-row"><span class="field-name">opportunity_id</span><span class="field-type">FK</span></div>
+          <div class="field-row"><span class="field-name">contracted_hours</span><span class="field-type">int</span><span class="field-desc">Total implementation hours purchased</span></div>
+          <div class="field-row"><span class="field-name">hours_consumed</span><span class="field-type">int</span><span class="field-desc">Running total — updated by IE</span></div>
+          <div class="field-row"><span class="field-name">roles_required</span><span class="field-type">JSON</span><span class="field-desc">Implementation roles and FTE allocation</span></div>
+          <div class="field-row"><span class="field-name">timeline_weeks</span><span class="field-type">int</span><span class="field-desc">Contracted implementation timeline</span></div>
+          <div class="field-row"><span class="field-name">scope_summary</span><span class="field-type">text</span><span class="field-desc">What is in/out of scope for implementation services</span></div>
+          <div class="field-row"><span class="field-name">ie_assigned</span><span class="field-type">FK</span><span class="field-desc">Employee ID of assigned Implementation Engineer</span></div>
+          <div class="field-row"><span class="field-name">sow_status</span><span class="field-type">enum</span><span class="field-desc">draft / active / complete / over_budget</span></div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-card-title">TechnicalMilestoneLog <span class="new-pill">new</span></div>
+          <div class="field-row"><span class="field-name">tech_log_id</span><span class="field-type">PK</span></div>
+          <div class="field-row"><span class="field-name">account_id</span><span class="field-type">FK</span></div>
+          <div class="field-row"><span class="field-name">sow_id</span><span class="field-type">FK</span></div>
+          <div class="field-row"><span class="field-name">milestone_name</span><span class="field-type">varchar</span><span class="field-desc">Technical milestone label</span></div>
+          <div class="field-row"><span class="field-name">status</span><span class="field-type">enum</span><span class="field-desc">not_started / in_progress / blocked / complete</span></div>
+          <div class="field-row"><span class="field-name">completed_date</span><span class="field-type">date</span><span class="field-desc">Nullable</span></div>
+          <div class="field-row"><span class="field-name">hours_logged</span><span class="field-type">int</span><span class="field-desc">Hours consumed on this milestone</span></div>
+          <div class="field-row"><span class="field-name">blocker_detail</span><span class="field-type">text</span><span class="field-desc">Nullable — what is blocking if status = blocked</span></div>
+          <div class="field-row"><span class="field-name">customer_sign_off</span><span class="field-type">bool</span><span class="field-desc">Required for UAT and technical handoff milestones</span></div>
+          <div class="field-row"><span class="field-name">feeds_agt601_milestone</span><span class="field-type">varchar</span><span class="field-desc">AGT-601 milestone ID this feeds (M1)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#9ca3af;line-height:1.7">GTM OS · AGT-602 · Technical Implementation Agent · L6 · Schema v20</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-ENR Spec</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:860px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.bm{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.card-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.card-body{font-size:12px;color:#555;line-height:1.65}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.db{background:#185FA5}.dt{background:#0F6E56}.da{background:#854F0B}.dp{background:#534AB7}.dr{background:#A32D2D}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.signal-grid{display:grid;grid-template-columns:130px 90px 90px 1fr;gap:0;font-size:11px}
+.sg-hdr{font-weight:600;color:#666;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+.sg-cell{padding:7px 10px;border-bottom:1px solid #eee;vertical-align:top;font-size:11px;color:#1a1a1a}
+.sg-muted{color:#666}
+.freq-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;display:inline-block}
+.fd{background:#FCEBEB;color:#791F1F;border:1px solid #F09595}
+.fw{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.fm{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.fq{background:#F1EFE8;color:#444441;border:1px solid #B4B2A9}
+.flow{display:flex;align-items:stretch;gap:0;margin:4px 0;overflow-x:auto}
+.fb{background:#f5f5f5;border:1px solid #ddd;border-radius:7px;padding:9px 11px;font-size:11px;flex:1;min-width:0}
+.fb-title{font-weight:600;color:#111;margin-bottom:2px}
+.fb-body{font-size:10px;color:#666;line-height:1.5}
+.fa{display:flex;align-items:center;padding:0 5px;color:#aaa;font-size:13px;flex-shrink:0}
+.fb-amber{background:#FAEEDA;border-color:#EF9F27}
+.fb-teal{background:#E1F5EE;border-color:#5DCAA5}
+.fb-red{background:#FCEBEB;border-color:#F09595}
+.fb-blue{background:#E6F1FB;border-color:#85B7EB}
+.fb-purple{background:#EEEDFE;border-color:#AFA9EC}
+.persona-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.pc{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px}
+.pc-title{font-size:12px;font-weight:600;margin-bottom:4px}
+.pc-body{font-size:11px;color:#555;line-height:1.6}
+.wf-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}
+.wf-row:last-child{border-bottom:none}
+.wf-pri{min-width:80px;font-weight:600;color:#111;font-size:11px}
+.wf-src{min-width:140px;font-size:11px;color:#555}
+.wf-fields{font-size:11px;color:#666;font-family:monospace}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tag-new{font-size:10px;padding:1px 6px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC;white-space:nowrap}
+.tag-ext{font-size:10px;padding:1px 6px;border-radius:8px;background:#E1F5EE;color:#085041;border:1px solid #5DCAA5;white-space:nowrap}
+.tag-hook{font-size:10px;padding:1px 6px;border-radius:8px;background:#FAEEDA;color:#633806;border:1px solid #EF9F27;white-space:nowrap}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}
+.dep-row:last-child{border-bottom:none}
+.da2{min-width:160px;font-weight:600;color:#111}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-ENR — Lead enrichment</h1>
+<div class="hsub">Layer 2 · ICP & lead management · Pre-score + periodic · Signal-differentiated cadence</div>
+<div class="badges">
+  <span class="badge bv">v1.0 specced</span>
+  <span class="badge bl">Layer 2</span>
+  <span class="badge bm">Waterfall model</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Runs before AGT-001 for new accounts, plus signal-differentiated periodic re-enrichment.</strong> Pre-score enrichment closes the 25-point blind spot in AGT-001 (Dimensions 4 and 5). 10-second timeout gate: if enrichment API doesn't return, AGT-001 scores with available data and enrichment runs asynchronously.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Signal-differentiated cadence — not one-size-fits-all.</strong> Intent signals and news triggers decay in hours. Firmographic and technographic data are stable for months. Each signal type runs on its own schedule to minimize API cost while keeping high-decay signals fresh.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Confidence-weighted conflict resolution.</strong> Enriched data only overwrites existing data if the incoming confidence score is higher. Prevents low-quality API responses from degrading accurate manual data.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>ICP score auto-recalculates immediately when a scored field updates.</strong> Firmographic, technographic, or growth signal change → triggers AGT-001 synchronously on that account. Score change may cascade to tier change → ABM nomination → routing update.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Waterfall sourcing model + API hook pattern.</strong> Primary provider first, secondary fallback if field missing. APIs are not wired in v1 — data model and confidence scoring are fully specced, provider integration is a future enhancement.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Pre-score pipeline — new accounts</div>
+  <div class="flow">
+    <div class="fb fb-blue">
+      <div class="fb-title">New account enters</div>
+      <div class="fb-body">Accounts table write triggers enrichment queue. EnrichmentQueue row created with priority = icp_score_stub (firmographic estimate).</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-amber">
+      <div class="fb-title">AGT-ENR enriches</div>
+      <div class="fb-body">Waterfall API calls. 10-second timeout gate. Writes EnrichmentLog. Updates Accounts fields via confidence-weighted merge.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-purple">
+      <div class="fb-title">AGT-001 scores</div>
+      <div class="fb-body">Full 6-dimension score on enriched record. If timeout fired, scores with available data and re-scores when enrichment completes.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-teal">
+      <div class="fb-title">AGT-002 routes</div>
+      <div class="fb-body">Routing proceeds with enriched ICP score. Tier assignment includes all 100 points, not just the 75 available pre-enrichment.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Signal-differentiated re-enrichment cadence</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="signal-grid">
+      <div class="sg-hdr">Signal type</div>
+      <div class="sg-hdr">T1 cadence</div>
+      <div class="sg-hdr">T2/T3 cadence</div>
+      <div class="sg-hdr">Trigger override</div>
+      <div class="sg-cell"><strong>Intent signals</strong></div>
+      <div class="sg-cell"><span class="freq-badge fd">Daily</span></div>
+      <div class="sg-cell"><span class="freq-badge fw">Weekly</span> / <span class="freq-badge fm">Monthly</span></div>
+      <div class="sg-cell sg-muted">Score change ≥20pts → immediate re-score + flag to AGT-ABM</div>
+      <div class="sg-cell"><strong>News & triggers</strong></div>
+      <div class="sg-cell"><span class="freq-badge fd">Daily scan</span></div>
+      <div class="sg-cell"><span class="freq-badge fd">Daily scan</span></div>
+      <div class="sg-cell sg-muted">Funding round or C-suite hire detected → immediate flag to AGT-ABM event-trigger</div>
+      <div class="sg-cell"><strong>Contact data</strong></div>
+      <div class="sg-cell"><span class="freq-badge fm">Monthly</span></div>
+      <div class="sg-cell"><span class="freq-badge fm">Monthly</span></div>
+      <div class="sg-cell sg-muted">Rep marks contact stale → on-demand re-enrichment</div>
+      <div class="sg-cell"><strong>Firmographic</strong></div>
+      <div class="sg-cell"><span class="freq-badge fq">Quarterly</span></div>
+      <div class="sg-cell"><span class="freq-badge fq">Quarterly</span></div>
+      <div class="sg-cell sg-muted">Funding round detected (from news scan) → immediate firmographic re-enrichment</div>
+      <div class="sg-cell" style="border-bottom:none"><strong>Technographic</strong></div>
+      <div class="sg-cell" style="border-bottom:none"><span class="freq-badge fq">Quarterly</span></div>
+      <div class="sg-cell" style="border-bottom:none"><span class="freq-badge fq">Quarterly</span></div>
+      <div class="sg-cell sg-muted" style="border-bottom:none">M&A event or major product launch → event-triggered re-enrichment</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:5px">Daily news/intent scan is a lightweight API call (webhook or diff check). Heavy enrichment calls (firmographic, technographic, contact) run quarterly or on trigger only — not on daily schedule for the full account base. Cost-efficient by design.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Contact enrichment — three personas, multi-thread from Day 1</div>
+  <div class="persona-grid">
+    <div class="pc">
+      <div class="pc-title">Economic buyer</div>
+      <div class="pc-body">CFO, CEO, VP Finance, COO. Decision authority and budget ownership. Target for later-stage outreach and executive alignment plays. ABM 1:1 accounts require economic buyer contact before activation.</div>
+    </div>
+    <div class="pc">
+      <div class="pc-title">Champion</div>
+      <div class="pc-body">Director/Manager of the function that uses the product daily. Highest conversion leverage — internal advocates drive deals forward. First contact enriched for most accounts.</div>
+    </div>
+    <div class="pc">
+      <div class="pc-title">Technical evaluator</div>
+      <div class="pc-body">CTO, VP Engineering, IT Director, Head of Platform. Evaluates integration, security, and implementation risk. Critical for Enterprise deals. Enriched alongside champion on T1 accounts.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Waterfall sourcing model</div>
+  <div class="card">
+    <div class="wf-row"><span class="wf-pri">Primary</span><span class="wf-src">Clearbit / Apollo (TBD)</span><span class="wf-fields">firmographic, contact, technographic</span></div>
+    <div class="wf-row"><span class="wf-pri">Secondary</span><span class="wf-src">ZoomInfo / Lusha (TBD)</span><span class="wf-fields">contact fallback, phone, LinkedIn</span></div>
+    <div class="wf-row"><span class="wf-pri">Intent</span><span class="wf-src">Bombora / G2 (TBD)</span><span class="wf-fields">intent_score, intent_topics, intent_surge_pct</span></div>
+    <div class="wf-row"><span class="wf-pri">News</span><span class="wf-src">NewsAPI / Crunchbase (TBD)</span><span class="wf-fields">funding_round, leadership_change, headcount_growth</span></div>
+    <div class="wf-row"><span class="wf-pri">Social</span><span class="wf-src">LinkedIn API (TBD)</span><span class="wf-fields">linkedin_followers, recent_posts, employee_posts</span></div>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:5px">Provider names are placeholders — schema fields are provider-agnostic. Waterfall logic: if primary returns NULL for a field, secondary is called. Confidence score is assigned per field per source and stored in EnrichmentLog.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema — 2 new tables + Accounts extended</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Status</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>EnrichmentLog</strong></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">enrichment_id, account_id, run_date, signal_type (firmographic/technographic/contact/intent/news/social), fields_updated, source_primary, source_fallback_used, confidence_score (0–1), prior_value, new_value, overwrite_applied (bool), icp_rescore_triggered (bool), notes</td>
+        </tr>
+        <tr>
+          <td><strong>EnrichmentQueue</strong></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">queue_id, account_id, priority (T1/T2/T3/new_account), signal_types_requested, requested_by (agent/rep/system), status (pending/in_progress/complete/timeout), timeout_at, completed_at, retry_count, notes</td>
+        </tr>
+        <tr style="border-bottom:none">
+          <td><strong>Accounts</strong></td>
+          <td><span class="tag-ext">extended</span></td>
+          <td class="mono">Add enrichment fields: employee_count_enriched, revenue_estimate_usd, funding_stage, funding_amount_usd, funding_date, cloud_provider, crm_vendor, martech_stack, intent_score, intent_topics, intent_surge_pct, linkedin_followers, last_enriched_date (per signal type), enrichment_confidence_avg — all nullable, confidence-weighted overwrite only</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:5px">Contact data (personas) writes to a Contacts table — if not yet in schema, this is a net new table needed: contact_id, account_id, persona_type, full_name, title, email, phone, linkedin_url, confidence_score, last_enriched_date, is_active.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">ICP score recalculation cascade</div>
+  <div class="flow">
+    <div class="fb fb-amber">
+      <div class="fb-title">Enrichment updates scored field</div>
+      <div class="fb-body">Any field feeding AGT-001 Dimensions 1–5 is updated with confidence overwrite.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-purple">
+      <div class="fb-title">AGT-001 immediate rescore</div>
+      <div class="fb-body">icp_rescore_triggered = TRUE in EnrichmentLog. AGT-001 recalculates synchronously.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-blue">
+      <div class="fb-title">Tier change check</div>
+      <div class="fb-body">If icp_tier changes (T2→T1 or T1→T2): notify rep + RevOps. Update routing eligibility.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-teal">
+      <div class="fb-title">Downstream cascade</div>
+      <div class="fb-body">T2→T1 promotion: flag to AGT-ABM for TAL consideration. Routing rules rechecked by AGT-002.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da2">Accounts</span><span class="dd reads">reads</span><span class="dd2">Existing field values and confidence scores before overwrite decision.</span></div>
+    <div class="dep-row"><span class="da2">EnrichmentQueue</span><span class="dd writes">writes</span><span class="dd2">Queues new and re-enrichment jobs with priority and signal type.</span></div>
+    <div class="dep-row"><span class="da2">EnrichmentLog</span><span class="dd writes">writes</span><span class="dd2">Every enrichment run recorded — field, source, confidence, overwrite decision.</span></div>
+    <div class="dep-row"><span class="da2">Accounts (enriched fields)</span><span class="dd writes">writes</span><span class="dd2">Confidence-weighted field updates. Never overwrites without higher confidence.</span></div>
+    <div class="dep-row"><span class="da2">Contacts (new table)</span><span class="dd writes">writes</span><span class="dd2">Contact persona records per account — economic buyer, champion, technical evaluator.</span></div>
+    <div class="dep-row"><span class="da2">AGT-001 ICP Scorer</span><span class="dd trig">triggers</span><span class="dd2">Triggered immediately when a scored field is updated. icp_rescore_triggered flag set in EnrichmentLog.</span></div>
+    <div class="dep-row"><span class="da2">AGT-ABM</span><span class="dd trig">triggers</span><span class="dd2">News/intent signal triggers flag to AGT-ABM for expedited TAL review when funding or C-suite change detected.</span></div>
+    <div class="dep-row"><span class="da2">AGT-002 Lead Router</span><span class="dd trig">triggers</span><span class="dd2">ICP tier change (T2→T1) triggers routing re-evaluation for any unrouted leads on that account.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-ENR, the Lead Enrichment agent for a B2B SaaS GTM OS.
+
+ROLE: Enrich account and contact records before ICP scoring and on a
+signal-differentiated schedule. Never overwrite data with lower confidence.
+Trigger AGT-001 rescore immediately when a scored field updates.
+
+PRE-SCORE MODE (new accounts):
+  On new Accounts row: create EnrichmentQueue entry, priority = new_account.
+  Run waterfall enrichment for all signal types.
+  10-SECOND TIMEOUT GATE: if enrichment not complete → set status = timeout.
+    Allow AGT-001 to score with available data. Re-run enrichment async.
+    On completion: update fields, trigger AGT-001 rescore.
+
+RE-ENRICHMENT CADENCE (existing accounts):
+  Intent signals: T1 daily, T2 weekly, T3 monthly.
+  News & triggers: all accounts daily (lightweight scan only).
+  Contact data: all accounts monthly.
+  Firmographic + technographic: all accounts quarterly.
+  Trigger overrides: funding round → immediate firmographic re-enrichment.
+    Intent score change ≥20pts → immediate rescore + flag to AGT-ABM.
+    C-suite hire detected → flag to AGT-ABM event-trigger.
+
+WATERFALL SOURCING:
+  For each field: call primary source. If NULL → call secondary source.
+  Assign confidence_score (0–1) per field per source.
+  Record source_primary and source_fallback_used in EnrichmentLog.
+
+CONFIDENCE-WEIGHTED OVERWRITE:
+  Compare incoming confidence_score to existing field confidence.
+  If incoming > existing → overwrite, log prior_value + new_value.
+  If incoming ≤ existing → do not overwrite. Log attempt only.
+  If field is NULL → always write regardless of confidence.
+
+CONTACT ENRICHMENT — three personas per account:
+  economic_buyer: CFO, CEO, VP Finance, COO.
+  champion: Director/Manager of primary use-case function.
+  technical_evaluator: CTO, VP Engineering, IT Director.
+  Write to Contacts table: one row per persona per account.
+  Re-enrich monthly. Flag stale contacts to rep when confidence drops below 0.5.
+
+ICP RESCORE TRIGGER:
+  Any field that feeds AGT-001 Dimensions 1–5 updated with overwrite_applied=TRUE →
+    set icp_rescore_triggered=TRUE in EnrichmentLog.
+    Trigger AGT-001 synchronously on that account_id.
+    If icp_tier changes → notify rep + RevOps.
+    If T2→T1 → flag to AGT-ABM for TAL consideration.
+    If T1→T2 → check if account is on active TAL → flag for removal review.
+
+OUTPUT: EnrichmentLog rows per run. EnrichmentQueue status updates.
+  Daily summary: accounts enriched, fields updated, rescore triggers fired,
+    ABM flags raised, timeout rate (monitor for API health).</pre>
+</div>
+
+</body>
+</html>

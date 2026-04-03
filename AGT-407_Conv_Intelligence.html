@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-407 — Conversation Intelligence Agent</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-ripple{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.wire-box{background:#E6F1FB;border:1px solid #85B7EB;color:#0C447C;font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-bottom:10px}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-407 — Conversation Intelligence Agent</h1>
+<div class="subtitle">Layer 4: Deal &amp; Forecast Management · Analysis layer only · Per-conversation · All roles in scope</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L4 · Agent 07</span>
+  <span class="badge badge-status">Specced · v18 original + v23 ripple audit</span>
+  <span class="badge badge-ripple">L4 ripple audit: call_owner_role field added — enables AGT-501 CSM call filtering</span>
+</div>
+
+<!-- ── RIPPLE AUDIT UPDATES ────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">L4 ripple audit updates (v23)</div>
+
+  <div class="wire-box">
+    <strong>Update — call_owner_role field added to ConvIntelligence (schema v23)</strong><br>
+    AGT-501 Customer Health Monitor uses a ConvIntelligence adjustment (+12 pts max) derived specifically from CSM-owned calls — sentiment, talk ratio, and next-step quality from CSM customer interactions. Without a <code>call_owner_role</code> field, AGT-501 cannot distinguish CSM calls from AE, SDR, AM, or SE calls in ConvIntelligence.<br><br>
+    AGT-407 now writes <code>call_owner_role</code> on every ConvIntelligence record at analysis time. Value is derived from the rep's role in <code>RepActivity</code> or <code>TerritoryDefinitions</code> linked to the conversation. Enum: <code>AE</code> / <code>SDR</code> / <code>AM</code> / <code>CSM</code> / <code>SE</code>.<br><br>
+    Downstream consumers using call_owner_role:<br>
+    &nbsp;· <strong>AGT-501</strong>: filters <code>call_owner_role = 'CSM'</code> for health score ConvIntelligence adjustment<br>
+    &nbsp;· <strong>AGT-701</strong>: filters by role when generating role-parameterized coaching inputs<br>
+    &nbsp;· <strong>AGT-703</strong>: can segment conversation patterns by role for forecast accuracy analysis
+  </div>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-407 is the analysis layer for all sales and customer conversations. Transcription is handled upstream by recording platforms (Gong, Zoom, Chorus) via webhook. AGT-407 receives the transcript and extracts structured signal: sentiment, next steps, competitor mentions, objection patterns, and email signals. Fires per-conversation on transcript receipt. All roles in scope — AE, SDR, AM, CSM, SE. opportunity_id is nullable — conversations without an open deal are stored and become available when a deal opens or when consumed by AGT-501 for health scoring.</p>
+</div>
+
+<!-- ── ANALYSIS DIMENSIONS ───────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Analysis dimensions</div>
+  <table>
+    <tr><th>Dimension</th><th>Output fields</th><th>Downstream consumer</th></tr>
+    <tr><td>Sentiment analysis</td><td><code>overall_sentiment</code>, <code>prospect_sentiment</code>, <code>rep_sentiment</code>, <code>sentiment_trajectory</code>, <code>sentiment_drivers</code></td><td>AGT-401 (deal health), AGT-501 (customer health — CSM calls only)</td></tr>
+    <tr><td>Next step extraction</td><td><code>next_steps</code> (JSON), <code>next_step_committed</code>, <code>missing_next_step_flag</code></td><td>AGT-401, AGT-405 (commitment tracking), AGT-701 (coaching)</td></tr>
+    <tr><td>Competitor mention detection</td><td><code>competitors_mentioned</code> (list), <code>new_competitor_flag</code></td><td>AGT-403 (CompetitiveKnowledgeBase update)</td></tr>
+    <tr><td>Objection pattern extraction</td><td><code>objections_raised</code> (categorized list), <code>unaddressed_showstopper</code></td><td>AGT-401 (deal health rescore trigger), AGT-701 (coaching)</td></tr>
+    <tr><td>Email thread analysis</td><td><code>email_response_trend</code>, <code>email_sentiment</code>, <code>stakeholder_expansion_signal</code></td><td>AGT-401 (deal health — stakeholder expansion is positive signal)</td></tr>
+  </table>
+</div>
+
+<!-- ── CONV INTELLIGENCE SCORE ───────────────────────────── -->
+<div class="section">
+  <div class="section-title">conv_intelligence_score (feeds AGT-401)</div>
+  <p class="prose" style="margin-bottom:10px">0–3 score written to <code>ConvIntelligence.conv_intelligence_score</code>. Feeds AGT-401's conv_intelligence dimension — the last of the 9 dimensions to be unlocked, enabling the full 100-point deal health score.</p>
+  <table>
+    <tr><th>Condition</th><th>Points</th></tr>
+    <tr><td><code>next_step_committed = TRUE</code></td><td>+1</td></tr>
+    <tr><td><code>overall_sentiment = 'positive'</code></td><td>+1</td></tr>
+    <tr><td><code>unaddressed_showstopper = FALSE</code></td><td>+1</td></tr>
+  </table>
+  <div class="note">conv_intelligence_score only feeds AGT-401 deal health for calls where call_owner_role is a selling role (AE, SDR, SE). CSM calls feed AGT-501 customer health adjustment separately — not AGT-401.</div>
+</div>
+
+<!-- ── DOWNSTREAM TRIGGERS ───────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Downstream triggers</div>
+  <table>
+    <tr><th>Condition</th><th>Action</th></tr>
+    <tr><td>Deal linked AND (negative sentiment OR unaddressed_showstopper)</td><td>Trigger AGT-401 rescore immediately</td></tr>
+    <tr><td>Competitor detected</td><td>Trigger AGT-403 CompetitiveKnowledgeBase update</td></tr>
+    <tr><td>brief_id linked (pre-deal meeting)</td><td>Write adherence_score + hypothesis_accuracy_score to DiscoveryBriefLog (AGT-305)</td></tr>
+    <tr><td>opp_brief_id linked (deal-active meeting)</td><td>Write objective_completion_rate + deal_advance_quality_score to OpportunityBriefLog (AGT-405)</td></tr>
+    <tr><td>call_owner_role = CSM AND customer account</td><td>Scores accumulated for AGT-501 ConvIntelligence health adjustment (trailing 30-day pattern)</td></tr>
+  </table>
+</div>
+
+<!-- ── SCHEMA ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema</div>
+  <p class="prose" style="margin-bottom:10px">ConvIntelligence — extended table. Existing rows carry NULL on AGT-407 analysis fields until agent is live.</p>
+  <table>
+    <tr><th>Field (v23 addition)</th><th>Type</th><th>Notes</th></tr>
+    <tr><td><code>call_owner_role</code></td><td>enum</td><td>AE / SDR / AM / CSM / SE. Written by AGT-407 at analysis time. Derived from rep role in RepActivity or TerritoryDefinitions linked to conversation.</td></tr>
+  </table>
+  <div class="note">All other ConvIntelligence fields were added in v18 (original AGT-407 spec). call_owner_role is the only v23 addition.</div>
+</div>
+
+<div class="footer">
+  AGT-407 Conversation Intelligence Agent · Layer 4 · Schema v18 (original) + v23 (ripple audit)<br>
+  v23 schema addition: ConvIntelligence.call_owner_role (enum: AE/SDR/AM/CSM/SE)<br>
+  Ingestion: recording platform webhook (Gong/Zoom/Chorus) — transcription handled upstream; AGT-407 analysis only<br>
+  Scope: all conversations regardless of deal stage or rep role<br>
+  Reads from: transcript (webhook), Opportunities, DiscoveryBriefLog (AGT-305), OpportunityBriefLog (AGT-405), CompetitiveKnowledgeBase (AGT-403), RepActivity / TerritoryDefinitions (call_owner_role derivation)<br>
+  Writes to: ConvIntelligence (all analysis fields + call_owner_role)<br>
+  Feeds: AGT-401 (conv_intelligence_score — selling role calls), AGT-501 (CSM call signals), AGT-403 (competitor KB), AGT-305 (brief scoring), AGT-405 (deal advance scoring), AGT-701 (coaching inputs)
+</div>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AGT-704 — Business Review Orchestrator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-schema{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #eee;vertical-align:top;line-height:1.6}
+tr:nth-child(even) td{background:#f9f9f9}
+.pill{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;white-space:nowrap}
+.pill-wbr{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.pill-mbr{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.pill-qbr{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.note{font-size:11px;color:#888;padding:8px 12px;background:#f5f5f5;border-radius:8px;border-left:3px solid #ddd;line-height:1.6;margin-top:8px}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-green{background:#E1F5EE;border-left:3px solid #5DCAA5;color:#085041}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.flow-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.step-num{font-size:11px;font-weight:700;background:#0D1B2A;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-body{font-size:12px;color:#333;line-height:1.6}
+.step-body strong{color:#111}
+.cadence-block{border:1px solid #e4e4e4;border-radius:10px;padding:16px;margin-bottom:12px}
+.cadence-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.cadence-title{font-size:13px;font-weight:700;color:#0D1B2A}
+.section-row{display:grid;grid-template-columns:24px 1fr;gap:8px;margin-bottom:8px;align-items:start}
+.section-num{font-size:11px;font-weight:700;background:#e8e8e8;color:#333;border-radius:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-detail{font-size:12px;color:#333;line-height:1.6}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+<h1>AGT-704 &mdash; Business Review Orchestrator</h1>
+<div class="subtitle">Layer 7: Measurement &amp; Feedback &middot; Cadenced synthesis layer for WBR, MBR, and exec QBR</div>
+<div class="meta-row">
+  <span class="badge badge-layer">L7 &middot; Agent 04</span>
+  <span class="badge badge-status">Specced &middot; v21</span>
+  <span class="badge badge-schema">Schema adds: BusinessReviewLog</span>
+</div>
+
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-704 is the synthesis and orchestration layer for GTM business reviews. It does not compute metrics, detect patterns, or generate coaching recommendations &mdash; those functions belong to AGT-701, AGT-702, and AGT-703. AGT-704 reads from those agents' output tables, validates data currency before pulling, and assembles stakeholder-differentiated review artifacts on a defined cadence. Three output cadences &mdash; WBR, MBR, exec QBR &mdash; serve different audiences with different detail levels and formats. It owns action item assignment and calibration signal escalation within each review cycle.</p>
+</div>
+
+<div class="section">
+  <div class="section-title">Core design principle</div>
+  <p class="prose" style="margin-bottom:10px">AGT-704 never recomputes what an upstream agent owns. If MetricsCalc is stale, it does not derive its own Magic Number. If ChurnRiskLog is stale, it does not approximate NRR risk. It flags staleness, holds the artifact, and alerts RevOps.</p>
+  <div class="alert-box alert-blue">Single write owner per table. AGT-704 reads and synthesizes &mdash; never recomputes.</div>
+</div>
+
+<div class="section">
+  <div class="section-title">Pre-flight staleness check &mdash; all cadences</div>
+  <p class="prose" style="margin-bottom:12px">Blocking gate before any artifact generation. Does not begin until check passes or RevOps override is received.</p>
+  <div class="flow-step"><div class="step-num">1</div><div class="step-body"><strong>Check required sources</strong> &mdash; verifies each source table has been updated within its expected refresh window.</div></div>
+  <div class="flow-step"><div class="step-num">2</div><div class="step-body"><strong>Stale source detected</strong> &mdash; point alert to owning agent AND RevOps simultaneously. Specifies: which table, last refresh timestamp, expected window, which artifact is blocked.</div></div>
+  <div class="flow-step"><div class="step-num">3</div><div class="step-body"><strong>Resolution</strong> &mdash; (A) Owning agent refreshes: check re-runs, generation proceeds. (B) RevOps override: acknowledges staleness, approves generation. Artifact flagged <code>data_staleness_acknowledged = TRUE</code>.</div></div>
+  <div class="flow-step"><div class="step-num">4</div><div class="step-body"><strong>Hard gate.</strong> Artifact never auto-generates with unacknowledged stale data.</div></div>
+  <div class="subsection-title">Staleness thresholds by source</div>
+  <table>
+    <tr><th>Source table</th><th>Owning agent</th><th>Required for</th><th>Max staleness</th></tr>
+    <tr><td><code>MetricsCalc</code></td><td>AGT-702</td><td>MBR, exec QBR</td><td>Monthly snapshot within 2 business days of month close</td></tr>
+    <tr><td><code>ChurnRiskLog</code></td><td>AGT-502</td><td>All cadences</td><td>7 days</td></tr>
+    <tr><td><code>RepCoachingLog</code></td><td>AGT-701</td><td>MBR, exec QBR</td><td>Monthly within 2 business days of month start</td></tr>
+    <tr><td><code>WinLossLog</code></td><td>AGT-703</td><td>MBR, exec QBR</td><td>Monthly lightweight within 3 business days of month close</td></tr>
+    <tr><td><code>CalibrationSignalLog</code></td><td>AGT-703</td><td>MBR, exec QBR</td><td>Same as WinLossLog</td></tr>
+    <tr><td><code>ForecastAccuracyLog</code></td><td>AGT-703</td><td>MBR, exec QBR</td><td>Same as WinLossLog</td></tr>
+    <tr><td><code>ExpansionLog</code></td><td>AGT-503</td><td>WBR, MBR</td><td>7 days</td></tr>
+    <tr><td><code>Opportunities</code></td><td>CRM source</td><td>All cadences</td><td>24 hours</td></tr>
+    <tr><td><code>FP&amp;APlan</code></td><td>Finance / RevOps</td><td>All cadences</td><td>Current plan version must match most recent reforecast_as_of_date</td></tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">Weekly Business Review (WBR)</div>
+  <div class="cadence-block">
+    <div class="cadence-header"><span class="pill pill-wbr">WBR</span><span class="cadence-title">Trigger: Monday morning, before WBR meeting</span></div>
+    <div class="subsection-title">Audience</div>
+    <table>
+      <tr><th>Audience</th><th>Access</th></tr>
+      <tr><td>FLM + SLM</td><td>Full artifact</td></tr>
+      <tr><td>RevOps</td><td>Full artifact + staleness flags + action item routing view</td></tr>
+      <tr><td>Finance</td><td>Read-only summary &mdash; sections 1 and 5 only (forecast roll-up + NRR risk)</td></tr>
+    </table>
+    <div class="subsection-title">WBR sections</div>
+    <div class="section-row"><div class="section-num">1</div><div class="section-detail"><strong>Forecast roll-up vs prior week delta</strong> &mdash; AGT-402 bottoms-up vs prior week snapshot, delta by segment, pct of FP&amp;APlan target. AGT-404 top-down as reference. If models diverge &gt;15%, historically more accurate model (ForecastAccuracyLog) cited as primary.</div></div>
+    <div class="section-row"><div class="section-num">2</div><div class="section-detail"><strong>Closed won/lost since last WBR</strong> &mdash; past 7 days. Won: ACV, segment, vertical, rep. Lost: same + agent-derived loss reason from WinLossLog. Running QTD closed won vs quota pace.</div></div>
+    <div class="section-row"><div class="section-num">3</div><div class="section-detail"><strong>Top pipeline risks with recommended actions</strong> &mdash; top 10 at-risk deals by ACV x deal health score (AGT-401). Each entry: account, ACV, stage, health score, primary risk dimension, AGT-401 next best action. Ordered by ACV x risk severity.</div></div>
+    <div class="section-row"><div class="section-num">4</div><div class="section-detail"><strong>Capacity and coverage flags</strong> &mdash; open territories, routing_eligible gaps from TerritoryDefinitions, new hire ramp status from CapacityPlan. Flags where gaps create current-quarter pipeline risk.</div></div>
+    <div class="section-row"><div class="section-num">5</div><div class="section-detail"><strong>NRR risk summary</strong> &mdash; AGT-502 weekly digest roll-up. Critical and High tier accounts by segment. Renewal proximity flags (90 days, no open opp). Expansion pipeline from ExpansionLog &mdash; plays open vs actioned this week.</div></div>
+    <div class="subsection-title">Output formats</div>
+    <table>
+      <tr><th>Format</th><th>Details</th></tr>
+      <tr><td>Structured document</td><td>Full narrative + data tables. Primary async artifact before meeting.</td></tr>
+      <tr><td>Slides</td><td>One slide per section. Auto-generated. Human edits before presenting.</td></tr>
+      <tr><td>BI data payload</td><td>Written to BusinessReviewLog.bi_payload. Feeds BI trend layer.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Monthly Business Review (MBR)</div>
+  <div class="cadence-block">
+    <div class="cadence-header"><span class="pill pill-mbr">MBR</span><span class="cadence-title">Trigger: First business day after month close + all sources pass staleness check</span></div>
+    <div class="subsection-title">Audience</div>
+    <table>
+      <tr><th>Audience</th><th>Access</th></tr>
+      <tr><td>Senior sales leadership (VP+)</td><td>Full artifact</td></tr>
+      <tr><td>CRO</td><td>Full artifact + executive summary</td></tr>
+      <tr><td>Finance</td><td>Full seat &mdash; all sections including efficiency metrics and calibration signals</td></tr>
+      <tr><td>RevOps</td><td>Full artifact + action item routing view + staleness override log</td></tr>
+    </table>
+    <div class="subsection-title">Artifact model &mdash; hybrid</div>
+    <p class="prose" style="margin-bottom:10px">WBR artifacts provide narrative context (what happened week by week). All metric sections pull fresh from source tables. WBR narrative informs the story; canonical tables govern the numbers. MBR never summarizes WBR metric figures.</p>
+    <div class="subsection-title">MBR sections</div>
+    <div class="section-row"><div class="section-num">1</div><div class="section-detail"><strong>Month narrative summary</strong> &mdash; synthesized from 4 WBR artifacts. Major wins, losses, inflection points. AGT-704 generates; human edits before distribution.</div></div>
+    <div class="section-row"><div class="section-num">2</div><div class="section-detail"><strong>GTM efficiency metrics</strong> &mdash; fresh pull from MetricsCalc. Magic Number, NRR, GRR vs targets. R40 variants if month-end = quarter-end. Plan vs actual (current FP&amp;APlan version + board plan delta). QoQ trend from MetricsCalc history.</div></div>
+    <div class="section-row"><div class="section-num">3</div><div class="section-detail"><strong>Win-loss summary</strong> &mdash; fresh pull from WinLossLog. Month closed deals by outcome. Top loss reasons by segment and vertical. Persona coverage at close stats. Rep-level win rate vs benchmark &mdash; manager-facing only, not surfaced to reps in MBR.</div></div>
+    <div class="section-row"><div class="section-num">4</div><div class="section-detail"><strong>Forecast accuracy review</strong> &mdash; fresh pull from ForecastAccuracyLog. AGT-402 and AGT-404 accuracy for the closed month. Bias detection flags. Model divergence. Which model more accurate YTD.</div></div>
+    <div class="section-row"><div class="section-num">5</div><div class="section-detail"><strong>NRR health and expansion pipeline</strong> &mdash; fresh pull from ChurnRiskLog and ExpansionLog. NRR rolling 3-month trend. GRR trend. Expansion plays opened vs closed vs suppressed. Top at-risk renewals next 90 days.</div></div>
+    <div class="section-row"><div class="section-num">6</div><div class="section-detail"><strong>Coaching and performance patterns</strong> &mdash; fresh pull from RepCoachingLog and RepSkillAssessmentLog. Persistent patterns (3+ weeks unresolved) by role. SLM escalations in the month. Skill gap trends. Aggregate patterns only &mdash; no individual rep detail at MBR level.</div></div>
+    <div class="section-row"><div class="section-num">7</div><div class="section-detail"><strong>Open calibration signals</strong> &mdash; fresh pull from CalibrationSignalLog. All open signals with status, age, owning agent, recommended action. Signals open &gt;60 days flagged separately for explicit decision. New signals since last MBR highlighted.</div></div>
+    <div class="section-row"><div class="section-num">8</div><div class="section-detail"><strong>Action items</strong> &mdash; carry-forward from prior MBR with status update + new items from this MBR. Owner confirmed before distribution.</div></div>
+    <div class="subsection-title">Output formats</div>
+    <table>
+      <tr><th>Format</th><th>Details</th></tr>
+      <tr><td>Structured document</td><td>Full narrative + data tables. Primary async distribution artifact.</td></tr>
+      <tr><td>Slides</td><td>One slide per section. Executive-ready. Human edits before presenting.</td></tr>
+      <tr><td>BI data payload</td><td>Written to BusinessReviewLog.bi_payload. Enables month-over-month metric comparison.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Executive QBR</div>
+  <div class="cadence-block">
+    <div class="cadence-header"><span class="pill pill-qbr">Exec QBR</span><span class="cadence-title">Trigger: First business day after quarter close + all sources pass staleness check</span></div>
+    <div class="subsection-title">Audience</div>
+    <table>
+      <tr><th>Audience</th><th>Access</th></tr>
+      <tr><td>CRO</td><td>Full artifact</td></tr>
+      <tr><td>CFO + Finance leadership</td><td>Full artifact</td></tr>
+      <tr><td>CEO</td><td>Executive summary section only unless requested otherwise</td></tr>
+      <tr><td>RevOps</td><td>Full artifact + action item routing view</td></tr>
+    </table>
+    <div class="subsection-title">Exec QBR sections</div>
+    <div class="section-row"><div class="section-num">1</div><div class="section-detail"><strong>Quarter narrative</strong> &mdash; synthesized from 3 MBR month narratives. What defined the quarter, what was unexpected, structural vs situational.</div></div>
+    <div class="section-row"><div class="section-num">2</div><div class="section-detail"><strong>Full GTM efficiency metric package</strong> &mdash; all five metric families from MetricsCalc quarterly snapshot. All R40 variants. QoQ and YoY trend. Board plan vs current plan vs actuals &mdash; three-way comparison. CAC Payback trend.</div></div>
+    <div class="section-row"><div class="section-num">3</div><div class="section-detail"><strong>Win-loss deep analysis</strong> &mdash; quarterly WinLossLog. Full 9-dimension breakdown. Competitive displacement trends. ICP fit pattern &mdash; is the OS winning where it expected to win?</div></div>
+    <div class="section-row"><div class="section-num">4</div><div class="section-detail"><strong>Forecast accuracy trend</strong> &mdash; quarterly ForecastAccuracyLog. AGT-402 vs AGT-404 over the quarter + trailing 4-quarter trend. Bias patterns. Recommendation on which model to weight in next quarter's CRO forecast call.</div></div>
+    <div class="section-row"><div class="section-num">5</div><div class="section-detail"><strong>NRR and retention health</strong> &mdash; quarterly NRR and GRR actuals. Rolling 4-quarter trend. Cohort analysis by segment and vertical. Expansion vs churn decomposition of NRR delta.</div></div>
+    <div class="section-row"><div class="section-num">6</div><div class="section-detail"><strong>Calibration signals requiring executive decision</strong> &mdash; CalibrationSignalLog items open &gt;60 days or requiring CRO/CFO input (quota methodology, ICP structural shifts). Curated &mdash; not a full dump.</div></div>
+    <div class="section-row"><div class="section-num">7</div><div class="section-detail"><strong>Next quarter outlook</strong> &mdash; pipeline coverage vs quota, capacity and hiring plan status from CapacityPlan + HiringPlan. Key risks and dependencies. AGT-402 forward forecast as opening pipeline context.</div></div>
+    <div class="section-row"><div class="section-num">8</div><div class="section-detail"><strong>Action items with executive ownership</strong> &mdash; carry-forward from MBR items escalated to exec level + new items. CRO or CFO confirmed as owner before distribution.</div></div>
+    <div class="subsection-title">Output formats</div>
+    <table>
+      <tr><th>Format</th><th>Details</th></tr>
+      <tr><td>Structured document</td><td>Full detail. Board-appendix ready.</td></tr>
+      <tr><td>Slides</td><td>Board-ready deck. One key data point per slide. Human edits before presenting.</td></tr>
+      <tr><td>BI data payload</td><td>Written to BusinessReviewLog.bi_payload. Full quarterly snapshot for QoQ trend analysis.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Action item model</div>
+  <p class="prose" style="margin-bottom:12px">AGT-704 assigns suggested owners by routing rules. Humans confirm before artifact distributes. Unresolved items carry forward into the next review cycle &mdash; public visibility at cadence is the accountability mechanism.</p>
+  <table>
+    <tr><th>Action item type</th><th>Default owner</th><th>Escalation path</th></tr>
+    <tr><td>Pipeline coverage gap</td><td>SLM for affected segment</td><td>CRO if gap persists 2+ WBRs</td></tr>
+    <tr><td>At-risk renewal &mdash; no open opp</td><td>AM for account</td><td>SLM if renewal &le;30 days with no opp</td></tr>
+    <tr><td>CalibrationSignalLog &mdash; ICP or forecast bias</td><td>RevOps</td><td>CRO + Finance at MBR if open &gt;60 days</td></tr>
+    <tr><td>CalibrationSignalLog &mdash; quota methodology</td><td>RevOps + CRO</td><td>Board-level if flagged in exec QBR</td></tr>
+    <tr><td>Capacity / hiring gap</td><td>SLM + HR via RevOps</td><td>CRO if gap affects current quarter coverage</td></tr>
+    <tr><td>Forecast accuracy &mdash; systematic bias</td><td>RevOps</td><td>CRO at MBR if bias persists 3+ periods</td></tr>
+    <tr><td>Rep coaching escalation (SLM-level)</td><td>SLM</td><td>CRO at exec QBR if pattern persists QoQ</td></tr>
+  </table>
+  <div class="note">Items unacknowledged across 2 consecutive cycles escalate one level in the routing hierarchy automatically. AGT-704 does not chase owners between cycles &mdash; carry-forward visibility is the enforcement model.</div>
+</div>
+
+<div class="section">
+  <div class="section-title">Cadence discipline</div>
+  <p class="prose">AGT-704 stays on cadence. No unscheduled exec artifacts. Mid-period metric deterioration is handled by AGT-702 breach alerting to RevOps. RevOps triages and determines whether to escalate manually. The OS does not automate that escalation decision.</p>
+</div>
+
+<div class="section">
+  <div class="section-title">Schema &mdash; BusinessReviewLog (net new, v21)</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+    <tr><td><code>review_id</code></td><td>PK</td><td>Unique per artifact</td></tr>
+    <tr><td><code>review_type</code></td><td>Enum</td><td>wbr / mbr / exec_qbr</td></tr>
+    <tr><td><code>review_date</code></td><td>Date</td><td></td></tr>
+    <tr><td><code>period_start</code> / <code>period_end</code></td><td>Date</td><td>Review period covered</td></tr>
+    <tr><td><code>staleness_check_passed</code></td><td>Bool</td><td></td></tr>
+    <tr><td><code>data_staleness_acknowledged</code></td><td>Bool</td><td>TRUE if RevOps override used</td></tr>
+    <tr><td><code>staleness_override_by</code> / <code>staleness_override_at</code></td><td>String / Datetime</td><td>Who approved and when</td></tr>
+    <tr><td><code>sections</code></td><td>JSON</td><td>Full section content keyed by section number</td></tr>
+    <tr><td><code>bi_payload</code></td><td>JSON</td><td>Denormalized key metrics for BI trend analysis</td></tr>
+    <tr><td><code>action_items</code></td><td>JSON</td><td>Array: type, description, assigned_owner, status, due_cadence</td></tr>
+    <tr><td><code>carried_forward_items</code></td><td>JSON</td><td>Prior cycle action items with carry-forward status</td></tr>
+    <tr><td><code>calibration_signals_surfaced</code></td><td>JSON</td><td>Array of CalibrationSignalLog IDs included in this review</td></tr>
+    <tr><td><code>plan_version_used</code></td><td>String</td><td>FP&amp;APlan plan_version at generation time</td></tr>
+    <tr><td><code>sources_pulled</code></td><td>JSON</td><td>Source tables + last_refresh_timestamp at pull time &mdash; full data lineage</td></tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">Tables read by AGT-704</div>
+  <table>
+    <tr><th>Table</th><th>Cadence</th><th>Sections</th></tr>
+    <tr><td><code>MetricsCalc</code></td><td>MBR, exec QBR</td><td>GTM efficiency metrics</td></tr>
+    <tr><td><code>ChurnRiskLog</code></td><td>All</td><td>NRR risk, at-risk renewals</td></tr>
+    <tr><td><code>ExpansionLog</code></td><td>WBR, MBR</td><td>Expansion pipeline</td></tr>
+    <tr><td><code>RepCoachingLog</code></td><td>MBR, exec QBR</td><td>Coaching patterns and escalations</td></tr>
+    <tr><td><code>RepSkillAssessmentLog</code></td><td>MBR, exec QBR</td><td>Skill gap trends (aggregate)</td></tr>
+    <tr><td><code>WinLossLog</code></td><td>MBR, exec QBR</td><td>Win-loss analysis</td></tr>
+    <tr><td><code>ForecastAccuracyLog</code></td><td>MBR, exec QBR</td><td>Forecast accuracy review</td></tr>
+    <tr><td><code>CalibrationSignalLog</code></td><td>MBR, exec QBR</td><td>Open calibration signals</td></tr>
+    <tr><td><code>Opportunities</code></td><td>All</td><td>Pipeline risks, closed won/lost, next quarter outlook</td></tr>
+    <tr><td><code>FP&amp;APlan</code></td><td>All</td><td>Plan vs actual, current version</td></tr>
+    <tr><td><code>CapacityPlan</code> / <code>HiringPlan</code></td><td>WBR, exec QBR</td><td>Capacity flags, next quarter outlook</td></tr>
+    <tr><td><code>TerritoryDefinitions</code></td><td>WBR, MBR</td><td>Coverage flags</td></tr>
+    <tr><td><code>CustomerHealthLog</code></td><td>MBR, exec QBR</td><td>NRR health context</td></tr>
+    <tr><td><code>BusinessReviewLog</code> (self)</td><td>All</td><td>Prior cycle action item carry-forward</td></tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">Design guardrails</div>
+  <div class="alert-box alert-green">Never recomputes what an upstream agent owns. Stale source = artifact holds.</div>
+  <div class="alert-box alert-amber" style="margin-top:8px">Action item ownership confirmed by humans before distribution. Hard gate.</div>
+  <div class="alert-box alert-blue" style="margin-top:8px">No individual rep detail in MBR or exec QBR. Aggregate patterns only.</div>
+  <div class="alert-box alert-red" style="margin-top:8px">No unscheduled exec artifacts. AGT-704 stays on cadence regardless of signal severity.</div>
+</div>
+
+<div class="footer">
+  AGT-704 Business Review Orchestrator &middot; Layer 7 &middot; Schema v21<br>
+  New tables: BusinessReviewLog<br>
+  Reads from: MetricsCalc, ChurnRiskLog, ExpansionLog, RepCoachingLog, RepSkillAssessmentLog, WinLossLog, ForecastAccuracyLog, CalibrationSignalLog, Opportunities, FP&amp;APlan, CapacityPlan, HiringPlan, TerritoryDefinitions, CustomerHealthLog, BusinessReviewLog (self)<br>
+  Feeds: BI layer (bi_payload), all review stakeholders per cadence audience model
+</div>
+</body>
+</html>

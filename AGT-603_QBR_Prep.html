@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-603 — QBR Prep Agent</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f9fa;color:#1a1a1a;padding:2rem;font-size:13px}
+.wrap{max-width:1020px;margin:0 auto}
+.doc-title{font-size:22px;font-weight:700;color:#111;margin-bottom:4px}
+.doc-sub{font-size:12px;color:#6b7280;margin-bottom:6px;line-height:1.6}
+.doc-note{font-size:11px;color:#888;padding:8px 12px;background:#f5f5f5;border-radius:8px;margin-bottom:28px;border-left:3px solid #ddd;line-height:1.6}
+.agent-block{margin-bottom:44px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff}
+.hdr-601{background:linear-gradient(135deg,#faf5ff 0%,#ede9fe 100%)}
+.hdr-602{background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%)}
+.hdr-603{background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)}
+.hdr-604{background:linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%)}
+.agent-hdr{padding:18px 20px 14px;border-bottom:1px solid #f0f0f0}
+.agent-id{font-family:monospace;font-size:11px;font-weight:700;letter-spacing:.04em;margin-bottom:5px}
+.id-601{color:#6d28d9}.id-602{color:#0369a1}.id-603{color:#166534}.id-604{color:#c2410c}
+.agent-name{font-size:20px;font-weight:700;color:#111;margin-bottom:4px}
+.agent-purpose{font-size:13px;color:#4b5563;line-height:1.6;max-width:820px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.badge{font-size:10px;font-weight:600;padding:2px 9px;border-radius:6px}
+.b-new{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.b-schema{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd}
+.b-ripple{background:#faece7;color:#712B13;border:1px solid #F0997B}
+.b-comp{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5}
+.b-l4{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.body-pad{padding:20px}
+.section{margin-bottom:22px}
+.section-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:10px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.card-title{font-size:12px;font-weight:600;color:#111;margin-bottom:5px}
+.card-body{font-size:12px;color:#4b5563;line-height:1.7}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#f9fafb;text-align:left;padding:7px 10px;font-weight:600;color:#374151;border-bottom:1px solid #e5e7eb;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f3f4f6;color:#4b5563;vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:none}
+.schema-pill{display:inline-block;font-family:monospace;font-size:10px;background:#f0f0f0;padding:1px 6px;border-radius:4px;color:#444;border:1px solid #e0e0e0}
+.new-pill{font-size:9px;font-weight:700;background:#dcfce7;color:#166534;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #86efac;display:inline-block}
+.upd-pill{font-size:9px;font-weight:700;background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #7dd3fc;display:inline-block}
+.l0-pill{font-size:9px;font-weight:700;background:#ede9fe;color:#5b21b6;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #c4b5fd;display:inline-block}
+.comp-note{background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;padding:8px 12px;font-size:11px;color:#b91c1c;line-height:1.6;margin-bottom:12px}
+.ripple-note{background:#faece7;border:1px solid #F0997B;border-radius:6px;padding:8px 12px;font-size:11px;color:#712B13;line-height:1.6;margin-bottom:12px}
+.info-note{background:#f0f9ff;border:1px solid #7dd3fc;border-radius:6px;padding:8px 12px;font-size:11px;color:#0369a1;line-height:1.6;margin-bottom:12px}
+.step-list{display:flex;flex-direction:column}
+.step-row{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #f3f4f6}
+.step-row:last-child{border-bottom:none}
+.step-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.sn-601{background:#ede9fe;color:#5b21b6}
+.sn-602{background:#e0f2fe;color:#0369a1}
+.sn-603{background:#dcfce7;color:#166534}
+.sn-604{background:#ffedd5;color:#c2410c}
+.step-title{font-size:12px;font-weight:600;color:#111;margin-bottom:3px}
+.step-body{font-size:12px;color:#4b5563;line-height:1.6}
+.trigger-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.trigger-card{border-radius:8px;padding:12px 14px;border:1px solid}
+.tc-auto{background:#fef9c3;border-color:#fde047}
+.tc-manual{background:#f0fdf4;border-color:#86efac}
+.tc-close{background:#f0f9ff;border-color:#7dd3fc}
+.trigger-type{font-size:12px;font-weight:700;margin-bottom:5px}
+.tc-auto .trigger-type{color:#854d0e}
+.tc-manual .trigger-type{color:#166534}
+.tc-close .trigger-type{color:#0369a1}
+.milestone-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ms-card{border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;background:#f9fafb}
+.ms-num{font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:3px}
+.ms-name{font-size:12px;font-weight:600;color:#111;margin-bottom:3px}
+.ms-detail{font-size:11px;color:#4b5563;line-height:1.5}
+.comp-gate{background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:14px;margin-bottom:8px}
+.comp-gate-title{font-size:12px;font-weight:700;color:#b91c1c;margin-bottom:8px}
+.comp-row{font-size:12px;color:#4b5563;padding:5px 0;border-bottom:1px solid #fee2e2;line-height:1.5}
+.comp-row:last-child{border-bottom:none}
+.map-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.map-card{border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px}
+.map-card-title{font-size:11px;font-weight:700;color:#374151;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.map-detail{font-size:11px;color:#4b5563;line-height:1.6}
+.onb-health-flow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.ohf-card{border-radius:8px;padding:10px 12px;border:1px solid}
+.ohf-onb{background:#faf5ff;border-color:#c4b5fd}
+.ohf-trans{background:#f9fafb;border-color:#e5e7eb;text-align:center;display:flex;align-items:center;justify-content:center}
+.ohf-health{background:#f0fdf4;border-color:#86efac}
+.ohf-title{font-size:11px;font-weight:700;margin-bottom:4px}
+.ohf-onb .ohf-title{color:#5b21b6}
+.ohf-health .ohf-title{color:#166534}
+.ohf-body{font-size:11px;color:#4b5563;line-height:1.5}
+.section-card{border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:8px}
+.sc-row{display:grid;grid-template-columns:28px 160px 1fr 80px;gap:0;border-bottom:1px solid #f3f4f6;align-items:start}
+.sc-row:last-child{border-bottom:none}
+.sc-hdr{background:#f9fafb;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase}
+.sc-cell{padding:8px 10px;font-size:12px;color:#4b5563;border-right:1px solid #f3f4f6;line-height:1.5}
+.sc-cell:last-child{border-right:none}
+.sc-num{font-weight:700;color:#374151;text-align:center}
+.sc-name{font-weight:600;color:#111}
+.sc-owner{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;text-align:center}
+.own-am{background:#E6F1FB;color:#0C447C}
+.own-csm{background:#E1F5EE;color:#085041}
+.own-both{background:#EEEDFE;color:#3C3489}
+.voc-consumer-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.voc-card{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px}
+.voc-consumer{font-size:11px;font-weight:700;color:#374151;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.voc-gets{font-size:12px;color:#4b5563;line-height:1.6;margin-bottom:5px}
+.voc-feeds{font-size:11px;color:#9ca3af;font-style:italic}
+.schema-section{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.schema-card{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px;margin-bottom:10px}
+.schema-card-title{font-size:12px;font-weight:600;color:#111;margin-bottom:8px}
+.field-row{display:flex;gap:6px;padding:3px 0;border-bottom:1px solid #f3f4f6;font-size:11px;align-items:baseline}
+.field-row:last-child{border-bottom:none}
+.field-name{font-family:monospace;color:#444;flex-shrink:0;min-width:210px}
+.field-type{color:#9ca3af;font-size:10px;min-width:50px}
+.field-desc{color:#4b5563;line-height:1.5}
+.io-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.io-card{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px}
+.io-title{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.io-row{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:12px;align-items:baseline}
+.io-row:last-child{border-bottom:none}
+.io-source{font-family:monospace;font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:3px;color:#555;flex-shrink:0}
+.io-desc{color:#4b5563;line-height:1.5}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="doc-title">AGT-603 — QBR Prep Agent</div>
+<div class="doc-sub">Layer 6 · Customer Lifecycle · Schema v20</div>
+<div class="agent-block">
+  <div class="agent-hdr hdr-603">
+    <div class="agent-id id-603">AGT-603 · Layer 6 · Customer Lifecycle</div>
+    <div class="agent-name">QBR Prep Agent</div>
+    <div class="agent-purpose">Generates quarterly business review materials for every active customer account. Dual output: an internal prep brief (split by AM commercial role and CSM operational role) and a structured customer-facing summary artifact the CSM edits before presenting. Synthesizes health, usage, expansion signals, and MAP value event progress into a single coherent QBR narrative.</div>
+    <div class="badges">
+      <span class="badge b-new">New agent</span>
+      <span class="badge b-schema">New table: QBRLog</span>
+      <span class="badge b-ripple">Reads: AGT-501 CustomerHealthLog, AGT-503 ExpansionLog, MutualActionPlan, Opportunities</span>
+    </div>
+  </div>
+  <div class="body-pad">
+
+    <div class="section">
+      <div class="section-lbl">Trigger model</div>
+      <div class="grid2">
+        <div class="trigger-card tc-auto" style="border:1px solid #fde047;border-radius:8px;padding:12px 14px">
+          <div class="trigger-type" style="color:#854d0e">Quarterly auto-trigger</div>
+          <div class="card-body">Default cadence: QBR prep fires X days before the quarterly QBR due date (configurable, default 10 business days). QBR due date set per account at onboarding close or manually by CSM. If no QBR date is set, agent prompts CSM to schedule. Quarterly cycle auto-advances after each completed QBR.</div>
+        </div>
+        <div class="trigger-card tc-close" style="border:1px solid #7dd3fc;border-radius:8px;padding:12px 14px">
+          <div class="trigger-type" style="color:#0369a1">Meeting booking trigger</div>
+          <div class="card-body">If a QBR meeting is booked on calendar before the auto-trigger fires: booking event triggers prep immediately (whichever comes first). Prevents the case where a CSM schedules a QBR for next week and prep hasn't started yet. Meeting booking signal sourced from RepActivity calendar entries.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">QBR brief sections — 7 sections, split by role</div>
+      <div class="section-card">
+        <div class="sc-row sc-hdr">
+          <div class="sc-cell sc-num">#</div>
+          <div class="sc-cell">Section</div>
+          <div class="sc-cell">Content</div>
+          <div class="sc-cell">Owner</div>
+        </div>
+        <div class="sc-row">
+          <div class="sc-cell sc-num">1</div>
+          <div class="sc-cell sc-name">Usage trends</div>
+          <div class="sc-cell">Product adoption vs prior quarter. Consumption vs contracted volume. Seat utilization trend. Feature usage breadth. Source: AGT-804 + CustomerHealthLog.</div>
+          <div class="sc-cell"><span class="sc-owner own-csm">CSM</span></div>
+        </div>
+        <div class="sc-row">
+          <div class="sc-cell sc-num">2</div>
+          <div class="sc-cell sc-name">ROI narrative</div>
+          <div class="sc-cell">Value delivered against MAP-agreed value events. Which events achieved, which are pending, TTV status. Positions product investment in terms customer agreed to at sale. Source: MutualActionPlan + OnboardingLog.</div>
+          <div class="sc-cell"><span class="sc-owner own-both">AM + CSM</span></div>
+        </div>
+        <div class="sc-row">
+          <div class="sc-cell sc-num">3</div>
+          <div class="sc-cell sc-name">Health scorecard</div>
+          <div class="sc-cell">Current AGT-501 health score with dimension breakdown. Score delta vs prior quarter. Active risk flags. Framed for executive audience — not raw scores, but translated narrative. Source: CustomerHealthLog.</div>
+          <div class="sc-cell"><span class="sc-owner own-csm">CSM</span></div>
+        </div>
+        <div class="sc-row">
+          <div class="sc-cell sc-num">4</div>
+          <div class="sc-cell sc-name">Expansion opportunities</div>
+          <div class="sc-cell">AGT-503 expansion signals packaged for executive conversation. Consumption overage framed as "formalizing what's already happening." Cross-sell gaps framed using peer cohort data. ACV potential included. Source: ExpansionLog.</div>
+          <div class="sc-cell"><span class="sc-owner own-am">AM</span></div>
+        </div>
+        <div class="sc-row">
+          <div class="sc-cell sc-num">5</div>
+          <div class="sc-cell sc-name">Renewal status</div>
+          <div class="sc-cell">Days to renewal, current churn risk tier, recommended renewal approach (standard / early / requires intervention). If renewal is within 90 days: elevated urgency flag. Source: Opportunities + ChurnRiskLog.</div>
+          <div class="sc-cell"><span class="sc-owner own-am">AM</span></div>
+        </div>
+        <div class="sc-row">
+          <div class="sc-cell sc-num">6</div>
+          <div class="sc-cell sc-name">Open issues</div>
+          <div class="sc-cell">Unresolved support tickets (count, age, category). Outstanding technical debt from TechnicalMilestoneLog (if AGT-602 active). Any MAP commitments not yet fulfilled. Source: CustomerHealthLog support dimension + TechnicalMilestoneLog.</div>
+          <div class="sc-cell"><span class="sc-owner own-csm">CSM</span></div>
+        </div>
+        <div class="sc-row">
+          <div class="sc-cell sc-num">7</div>
+          <div class="sc-cell sc-name">Next commitments</div>
+          <div class="sc-cell">Recommended mutual commitments for the next quarter: what the company commits to (roadmap items, support improvements, CSM actions) and what the customer commits to (adoption targets, expansion conversations, stakeholder introductions). Drafted by agent, confirmed by AM + CSM before QBR.</div>
+          <div class="sc-cell"><span class="sc-owner own-both">AM + CSM</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Dual output model</div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Internal prep brief</div>
+          <div class="card-body">Full 7-section brief with internal context, risk flags, AM/CSM role assignments, and talking points. Includes sections the customer never sees (e.g., churn risk tier language, expansion ACV potential, renewal approach recommendation). Delivered to AM + CSM separately — each receives their role-scoped sections highlighted. Delivered 10 business days before QBR (or immediately on meeting booking).</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Customer-facing summary artifact</div>
+          <div class="card-body">Structured summary document (sections 1, 2, 3, 6, 7 — usage, ROI, health narrative, open issues, next commitments). Expansion and renewal sections are internal-only — they inform AM/CSM talking points but are not in the customer document. CSM edits before sending or presenting. Agent generates the first draft; human always reviews before customer sees it.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Schema additions (v20)</div>
+      <div class="schema-card">
+        <div class="schema-card-title">QBRLog <span class="new-pill">new</span></div>
+        <div class="field-row"><span class="field-name">qbr_log_id</span><span class="field-type">PK</span></div>
+        <div class="field-row"><span class="field-name">account_id</span><span class="field-type">FK</span></div>
+        <div class="field-row"><span class="field-name">qbr_quarter</span><span class="field-type">varchar</span><span class="field-desc">e.g. 2026-Q2</span></div>
+        <div class="field-row"><span class="field-name">trigger_type</span><span class="field-type">enum</span><span class="field-desc">quarterly_auto / meeting_booking / on_demand</span></div>
+        <div class="field-row"><span class="field-name">brief_generated_at</span><span class="field-type">datetime</span></div>
+        <div class="field-row"><span class="field-name">qbr_meeting_date</span><span class="field-type">date</span><span class="field-desc">Nullable — scheduled QBR date</span></div>
+        <div class="field-row"><span class="field-name">internal_brief_content</span><span class="field-type">JSON</span><span class="field-desc">Full 7-section internal brief</span></div>
+        <div class="field-row"><span class="field-name">customer_artifact_content</span><span class="field-type">JSON</span><span class="field-desc">5-section customer-facing draft</span></div>
+        <div class="field-row"><span class="field-name">am_id</span><span class="field-type">FK</span><span class="field-desc">AM who received brief</span></div>
+        <div class="field-row"><span class="field-name">csm_id</span><span class="field-type">FK</span><span class="field-desc">CSM who received brief</span></div>
+        <div class="field-row"><span class="field-name">health_score_at_prep</span><span class="field-type">int</span><span class="field-desc">AGT-501 score at time of brief generation</span></div>
+        <div class="field-row"><span class="field-name">expansion_signals_included</span><span class="field-type">bool</span><span class="field-desc">Whether AGT-503 signals were available and included</span></div>
+        <div class="field-row"><span class="field-name">renewal_proximity_days</span><span class="field-type">int</span><span class="field-desc">Days to renewal at time of brief generation</span></div>
+        <div class="field-row"><span class="field-name">qbr_outcome</span><span class="field-type">text</span><span class="field-desc">Nullable — CSM-logged outcome post-QBR</span></div>
+        <div class="field-row"><span class="field-name">commitments_agreed</span><span class="field-type">JSON</span><span class="field-desc">Nullable — next commitments confirmed in QBR</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#9ca3af;line-height:1.7">GTM OS · AGT-603 · QBR Prep Agent · L6 · Schema v20</div>
+</div>
+</body>
+</html>

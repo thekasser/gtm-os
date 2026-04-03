@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-403 — Competitive Intelligence Agent</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-ripple{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.wire-box{background:#E6F1FB;border:1px solid #85B7EB;color:#0C447C;font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-bottom:10px}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-403 — Competitive Intelligence Agent</h1>
+<div class="subtitle">Layer 4: Deal &amp; Forecast Management · Reactive deal briefs · Self-maintaining CompetitiveKnowledgeBase · 4 KB feed sources</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L4 · Agent 03</span>
+  <span class="badge badge-status">Specced · v18 original + v23 ripple audit</span>
+  <span class="badge badge-ripple">L4 ripple audit: VoCSynthesisLog + CalibrationSignalLog added as KB feed sources</span>
+</div>
+
+<!-- ── RIPPLE AUDIT UPDATES ────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">L4 ripple audit updates (v23)</div>
+
+  <div class="wire-box">
+    <strong>Update — Two new CompetitiveKnowledgeBase feed sources</strong><br>
+    Original KB feeds: (1) AGT-407 competitor mentions from live calls, (2) AGT-204 technographic enrichment pre-populating competitor_detected at deal open. Two additional post-L4 sources now exist:<br><br>
+    <strong>Source 3 — VoCSynthesisLog (AGT-604):</strong> AGT-604 monthly synthesis includes competitor theme clusters extracted from CSM call notes, QBR outcomes, and customer verbatim feedback. Competitive themes surfaced in VoC are post-sale signals — they reflect why customers consider switching or what competitors are pitching at renewal. AGT-403 reads <code>VoCSynthesisLog.theme_clusters</code> where theme type = competitor on each monthly synthesis run and updates CompetitiveKnowledgeBase with post-sale competitive context. These entries are tagged <code>signal_source = 'voc'</code> in the KB for differentiation from deal-time signals.<br><br>
+    <strong>Source 4 — CalibrationSignalLog (AGT-703):</strong> AGT-703 win-loss analysis has competitive scenario as one of its 9 dimensions. Win-loss competitive patterns (which competitors we win against, lose to, by segment/vertical/deal size) are the highest-quality competitive signal in the OS — they're outcome-verified rather than mention-based. AGT-403 reads <code>CalibrationSignalLog</code> records where signal_type = 'competitive_pattern' on each quarterly win-loss deep run and incorporates win/loss rates by competitor into CompetitiveKnowledgeBase displacement angles. Tagged <code>signal_source = 'win_loss'</code>.
+  </div>
+
+  <div class="note">Existing v18 ripple unchanged: when an opportunity opens, AGT-403 checks Accounts.crm_vendor and technographic fields against CompetitiveKnowledgeBase and pre-sets competitor_detected at deal creation — rep doesn't have to discover the competitive landscape in discovery.</div>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-403 has two functions: reactive deal briefs (on-demand competitive context for active deals) and KB maintenance (self-updating CompetitiveKnowledgeBase from 4 signal sources). The KB is the shared resource — it makes competitive context available to AGT-301 (outreach personalization), AGT-405 (deal briefs), and AGT-305 (discovery prep) without each agent having to derive it independently.</p>
+</div>
+
+<!-- ── KB FEED SOURCES ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">CompetitiveKnowledgeBase feed sources</div>
+  <table>
+    <tr><th>Source</th><th>Agent</th><th>Signal type</th><th>Cadence</th><th>KB tag</th></tr>
+    <tr><td>Technographic enrichment</td><td>AGT-204 Lead Enrichment</td><td>Current tech stack — pre-deal competitive landscape</td><td>At deal open</td><td>technographic</td></tr>
+    <tr><td>Live call mentions</td><td>AGT-407 Conv Intelligence</td><td>Competitor names mentioned in calls/emails</td><td>Per conversation</td><td>call_mention</td></tr>
+    <tr><td>VoC synthesis</td><td>AGT-604 Voice of Customer</td><td>Post-sale competitive themes from CSM calls + QBR outcomes</td><td>Monthly</td><td>voc</td></tr>
+    <tr><td>Win-loss patterns</td><td>AGT-703 Win-Loss &amp; Forecast Accuracy</td><td>Outcome-verified win/loss rates by competitor × segment × vertical</td><td>Quarterly (deep) + monthly (lightweight)</td><td>win_loss</td></tr>
+  </table>
+  <div class="note">win_loss entries carry the most authority — they're outcome-verified. When win_loss and call_mention entries conflict on a competitor's strength/weakness, win_loss takes precedence in displacement angle generation.</div>
+</div>
+
+<!-- ── REACTIVE DEAL BRIEFS ───────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Reactive deal briefs</div>
+  <p class="prose" style="margin-bottom:10px">On-demand competitive brief for an active deal. Triggered by: rep request, AGT-401 competitive threat flag, or AGT-502 competitive threat + no plan flag on a customer account.</p>
+  <table>
+    <tr><th>Brief section</th><th>Source</th></tr>
+    <tr><td>Competitor profile</td><td>CompetitiveKnowledgeBase — all 4 signal sources synthesized</td></tr>
+    <tr><td>Win/loss rate vs this competitor</td><td>CalibrationSignalLog win_loss entries — segmented by deal type</td></tr>
+    <tr><td>Displacement angles</td><td>KB win_loss + call_mention entries — what has worked in won deals</td></tr>
+    <tr><td>Post-sale risk context</td><td>VoC entries — what competitors pitch at renewal for this account type</td></tr>
+    <tr><td>Recommended next action</td><td>Agent-generated based on deal stage + competitor profile</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  AGT-403 Competitive Intelligence Agent · Layer 4 · Schema v18 (original) + v23 (ripple audit)<br>
+  v23 changes: VoCSynthesisLog (AGT-604) and CalibrationSignalLog (AGT-703) added as KB feed sources — no schema changes, prompt delta only<br>
+  Reads from: Accounts (crm_vendor, technographic), ConvIntelligence (AGT-407), VoCSynthesisLog (AGT-604), CalibrationSignalLog (AGT-703)<br>
+  Writes to: CompetitiveKnowledgeBase (self-maintaining), Opportunities (competitor_detected at deal open)<br>
+  Feeds: AGT-301 (outreach personalization), AGT-305 (discovery prep competitive section), AGT-405 (deal brief competitive section), AGT-502 (competitive threat flag trigger)
+</div>
+</body>
+</html>

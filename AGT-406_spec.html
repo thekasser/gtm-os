@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-406 CPQ & Deal Desk Agent</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:900px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bt{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.db{background:#185FA5}.dt{background:#0F6E56}.da{background:#854F0B}.dp{background:#534AB7}.dr{background:#A32D2D}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.state-flow{display:flex;align-items:stretch;gap:0;margin:6px 0;flex-wrap:nowrap;overflow-x:auto}
+.sf-box{border-radius:7px;padding:8px 11px;font-size:11px;flex:1;min-width:80px;border:1px solid}
+.sf-title{font-weight:600;margin-bottom:2px;font-size:11px}
+.sf-body{font-size:10px;line-height:1.5}
+.sf-arr{display:flex;align-items:center;padding:0 4px;color:#aaa;font-size:13px;flex-shrink:0}
+.s-draft{background:#F1EFE8;border-color:#B4B2A9;color:#444441}
+.s-pend{background:#FAEEDA;border-color:#EF9F27;color:#633806}
+.s-appr{background:#E1F5EE;border-color:#5DCAA5;color:#085041}
+.s-del{background:#E6F1FB;border-color:#85B7EB;color:#0C447C}
+.s-view{background:#EEEDFE;border-color:#AFA9EC;color:#3C3489}
+.s-acc{background:#E1F5EE;border-color:#5DCAA5;color:#085041}
+.s-exp{background:#FCEBEB;border-color:#F09595;color:#791F1F}
+.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pc{border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px}
+.pc-badge{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600;display:inline-block;margin-bottom:6px}
+.pb-seat{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.pb-cons{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.pb-payg{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.pb-svc{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.pc-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.pc-body{font-size:11px;color:#555;line-height:1.6}
+.approval-chain{display:flex;flex-direction:column;gap:6px}
+.ac-row{display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;background:#fff}
+.ac-tier{font-size:11px;font-weight:600;min-width:90px;color:#111}
+.ac-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.at-rep{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.at-mgr{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.at-dd{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.at-cro{background:#FCEBEB;color:#791F1F;border:1px solid #F09595}
+.ac-body{font-size:11px;color:#555;line-height:1.6;flex:1}
+.track-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tc2{border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px}
+.tc2-title{font-size:12px;font-weight:600;margin-bottom:4px}
+.tc2-body{font-size:11px;color:#555;line-height:1.6}
+.delivery-row{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #eee;font-size:12px}
+.delivery-row:last-child{border-bottom:none}
+.dr-method{min-width:110px;font-weight:600;color:#111;font-size:11px}
+.dr-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.dm-email{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.dm-screen{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.dm-link{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.dr-desc{font-size:11px;color:#666;line-height:1.5}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tag-new{font-size:10px;padding:1px 6px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC;white-space:nowrap}
+.tag-l0{font-size:10px;padding:1px 6px;border-radius:8px;background:#F1EFE8;color:#444441;border:1px solid #B4B2A9;white-space:nowrap}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}
+.dep-row:last-child{border-bottom:none}
+.da2{min-width:175px;font-weight:600;color:#111}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+.boundary-note{background:#F1EFE8;border:1px solid #B4B2A9;border-radius:8px;padding:10px 12px;font-size:12px;color:#444441;line-height:1.6;margin-top:8px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-406 — CPQ & deal desk agent</h1>
+<div class="hsub">Layer 4 · Deal & forecast management · Rep-triggered · Quote-to-acceptance · Handoff to L8 on acceptance</div>
+<div class="badges">
+  <span class="badge bv">v1.0 specced</span>
+  <span class="badge bl">Layer 4</span>
+  <span class="badge bt">URL-based quote · 4-tier approval</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Quote is not the order form.</strong> AGT-406 generates a pricing proposal (the quote). The order form — the legal document that gets signed — is generated by AGT-801 (L8) from the accepted quote data. AGT-406 stops at acceptance signal. L8 takes over from there.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>URL-based HTML quote, not a PDF.</strong> The quote lives at a URL. It exists in a pending state during approval (shows "pending approval" if accessed). Activates when fully approved. Expires automatically based on PricingConfig validity window per deal type. Expired quotes must be reissued with a new approval chain.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Agent proposes configuration — rep must explicitly confirm before quote is generated.</strong> Rep provides deal inputs. Agent calculates pricing against PricingConfig, identifies escalation triggers, and proposes the full configuration. Rep reviews, edits, and confirms. Only then is the quote generated and the approval chain initiated.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Four-tier approval chain, automatically routed.</strong> Agent determines which tiers are required based on deal configuration vs PricingConfig thresholds. Standard deals may only need rep self-approval. Non-standard terms escalate automatically through the chain. Quote URL remains in pending state throughout.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Per-viewer trackable links for quote delivery.</strong> Each recipient (email delivery) gets a distinct URL with viewer identity embedded. Enables viewing by named individual — not just aggregate counts. QuoteViewLog records who viewed, how long, which sections, and forwarding signals (new IP accessing the quote proxy for procurement loop-in).</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Quote state machine</div>
+  <div class="state-flow">
+    <div class="sf-box s-draft"><div class="sf-title">Draft</div><div class="sf-body">Config proposed by agent. Rep reviewing.</div></div>
+    <div class="sf-arr">→</div>
+    <div class="sf-box s-pend"><div class="sf-title">Pending</div><div class="sf-body">Rep confirmed. Approval chain in progress. URL shows "pending" to any external viewer.</div></div>
+    <div class="sf-arr">→</div>
+    <div class="sf-box s-appr"><div class="sf-title">Approved</div><div class="sf-body">All required approval tiers cleared. URL activates.</div></div>
+    <div class="sf-arr">→</div>
+    <div class="sf-box s-del"><div class="sf-title">Delivered</div><div class="sf-body">Rep sent or shared URL via chosen delivery method.</div></div>
+    <div class="sf-arr">→</div>
+    <div class="sf-box s-view"><div class="sf-title">Viewed</div><div class="sf-body">External viewer opened URL. QuoteViewLog tracking active.</div></div>
+    <div class="sf-arr">→</div>
+    <div class="sf-box s-acc"><div class="sf-title">Accepted</div><div class="sf-body">Rep marks accepted or prospect clicks accept. Triggers AGT-801 OF generation.</div></div>
+  </div>
+  <div style="display:flex;gap:6px;margin-top:6px">
+    <div class="sf-box s-exp" style="flex:none;padding:6px 10px"><div class="sf-title">Expired</div><div class="sf-body">Validity window passed. URL renders expired state. Rep must reissue — new approval chain required.</div></div>
+  </div>
+  <div class="boundary-note">GTM OS boundary: AGT-406 owns Draft → Accepted. Accepted state triggers AGT-801 (L8 Order Management) which generates the formal order form from quote data. The order form is the legally binding document. Billing contact on the OF is the target for AGT-504 Customer Communications on future price change events.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Four pricing models — can coexist on one deal as separate line items</div>
+  <div class="pricing-grid">
+    <div class="pc">
+      <div class="pc-badge pb-seat">Seat-based license</div>
+      <div class="pc-title">Flat fee per seat</div>
+      <div class="pc-body">Monthly or annual commitment. Priced from PricingConfig rate card by product tier and seat count band. Multi-year ramp schedules: Year 1 / Year 2 / Year 3 seat counts and pricing defined upfront. Non-standard ramp → deal desk escalation.</div>
+    </div>
+    <div class="pc">
+      <div class="pc-badge pb-cons">Consumption commitment</div>
+      <div class="pc-title">Committed usage volume</div>
+      <div class="pc-body">Rep negotiates committed API calls / storage / compute volume upfront. Priced against PricingConfig consumption rate card with volume tiers. Commitment below minimum threshold → deal desk escalation. Overages billed at overage rate from PricingConfig.</div>
+    </div>
+    <div class="pc">
+      <div class="pc-badge pb-payg">Pay-as-you-go</div>
+      <div class="pc-title">No commitment, rate card billing</div>
+      <div class="pc-body">No upfront commitment. Billed on actual usage against published rate card. Pricing is standard — no negotiation needed. Agent pulls current rate card from PricingConfig. Can coexist with seat license on same deal for different product families.</div>
+    </div>
+    <div class="pc">
+      <div class="pc-badge pb-svc">Professional services</div>
+      <div class="pc-title">Implementation & onboarding</div>
+      <div class="pc-body">Statement of work-based. Rate from PricingConfig services rate card. Agent generates scope estimate from deal size and product configuration. All professional services quotes require deal desk review regardless of amount — services are custom, not rate card items.</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:6px">Seat + consumption can coexist as separate line items on one deal. They are billed separately and priced independently from their respective PricingConfig entries. Not bundled into a single SKU.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Four-tier approval chain — automatically routed by agent</div>
+  <div class="approval-chain">
+    <div class="ac-row">
+      <span class="ac-tier">Tier 1 — Rep</span>
+      <span class="ac-badge at-rep">self-approval</span>
+      <div class="ac-body">Standard deal within rep's self-approval limits (discount % below threshold, standard contract length, standard payment terms, commitment above minimum). Agent validates all conditions against PricingConfig. If all pass: quote approved at Tier 1, no escalation.</div>
+    </div>
+    <div class="ac-row">
+      <span class="ac-tier">Tier 2 — Manager</span>
+      <span class="ac-badge at-mgr">exception approval</span>
+      <div class="ac-body">Triggered by: discount exceeds rep threshold but below manager ceiling, non-standard contract length (not 1/2/3yr), custom payment terms. Manager approves or rejects with reason. Rejection returns to rep for reconfiguration.</div>
+    </div>
+    <div class="ac-row">
+      <span class="ac-tier">Tier 3 — Deal desk</span>
+      <span class="ac-badge at-dd">Finance/RevOps</span>
+      <div class="ac-body">Triggered by: discount above manager ceiling, multi-year non-standard ramp, consumption below minimum threshold, legal/security review required (custom DPA, MSA, SLA), professional services included. Deal desk coordinates Finance + Legal review. All professional services quotes route here regardless of other conditions.</div>
+    </div>
+    <div class="ac-row">
+      <span class="ac-tier">Tier 4 — CRO/VP</span>
+      <span class="ac-badge at-cro">exec approval</span>
+      <div class="ac-body">Triggered by: ACV above exec threshold (from PricingConfig), discount at or below floor (floor = absolute minimum margin), strategic exceptions. CRO/VP approval is additive — tiers 1–3 must be cleared first. Tier 4 is logged in QuoteApprovalLog with rationale field required.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Quote delivery — rep chooses method after approval</div>
+  <div class="card">
+    <div class="delivery-row">
+      <span class="dr-method">Email delivery</span>
+      <span class="dr-badge dm-email">tracked link per recipient</span>
+      <div class="dr-desc">Rep selects contacts from Contacts table (defaults to economic buyer + champion). Customizes subject line and cover message. Each recipient gets a distinct URL with viewer identity embedded — QuoteViewLog records named individual viewing. Rep can add additional recipients.</div>
+    </div>
+    <div class="delivery-row">
+      <span class="dr-method">Screenshare</span>
+      <span class="dr-badge dm-screen">URL opens in browser</span>
+      <div class="dr-desc">Rep opens the approved quote URL in their browser for a live screenshare session. No email sent. QuoteViewLog records a screenshare session with rep employee_crm_id as viewer. Useful for live negotiation walkthroughs.</div>
+    </div>
+    <div class="delivery-row" style="border-bottom:none">
+      <span class="dr-method">Copy link</span>
+      <span class="dr-badge dm-link">manual delivery</span>
+      <div class="dr-desc">Rep copies the approved URL and delivers through their own channel (text, LinkedIn, etc.). QuoteViewLog records anonymous external viewer until identity is established. Rep logs delivery method in QuoteLog for audit trail.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Quote interaction tracking</div>
+  <div class="track-grid">
+    <div class="tc2">
+      <div class="tc2-title">QuoteViewLog — per-viewer tracking</div>
+      <div class="tc2-body">One row per view event per viewer. Named viewer when identity known (email delivery). Anonymous viewer ID when unknown (copy link). Fields: viewer_email, viewer_type (internal/external), view_timestamp, time_on_quote_seconds, sections_viewed (JSON), ip_address, delivery_channel. Forwarding signal: new external IP not in known contact list accessing the quote = likely forwarded to procurement or legal.</div>
+    </div>
+    <div class="tc2">
+      <div class="tc2-title">Downstream signal to AGT-401</div>
+      <div class="tc2-body">Quote interaction data feeds deal health. Economic buyer viewing quote = strong buying signal (+). Forwarding signal detected = stakeholder expansion (procurement loop-in, often pre-close). Zero views after 7 days = deal at risk signal. All signals feed deal health conv_intelligence dimension and flag to AGT-401 for rescore.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema — 4 new tables (2 in L0, 2 in L4)</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Layer</th><th>Status</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>PricingConfig</strong></td>
+          <td><span class="tag-l0">L0</span></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">config_id, product_family, sku_type (seat/consumption/payg/services), list_price_per_unit, currency, billing_period (monthly/annual), minimum_commitment, volume_tiers (JSON), overage_rate, contract_lengths_available (JSON), standard_payment_terms, rep_discount_ceiling_pct, manager_discount_ceiling_pct, deal_desk_discount_ceiling_pct, floor_discount_pct (absolute minimum), acv_threshold_for_cro_usd, quote_validity_days_smb, quote_validity_days_mm, quote_validity_days_enterprise, services_always_escalate (bool), effective_date, set_by (Finance+RevOps), version</td>
+        </tr>
+        <tr>
+          <td><strong>QuoteLog</strong></td>
+          <td><span class="tag-l0" style="background:#E1F5EE;color:#085041;border-color:#5DCAA5">L4</span></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">quote_id, opportunity_id, account_id, employee_crm_id, quote_url, quote_state (draft/pending/approved/delivered/viewed/accepted/expired), line_items (JSON: sku_type/product_family/units/unit_price/discount_pct/total), total_acv_usd, contract_length_years, payment_terms, discount_pct, escalation_flags (JSON), rep_confirmed_at, approval_required_tiers (JSON), all_approvals_complete (bool), approved_at, delivered_at, first_viewed_at, accepted_at, expired_at, validity_days, reissue_of_quote_id (nullable, for reissued quotes), l8_handoff_triggered (bool), notes</td>
+        </tr>
+        <tr>
+          <td><strong>QuoteApprovalLog</strong></td>
+          <td><span class="tag-l0" style="background:#E1F5EE;color:#085041;border-color:#5DCAA5">L4</span></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">approval_id, quote_id, tier (1_rep/2_manager/3_deal_desk/4_cro), approver_employee_crm_id, approval_status (pending/approved/rejected), requested_at, responded_at, escalation_reason (why this tier was triggered), approval_rationale (required for Tier 4), rejection_reason (nullable)</td>
+        </tr>
+        <tr style="border-bottom:none">
+          <td><strong>QuoteViewLog</strong></td>
+          <td><span class="tag-l0" style="background:#E1F5EE;color:#085041;border-color:#5DCAA5">L4</span></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">view_id, quote_id, viewer_email (nullable), viewer_employee_crm_id (nullable for internal), viewer_type (internal/external/anonymous), delivery_channel (email/screenshare/copy_link), view_timestamp, time_on_quote_seconds, sections_viewed (JSON), ip_address, forwarding_signal (bool — new external IP not in known contacts), notes</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da2">PricingConfig (L0)</span><span class="dd reads">reads</span><span class="dd2">Rate cards, discount thresholds, approval ceilings, validity windows. Primary policy source.</span></div>
+    <div class="dep-row"><span class="da2">Opportunities</span><span class="dd reads">reads</span><span class="dd2">Deal context: segment, ACV, stage, product interests. Starting point for configuration proposal.</span></div>
+    <div class="dep-row"><span class="da2">Contacts (AGT-204)</span><span class="dd reads">reads</span><span class="dd2">Default email delivery recipients: economic buyer + champion. Rep can add/remove.</span></div>
+    <div class="dep-row"><span class="da2">Accounts</span><span class="dd reads">reads</span><span class="dd2">Billing contact for quote delivery logging. Feeds AGT-504 Customer Communications for future price change events.</span></div>
+    <div class="dep-row"><span class="da2">QuoteLog</span><span class="dd writes">writes</span><span class="dd2">Quote state machine. All line items, approval status, delivery events, acceptance.</span></div>
+    <div class="dep-row"><span class="da2">QuoteApprovalLog</span><span class="dd writes">writes</span><span class="dd2">One row per approval event per tier. Full audit trail for every quote.</span></div>
+    <div class="dep-row"><span class="da2">QuoteViewLog</span><span class="dd writes">writes</span><span class="dd2">Per-viewer interaction tracking. Forwarding signals feed AGT-401.</span></div>
+    <div class="dep-row"><span class="da2">AGT-401 Deal Health</span><span class="dd trig">triggers</span><span class="dd2">Quote interaction signals (buyer viewed, forwarding detected, zero views at 7 days) trigger deal health rescore.</span></div>
+    <div class="dep-row"><span class="da2">AGT-801 Order Management (L8)</span><span class="dd trig">triggers</span><span class="dd2">Quote accepted → AGT-801 receives accepted quote data and generates formal order form. GTM OS boundary.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-406, the CPQ & Deal Desk agent for a B2B SaaS GTM OS.
+
+ROLE: Configure, price, and generate quotes for active deals. Manage approval
+chain routing. Track quote interaction. Hand off to L8 on acceptance.
+Quote is NOT the order form — it is a pricing proposal. AGT-801 generates
+the formal order form from accepted quote data.
+
+STEP 1 — CONFIGURATION PROPOSAL:
+  Pull opportunity context: segment, product interests, deal size signals.
+  Propose line items for each product the rep indicated interest in:
+    seat: units × list_price × (1 - discount) per PricingConfig
+    consumption: committed_volume × tier_rate per PricingConfig
+    payg: reference rate card, no negotiation needed
+    services: estimate from deal size + product config, mark as deal_desk_required
+  Apply any rep-requested discount. Calculate total ACV.
+  Present configuration to rep for review and confirmation.
+  DO NOT generate quote until rep explicitly confirms.
+
+STEP 2 — ESCALATION CHECK (on rep confirmation):
+  Evaluate each condition against PricingConfig:
+    discount_pct > rep_discount_ceiling → escalate Tier 2
+    discount_pct > manager_discount_ceiling → escalate Tier 3
+    discount_pct <= floor_discount_pct → escalate Tier 4
+    contract_length NOT IN [1,2,3] years → escalate Tier 2
+    payment_terms != standard → escalate Tier 2
+    multi_year AND non_standard_ramp → escalate Tier 3
+    consumption < minimum_commitment → escalate Tier 3
+    legal_review_required (custom DPA/MSA/SLA flagged) → escalate Tier 3
+    services_line_item EXISTS → escalate Tier 3 (always)
+    total_acv > acv_threshold_for_cro → escalate Tier 4
+  Write QuoteApprovalLog rows for all required tiers.
+  Generate quote URL. Set state = 'pending'.
+
+STEP 3 — APPROVAL ROUTING:
+  Route to lowest required tier first. Notify approver.
+  On approval: advance to next required tier. Notify next approver.
+  On rejection: notify rep with rejection_reason. Return to Step 1.
+  When all required tiers approved: set quote_state = 'approved'.
+  Notify rep that quote is ready to deliver.
+  Tier 4 approval: rationale field required from approver.
+
+STEP 4 — QUOTE VALIDITY:
+  Set expired_at = approved_at + validity_days (from PricingConfig by segment).
+  Daily check: if NOW() > expired_at → set state = 'expired'.
+  URL renders 'expired' message to any viewer.
+  Reissue: creates new QuoteLog row with reissue_of_quote_id reference.
+  Reissued quotes require full approval chain from Tier 1.
+
+STEP 5 — DELIVERY:
+  Rep selects delivery method:
+    email: generate per-recipient URLs (viewer_email embedded as param).
+      Rep customizes subject + message. Default recipients: Contacts WHERE
+      persona_type IN ('economic_buyer','champion') AND account_id = opp.
+      Set quote_state = 'delivered'. Write QuoteViewLog row per recipient.
+    screenshare: return URL for rep to open in browser.
+      Log as screenshare session in QuoteViewLog.
+    copy_link: return base URL. Rep delivers through own channel.
+      Log delivery_channel = 'copy_link' in QuoteLog.
+
+STEP 6 — INTERACTION TRACKING:
+  On each URL access: write QuoteViewLog row.
+  Named viewer (email delivery): viewer_email from URL param.
+  Anonymous viewer: generate anonymous viewer_id, log ip_address.
+  Forwarding signal: ip_address not in known Contacts + not internal →
+    set forwarding_signal = TRUE. Notify rep: "New external viewer detected —
+    possible procurement/legal loop-in."
+  After 7 days delivered, zero external views: flag to AGT-401 for deal risk.
+  Economic buyer views quote: positive deal health signal to AGT-401.
+
+STEP 7 — ACCEPTANCE AND L8 HANDOFF:
+  Rep marks quote accepted (or prospect clicks accept button on quote URL).
+  Set quote_state = 'accepted'. Write accepted_at timestamp.
+  Trigger AGT-801 (L8 Order Management):
+    Pass: quote_id, line_items, total_acv, contract_length,
+    payment_terms, account_id, opportunity_id, billing_contact.
+  Set l8_handoff_triggered = TRUE.
+  Note: billing_contact for OF is from Accounts or Contacts economic_buyer.
+  AGT-801 generates formal order form from this data.</pre>
+</div>
+
+</body>
+</html>

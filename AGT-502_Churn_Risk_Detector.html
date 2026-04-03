@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-502 — Churn Risk Detector</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f9fa;color:#1a1a1a;padding:2rem;font-size:13px}
+.wrap{max-width:1020px;margin:0 auto}
+.doc-title{font-size:22px;font-weight:700;color:#111;margin-bottom:4px}
+.doc-sub{font-size:12px;color:#6b7280;margin-bottom:6px;line-height:1.6}
+.doc-note{font-size:11px;color:#888;padding:8px 12px;background:#f5f5f5;border-radius:8px;margin-bottom:28px;border-left:3px solid #ddd;line-height:1.6}
+.agent-block{margin-bottom:44px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff}
+.agent-hdr{padding:18px 20px 14px;border-bottom:1px solid #f0f0f0}
+.agent-hdr-501{background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)}
+.agent-hdr-502{background:linear-gradient(135deg,#fef2f2 0%,#fee2e2 100%)}
+.agent-hdr-503{background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%)}
+.agent-id{font-family:monospace;font-size:11px;font-weight:700;letter-spacing:.04em;margin-bottom:5px}
+.id-501{color:#15803d}.id-502{color:#b91c1c}.id-503{color:#0369a1}
+.agent-name{font-size:20px;font-weight:700;color:#111;margin-bottom:4px}
+.agent-purpose{font-size:13px;color:#4b5563;line-height:1.6;max-width:760px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.badge{font-size:10px;font-weight:600;padding:2px 9px;border-radius:6px}
+.b-layer{background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc}
+.b-trigger{background:#f3f4f6;color:#374151;border:1px solid #d1d5db}
+.b-batch{background:#fef9c3;color:#854d0e;border:1px solid #fde047}
+.b-event{background:#fce7f3;color:#9d174d;border:1px solid #f9a8d4}
+.b-new{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.b-ripple{background:#faece7;color:#712B13;border:1px solid #F0997B}
+.body-pad{padding:20px}
+.section{margin-bottom:22px}
+.section-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:10px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.card-title{font-size:12px;font-weight:600;color:#111;margin-bottom:5px}
+.card-body{font-size:12px;color:#4b5563;line-height:1.7}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#f9fafb;text-align:left;padding:7px 10px;font-weight:600;color:#374151;border-bottom:1px solid #e5e7eb;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f3f4f6;color:#4b5563;vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:none}
+.dim-bar-wrap{display:flex;align-items:center;gap:8px}
+.dim-bar{height:6px;border-radius:3px;background:#d1fae5;flex-shrink:0}
+.dim-bar-502{background:#fecaca}
+.dim-pts{font-family:monospace;font-size:11px;font-weight:600;color:#111;flex-shrink:0;width:42px}
+.tier-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.tier-card{border-radius:8px;padding:10px 12px;border:1px solid}
+.tc-critical{background:#fef2f2;border-color:#fca5a5}.tc-critical .tier-name{color:#b91c1c}
+.tc-high{background:#fff7ed;border-color:#fdba74}.tc-high .tier-name{color:#c2410c}
+.tc-medium{background:#fefce8;border-color:#fde047}.tc-medium .tier-name{color:#854d0e}
+.tc-low{background:#f0fdf4;border-color:#86efac}.tc-low .tier-name{color:#166534}
+.tier-name{font-size:12px;font-weight:700;margin-bottom:2px}
+.tier-range{font-family:monospace;font-size:11px;color:#6b7280;margin-bottom:6px}
+.tier-action{font-size:11px;color:#4b5563;line-height:1.6}
+.mult-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mult-card{border-radius:8px;padding:9px 11px;text-align:center;border:1px solid #e5e7eb;background:#f9fafb}
+.mult-window{font-size:11px;font-weight:600;color:#374151;margin-bottom:3px}
+.mult-val{font-family:monospace;font-size:16px;font-weight:700}
+.mult-green{color:#15803d}.mult-amber{color:#b45309}.mult-orange{color:#c2410c}.mult-neutral{color:#6b7280}
+.pay-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pay-card{border-radius:8px;padding:10px 12px;border:1px solid}
+.pay-current{background:#f0fdf4;border-color:#86efac}
+.pay-overdue{background:#fefce8;border-color:#fde047}
+.pay-failed{background:#fff7ed;border-color:#fdba74}
+.pay-suspended{background:#fef2f2;border-color:#fca5a5}
+.pay-status{font-size:11px;font-weight:700;margin-bottom:4px}
+.pay-effect{font-size:11px;color:#4b5563;line-height:1.5}
+.pay-badge{display:inline-block;font-size:10px;font-weight:600;padding:1px 7px;border-radius:4px;margin-top:4px}
+.pb-current{background:#dcfce7;color:#166534}
+.pb-overdue{background:#fef9c3;color:#854d0e}
+.pb-failed{background:#ffedd5;color:#c2410c}
+.pb-suspended{background:#fee2e2;color:#b91c1c}
+.notify-row{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
+.notify-row:last-child{border-bottom:none}
+.notify-who{font-weight:600;color:#111;width:160px;flex-shrink:0}
+.notify-when{color:#4b5563;line-height:1.6}
+.step-list{display:flex;flex-direction:column;gap:0}
+.step-row{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #f3f4f6}
+.step-row:last-child{border-bottom:none}
+.step-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.sn-501{background:#dcfce7;color:#166534}.sn-502{background:#fee2e2;color:#b91c1c}.sn-503{background:#e0f2fe;color:#0369a1}
+.step-title{font-size:12px;font-weight:600;color:#111;margin-bottom:3px}
+.step-body{font-size:12px;color:#4b5563;line-height:1.6}
+.signal-grid{display:grid;gap:0}
+.sig-row{display:grid;grid-template-columns:180px 70px 1fr 90px;gap:8px;padding:7px 10px;border-bottom:1px solid #f3f4f6;align-items:start;font-size:12px}
+.sig-row:last-child{border-bottom:none}
+.sig-row-hdr{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;background:#f9fafb;border-radius:6px 6px 0 0}
+.sig-name{font-weight:600;color:#111}
+.sig-pts{font-family:monospace;font-weight:700;color:#166534}
+.sig-detail{color:#4b5563;line-height:1.6}
+.sig-alert{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;text-align:center}
+.sa-imm{background:#fee2e2;color:#b91c1c}
+.sa-dig{background:#dcfce7;color:#166534}
+.opp-gate{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:8px}
+.opp-q{font-size:12px;font-weight:600;color:#111;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #f0f0f0}
+.branch-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.branch{border-radius:8px;padding:12px}
+.branch-yes{background:#f0fdf4;border:1px solid #86efac}
+.branch-no{background:#fef2f2;border:1px solid #fca5a5}
+.branch-lbl{font-size:11px;font-weight:700;margin-bottom:8px}
+.branch-yes .branch-lbl{color:#166534}
+.branch-no .branch-lbl{color:#b91c1c}
+.branch-item{font-size:11px;color:#4b5563;padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);line-height:1.5}
+.branch-item:last-child{border-bottom:none}
+.schema-pill{display:inline-block;font-family:monospace;font-size:10px;background:#f0f0f0;padding:1px 6px;border-radius:4px;color:#444;border:1px solid #e0e0e0}
+.new-pill{display:inline-block;font-size:9px;font-weight:700;background:#dcfce7;color:#166534;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #86efac}
+.upd-pill{display:inline-block;font-size:9px;font-weight:700;background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #7dd3fc}
+.schema-block{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.schema-card{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px}
+.schema-card-title{font-size:12px;font-weight:600;color:#111;margin-bottom:6px}
+.field-row{display:flex;gap:6px;padding:3px 0;border-bottom:1px solid #f3f4f6;font-size:11px;align-items:baseline}
+.field-row:last-child{border-bottom:none}
+.field-name{font-family:monospace;color:#444;flex-shrink:0;min-width:200px}
+.field-type{color:#9ca3af;font-size:10px;min-width:55px}
+.field-desc{color:#4b5563;line-height:1.5}
+.role-note{background:#fef9c3;border:1px solid #fde047;border-radius:6px;padding:8px 12px;font-size:11px;color:#713f12;line-height:1.6;margin-bottom:12px}
+pre{background:#1e1e2e;color:#cdd6f4;border-radius:8px;padding:14px;font-size:11px;line-height:1.7;overflow-x:auto;font-family:'Fira Code',monospace;margin-top:4px}
+.ripple-note{background:#faece7;border:1px solid #F0997B;border-radius:6px;padding:8px 12px;font-size:11px;color:#712B13;line-height:1.6;margin-bottom:12px}
+.divider{height:1px;background:#e8e8e8;margin:18px 0}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="doc-title">AGT-502 — Churn Risk Detector</div>
+<div class="doc-sub">Layer 5 · Post-Sale Retention · Schema v19</div>
+<!-- ═══════════════════════ AGT-502 ═══════════════════════ -->
+<div class="agent-block">
+  <div class="agent-hdr agent-hdr-502">
+    <div class="agent-id id-502">AGT-502 · Layer 5 · Post-Sale Retention</div>
+    <div class="agent-name">Churn Risk Detector</div>
+    <div class="agent-purpose">Consumes AGT-501 health scores. Applies renewal proximity multiplier to produce urgency-adjusted risk tiers. Fires tiered alerts to AM (primary), CSM (adoption context), and manager (Critical + high ACV). Triggers intervention playbooks and downstream agent escalation where warranted.</div>
+    <div class="badges">
+      <span class="badge b-layer">L5</span>
+      <span class="badge b-batch">Daily — runs after AGT-501 batch</span>
+      <span class="badge b-event">Immediate: sponsor departure, score drop ≥15pts, tier transition</span>
+      <span class="badge b-new">New table: ChurnRiskLog</span>
+      <span class="badge b-ripple">Ripple: AM as primary (corrects original spec)</span>
+    </div>
+  </div>
+
+  <div class="body-pad">
+
+    <div class="role-note">
+      <strong>Role correction from original spec:</strong> AM is the relationship and revenue owner — primary alert recipient on all churn risk events. CSM receives concurrent notification as adoption context (they own the usage story, not the customer decision). Manager notified on Critical tier + ACV ≥ segment top 25th percentile.
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Renewal proximity multiplier</div>
+      <div class="mult-grid">
+        <div class="mult-card">
+          <div class="mult-window">≤ 30 days</div>
+          <div class="mult-val mult-orange">× 0.85</div>
+          <div style="font-size:10px;color:#6b7280;margin-top:3px">Maximum urgency — any gap is amplified</div>
+        </div>
+        <div class="mult-card">
+          <div class="mult-window">31–60 days</div>
+          <div class="mult-val mult-amber">× 0.92</div>
+          <div style="font-size:10px;color:#6b7280;margin-top:3px">Elevated — renewal decision forming</div>
+        </div>
+        <div class="mult-card">
+          <div class="mult-window">61–90 days</div>
+          <div class="mult-val mult-amber" style="color:#b45309">× 0.96</div>
+          <div style="font-size:10px;color:#6b7280;margin-top:3px">Moderate — within planning horizon</div>
+        </div>
+        <div class="mult-card">
+          <div class="mult-window">&gt; 90 days</div>
+          <div class="mult-val mult-neutral">× 1.0</div>
+          <div style="font-size:10px;color:#6b7280;margin-top:3px">No adjustment</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#6b7280;margin-top:8px;line-height:1.6">Multiplier applied to AGT-501 <span class="schema-pill">health_score</span> (post payment modifier). Lower multiplier = lower effective score = higher urgency. A score of 65 (normally Medium) at ≤30 days to renewal becomes 55 (High). This is not a separate scoring pass — it is urgency-weighting for alert routing only.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Risk tiers + notification rules</div>
+      <div class="tier-grid">
+        <div class="tier-card tc-critical">
+          <div class="tier-name">Critical</div>
+          <div class="tier-range">0 – 44</div>
+          <div class="tier-action">Immediate alert: AM + CSM. Manager if ACV ≥ segment top 25%. Executive intervention playbook activated. Any further drop triggers another immediate alert.</div>
+        </div>
+        <div class="tier-card tc-high">
+          <div class="tier-name">High</div>
+          <div class="tier-range">45 – 62</div>
+          <div class="tier-action">Immediate alert on tier entry: AM + CSM. Weekly digest thereafter. Recovery plan required within 5 business days — logged to ChurnRiskLog.</div>
+        </div>
+        <div class="tier-card tc-medium">
+          <div class="tier-name">Medium</div>
+          <div class="tier-range">63 – 77</div>
+          <div class="tier-action">Weekly digest only: AM. CSM action recommended, not urgent. Monitor for trend direction.</div>
+        </div>
+        <div class="tier-card tc-low">
+          <div class="tier-name">Low</div>
+          <div class="tier-range">78 – 100</div>
+          <div class="tier-action">Weekly digest only. No action required. Score + delta for awareness. Pass account_id to AGT-503 as expansion candidate.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Alert rules</div>
+      <div class="card">
+        <div class="notify-row">
+          <div class="notify-who">Immediate alert</div>
+          <div class="notify-when">Score drop ≥15 pts in one run. Tier transition in either direction. Sponsor departure flag set by AGT-501 (fires on same run, no wait for next AGT-502 cycle). Payment status transitions to Failed or Suspended.</div>
+        </div>
+        <div class="notify-row">
+          <div class="notify-who">Weekly digest</div>
+          <div class="notify-when">All accounts not triggering immediate alert. Sorted Critical → Low within AM book. One digest per AM, one per CSM scoped to their accounts. SLM receives segment-level summary. CRO receives org-wide NRR risk summary feeding AGT-702.</div>
+        </div>
+        <div class="notify-row">
+          <div class="notify-who">Manager notification</div>
+          <div class="notify-when">Critical tier AND ACV ≥ segment top 25th percentile. Concurrent with AM+CSM immediate alert — not a follow-up.</div>
+        </div>
+        <div class="notify-row" style="border-bottom:none">
+          <div class="notify-who">Payment alerts</div>
+          <div class="notify-when">Finance notified first (it is a billing event). AM + CSM notified concurrently. Routing: Finance → AM → CSM, not sequentially — all three simultaneously.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Downstream triggers</div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Competitive threat + no plan</div>
+          <div class="card-body">Trigger AGT-403 Competitive Intelligence Agent for displacement brief. competitive_risk_flag set by AGT-501.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Low tier (score ≥78)</div>
+          <div class="card-body">Pass account_id to AGT-503 Expansion Trigger as expansion candidate. Healthy accounts are eligible for expansion plays.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">CRO / GTM Health feed</div>
+          <div class="card-body">Weekly org-wide NRR risk summary feeds AGT-702 GTM Health Monitor. Critical + High account count and ACV at risk = NRR health input.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Renewal opp check</div>
+          <div class="card-body">If renewal proximity ≤90 days and no open renewal opportunity exists: flag to AM with prompt to open renewal opp. Not an autonomous opp creation — AM action required.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Sample output JSON</div>
+<pre>{
+  "account_id": "ACC-10001",
+  "account_name": "Apex Dynamics",
+  "health_score": 44,                    // from AGT-501 (post payment modifier)
+  "renewal_proximity_days": 28,
+  "renewal_multiplier": 0.85,
+  "effective_risk_score": 37,            // health_score × multiplier
+  "churn_risk_tier": "critical",
+  "score_delta": -18,                    // vs prior day
+  "alert_type": "immediate",
+  "active_flags": ["sponsor_departure_flag", "competitive_risk_flag"],
+  "recommended_action": "AM to contact executive team within 24 hours. Sponsor departed — identify new VP contact and request emergency business review. CSM to continue usage recovery plan. Loop manager immediately given ACV ($280K, Enterprise top quartile).",
+  "downstream_triggers": ["agt_403_competitive_brief"],
+  "notify": {
+    "am": "Hannah Brooks",
+    "csm": "George Lin",
+    "manager": "Marcus Webb",
+    "manager_reason": "Critical + ACV $280K ≥ Enterprise P75"
+  },
+  "expansion_candidate": false,
+  "scored_at": "2026-03-28T06:00:00Z"
+}</pre>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Schema additions (v19)</div>
+      <div class="schema-card">
+        <div class="schema-card-title">ChurnRiskLog <span class="new-pill">new</span></div>
+        <div class="field-row"><span class="field-name">account_id</span><span class="field-type">FK</span><span class="field-desc">Reference to Accounts</span></div>
+        <div class="field-row"><span class="field-name">run_date</span><span class="field-type">date</span><span class="field-desc">PK with account_id</span></div>
+        <div class="field-row"><span class="field-name">effective_risk_score</span><span class="field-type">int</span><span class="field-desc">health_score × renewal_multiplier</span></div>
+        <div class="field-row"><span class="field-name">churn_risk_tier</span><span class="field-type">enum</span><span class="field-desc">critical / high / medium / low</span></div>
+        <div class="field-row"><span class="field-name">renewal_multiplier</span><span class="field-type">decimal</span><span class="field-desc">0.85 / 0.92 / 0.96 / 1.0</span></div>
+        <div class="field-row"><span class="field-name">renewal_proximity_days</span><span class="field-type">int</span><span class="field-desc">Days to renewal opp close date</span></div>
+        <div class="field-row"><span class="field-name">alert_type</span><span class="field-type">enum</span><span class="field-desc">immediate / weekly_digest / none</span></div>
+        <div class="field-row"><span class="field-name">recommended_action</span><span class="field-type">text</span><span class="field-desc">Specific action tied to lowest-scoring dimension + renewal context</span></div>
+        <div class="field-row"><span class="field-name">recovery_plan_logged</span><span class="field-type">bool</span><span class="field-desc">Required within 5 days for High tier entries</span></div>
+        <div class="field-row"><span class="field-name">downstream_triggers</span><span class="field-type">JSON</span><span class="field-desc">Agent IDs triggered by this run</span></div>
+        <div class="field-row"><span class="field-name">expansion_candidate</span><span class="field-type">bool</span><span class="field-desc">TRUE if tier = low → passed to AGT-503</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#9ca3af;line-height:1.7">GTM OS · AGT-502 · Churn Risk Detector · L5 · Schema v19</div>
+</div>
+</body>
+</html>

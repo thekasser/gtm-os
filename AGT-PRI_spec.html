@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-PRI Spec</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:860px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.be{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.db{background:#185FA5}.dt{background:#0F6E56}.da{background:#854F0B}.dp{background:#534AB7}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mc{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px}
+.mc-badge{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600;display:inline-block;margin-bottom:6px}
+.mb-daily{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.mb-semi{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.mc-title{font-size:12px;font-weight:600;margin-bottom:4px}
+.mc-body{font-size:11px;color:#555;line-height:1.6}
+.dim-grid{display:grid;grid-template-columns:110px 90px 1fr 1fr;gap:0;font-size:11px}
+.dg-hdr{font-weight:600;color:#666;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+.dg-cell{padding:7px 10px;border-bottom:1px solid #eee;vertical-align:top;font-size:11px;color:#1a1a1a}
+.dg-muted{color:#666;font-size:11px}
+.wt-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:8px}
+.w-fit{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.w-int{background:#FCEBEB;color:#791F1F;border:1px solid #F09595}
+.w-opp{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.trigger-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.tc{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:11px 13px}
+.tc-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.tc-body{font-size:11px;color:#555;line-height:1.6}
+.tc-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-bottom:5px}
+.tb-intent{background:#FCEBEB;color:#791F1F;border:1px solid #F09595}
+.tb-stage{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.tb-enr{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.flow{display:flex;align-items:stretch;gap:0;margin:4px 0;overflow-x:auto}
+.fb{background:#f5f5f5;border:1px solid #ddd;border-radius:7px;padding:9px 11px;font-size:11px;flex:1;min-width:0}
+.fb-title{font-weight:600;color:#111;margin-bottom:2px}
+.fb-body{font-size:10px;color:#666;line-height:1.5}
+.fa{display:flex;align-items:center;padding:0 5px;color:#aaa;font-size:13px;flex-shrink:0}
+.fb-amber{background:#FAEEDA;border-color:#EF9F27}
+.fb-teal{background:#E1F5EE;border-color:#5DCAA5}
+.fb-purple{background:#EEEDFE;border-color:#AFA9EC}
+.fb-red{background:#FCEBEB;border-color:#F09595}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tag-new{font-size:10px;padding:1px 6px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC;white-space:nowrap}
+.tag-ext{font-size:10px;padding:1px 6px;border-radius:8px;background:#E1F5EE;color:#085041;border:1px solid #5DCAA5;white-space:nowrap}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}
+.dep-row:last-child{border-bottom:none}
+.da2{min-width:160px;font-weight:600;color:#111}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-PRI — Account prioritization</h1>
+<div class="hsub">Layer 2 · ICP & lead management · Event-triggered + semi-annual full-universe · Multi-factor model</div>
+<div class="badges">
+  <span class="badge bv">v1.0 specced</span>
+  <span class="badge bl">Layer 2</span>
+  <span class="badge be">Event-triggered</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Two modes — daily operational and semi-annual strategic.</strong> Day-to-day: within-book ranking for reps, refreshed on signal events. Semi-annual: full-universe scoring across all accounts to ensure best accounts are in named books before territory review windows.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Three dimensions: fit, intent, opportunity.</strong> ICP score drives fit. Intent signals from AGT-ENR drive urgency. TAM whitespace ACV drives strategic opportunity. Each dimension is independently weighted — RevOps sets weight policy.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Pin-only rep override.</strong> Reps can elevate accounts they have context on that the model doesn't capture. They cannot suppress agent recommendations. All pins logged with reason — model improvement input over time.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Persistently low-priority flag feeds AGT-106.</strong> Accounts dormant for 90 days with no engagement and no open opportunity, OR below RevOps-configured threshold, are flagged as book rebalancing candidates. Territory Design agent handles the actual rebalancing decision.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Digest surfaces the top 5 — not a full ranked list.</strong> Rep receives a daily or weekly digest of their top 5 accounts to action, not a full stack rank. Reduces cognitive load. Full ranked list available on demand.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Two operating modes</div>
+  <div class="mode-grid">
+    <div class="mc">
+      <div class="mc-badge mb-daily">Operational mode — event-triggered</div>
+      <div class="mc-title">Within-book ranking</div>
+      <div class="mc-body">Runs for a rep's named book only. Triggered by: intent spike, opportunity stage change, or new enrichment event on any account in the book. Re-ranks affected accounts immediately. Surfaces top 5 to rep in daily digest. Rep sees: which accounts to prioritize today and why.</div>
+    </div>
+    <div class="mc">
+      <div class="mc-badge mb-semi">Strategic mode — semi-annual</div>
+      <div class="mc-title">Full-universe scoring</div>
+      <div class="mc-body">Scores all accounts in the system — named and unassigned. Runs 6 weeks before AGT-106 annual and H1 review windows. Output feeds TerritoryDefinitions proposal process — ensures reps with weak books get strong accounts reassigned, and strong accounts don't sit unworked in the wrong book.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Multi-factor scoring model</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="dim-grid">
+      <div class="dg-hdr">Dimension</div>
+      <div class="dg-hdr">Default weight</div>
+      <div class="dg-hdr">Signal source</div>
+      <div class="dg-hdr">Rationale</div>
+      <div class="dg-cell"><strong>Fit</strong> <span class="wt-badge w-fit">40%</span></div>
+      <div class="dg-cell dg-muted"></div>
+      <div class="dg-cell dg-muted">ICP score from AGT-001 (0–100, normalized)</div>
+      <div class="dg-cell dg-muted">Foundational — accounts with poor fit don't belong in the book regardless of intent. Highest weight because it's the most stable signal.</div>
+      <div class="dg-cell"><strong>Intent</strong> <span class="wt-badge w-int">40%</span></div>
+      <div class="dg-cell dg-muted"></div>
+      <div class="dg-cell dg-muted">Intent score + intent_surge_pct from AGT-ENR (Bombora/G2 hook). Decays rapidly — half-life 72hrs.</div>
+      <div class="dg-cell dg-muted">Time-sensitive — a buying signal today is the highest-value trigger for rep action. Equal weight to fit because intent without fit is noise, but fit without intent is cold.</div>
+      <div class="dg-cell" style="border-bottom:none"><strong>Opportunity</strong> <span class="wt-badge w-opp">20%</span></div>
+      <div class="dg-cell dg-muted" style="border-bottom:none"></div>
+      <div class="dg-cell dg-muted" style="border-bottom:none">TAM whitespace ACV from MarketSizeModel (coverage_gap_acv_usd per account's cell)</div>
+      <div class="dg-cell dg-muted" style="border-bottom:none">Strategic signal — ensures high-ACV whitespace accounts don't get deprioritized just because they're not actively engaging yet.</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:5px">Weights are RevOps-configurable per segment — stored in a PriorityWeightsConfig table. Default weights shown above. Intent weight may be higher for SDR-worked accounts (more time-sensitive motion) and lower for Enterprise named accounts (longer cycles).</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Event triggers — what causes a re-rank</div>
+  <div class="trigger-grid">
+    <div class="tc">
+      <div class="tc-badge tb-intent">Intent spike</div>
+      <div class="tc-title">AGT-ENR intent signal change</div>
+      <div class="tc-body">intent_score increases ≥20pts OR intent_surge_pct breaches threshold. Highest urgency trigger — rep should action within SLA. Re-ranks account immediately to top of book.</div>
+    </div>
+    <div class="tc">
+      <div class="tc-badge tb-stage">Stage / health change</div>
+      <div class="tc-title">Opportunity event</div>
+      <div class="tc-body">Open opportunity moves to a new stage, deal health score changes ≥10pts, or slip_risk_flag fires. Affects pipeline velocity signal — re-ranks account in context of active deal.</div>
+    </div>
+    <div class="tc">
+      <div class="tc-badge tb-enr">Enrichment update</div>
+      <div class="tc-title">New enrichment data</div>
+      <div class="tc-body">AGT-ENR updates a scored field (ICP rescore triggered), funding round detected, leadership change logged, or technographic stack changes. Re-ranks based on updated signals.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Semi-annual full-universe scoring — territory feed</div>
+  <div class="flow">
+    <div class="fb fb-purple">
+      <div class="fb-title">6 weeks before AGT-106 review</div>
+      <div class="fb-body">AGT-PRI scores all accounts system-wide using full 3-dimension model. Named + unassigned accounts scored uniformly.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-amber">
+      <div class="fb-title">Book quality analysis</div>
+      <div class="fb-body">Compares each rep's book average priority score vs segment median. Flags books significantly below median as rebalancing candidates.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-red">
+      <div class="fb-title">Dormancy flag to AGT-106</div>
+      <div class="fb-body">Accounts with no engagement + no open opp for 90 days OR below RevOps threshold flagged as rebalancing candidates. Includes which rep owns them.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-teal">
+      <div class="fb-title">AGT-106 territory proposal</div>
+      <div class="fb-body">AGT-106 uses priority scores + dormancy flags to propose account reassignments in the semi-annual TAL review. Best unworked accounts move to books that will action them.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Rep digest — top 5 accounts to action</div>
+  <div class="card">
+    <div style="font-size:12px;color:#555;line-height:1.7">
+      Delivered daily for active event-triggered re-ranks, weekly as a standing digest. Format: account name, priority score, rank delta vs last period (↑↓), and a one-line reason ("Intent spike: 3 G2 page visits in last 48hrs" or "Funding round detected: Series B $45M"). Rep sees enough context to act without opening a separate system.<br><br>
+      <strong>Pin behavior:</strong> Rep pins an account → it appears in top 5 regardless of model rank. Pin logged with reason field (required). Model rank shown alongside pin indicator so rep can see the delta between their judgment and the model's. Pins expire after 30 days unless renewed — prevents stale manual overrides accumulating.
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema — 2 new tables</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Status</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>AccountPriorityScore</strong></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">score_id, account_id, employee_crm_id (rep), score_date, fit_score, fit_weight, intent_score, intent_weight, opportunity_score, opportunity_weight, composite_score (0–100), rank_in_book, rank_delta, trigger_event (intent_spike/stage_change/enrichment/semi_annual), rep_pin (bool), rep_pin_reason, rep_pin_expires, dormancy_flag (bool), dormancy_days, rebalancing_flagged (bool), notes</td>
+        </tr>
+        <tr style="border-bottom:none">
+          <td><strong>PriorityWeightsConfig</strong></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">config_id, segment, role, fit_weight, intent_weight, opportunity_weight, dormancy_threshold_days, dormancy_score_threshold, semi_annual_run_weeks_before_review, digest_cadence (daily/weekly), top_n_digest (default 5), set_by, effective_date, version</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da2">AGT-001 ICP Scorer</span><span class="dd reads">reads</span><span class="dd2">icp_score per account — fit dimension input.</span></div>
+    <div class="dep-row"><span class="da2">AGT-ENR (intent fields)</span><span class="dd reads">reads</span><span class="dd2">intent_score, intent_surge_pct — intent dimension input. Also triggers re-rank on enrichment events.</span></div>
+    <div class="dep-row"><span class="da2">MarketSizeModel (AGT-TAM)</span><span class="dd reads">reads</span><span class="dd2">coverage_gap_acv_usd per account cell — opportunity dimension input.</span></div>
+    <div class="dep-row"><span class="da2">Opportunities</span><span class="dd reads">reads</span><span class="dd2">Stage, deal health score, slip_risk_flag — event triggers for re-rank.</span></div>
+    <div class="dep-row"><span class="da2">TerritoryDefinitions</span><span class="dd reads">reads</span><span class="dd2">Named account assignments — determines which rep's book each account belongs to.</span></div>
+    <div class="dep-row"><span class="da2">PriorityWeightsConfig</span><span class="dd reads">reads</span><span class="dd2">RevOps-set dimension weights and dormancy thresholds per segment.</span></div>
+    <div class="dep-row"><span class="da2">AccountPriorityScore</span><span class="dd writes">writes</span><span class="dd2">Running score per account per rep. Updated on every trigger event and semi-annual run.</span></div>
+    <div class="dep-row"><span class="da2">AGT-003 Outreach</span><span class="dd trig">triggers</span><span class="dd2">Top-ranked accounts with no active sequence trigger outreach sequence generation.</span></div>
+    <div class="dep-row"><span class="da2">AGT-106 Territory Design</span><span class="dd trig">triggers</span><span class="dd2">Dormancy flags + semi-annual book quality scores feed territory rebalancing proposals.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-PRI, the Account Prioritization agent for a B2B SaaS GTM OS.
+
+ROLE: Stack-rank accounts within rep books by propensity to buy signal.
+Surface top 5 accounts to action in rep digest. Flag dormant accounts
+to AGT-106 for territory rebalancing.
+
+TWO MODES:
+  OPERATIONAL (event-triggered): re-rank accounts within rep's named book
+    on intent spike, stage change, or enrichment update.
+  STRATEGIC (semi-annual): score all accounts system-wide 6 weeks before
+    AGT-106 annual and H1 review windows.
+
+SCORING — per account per rep:
+  Read PriorityWeightsConfig for segment-specific weights.
+  fit_score    = Accounts.icp_score / 100 (normalized)
+  intent_score = EnrichmentLog.intent_score (latest, decay-adjusted)
+    intent half-life = 72 hours: intent_score × e^(-hours_since_update / 72)
+  opportunity_score = MarketSizeModel.coverage_gap_acv_usd for account's
+    segment × vertical × geo cell, normalized to 0–1 against segment max.
+  composite_score = (fit_score × fit_weight) + (intent_score × intent_weight)
+    + (opportunity_score × opportunity_weight)
+  rank_in_book = RANK() of composite_score within employee_crm_id's named accounts.
+  rank_delta = rank_in_book vs prior AccountPriorityScore.rank_in_book.
+
+EVENT TRIGGERS (operational mode):
+  intent_spike: EnrichmentLog.intent_score change ≥20pts → re-rank immediately.
+  stage_change: Opportunities.stage changes → re-rank account.
+  enrichment: AGT-ENR icp_rescore_triggered=TRUE → re-rank account.
+
+REP DIGEST (top 5):
+  Select top 5 by composite_score for rep's book.
+  Apply rep pins first: pinned accounts always appear regardless of model rank.
+    Pin validation: rep_pin_expires must be in future. Expired pins removed silently.
+  For each top 5 account: include rank_delta + one-line trigger reason.
+  Digest cadence per PriorityWeightsConfig.digest_cadence.
+
+REP PIN HANDLING:
+  Pin: add to AccountPriorityScore with rep_pin=TRUE, rep_pin_reason (required),
+    rep_pin_expires = today + 30 days.
+  Log all pins — used for model calibration over time.
+  Reps cannot suppress agent recommendations — pin-only override.
+
+DORMANCY FLAGGING:
+  Check all accounts in rep's book:
+    Condition A: last_engagement_date < today - dormancy_threshold_days
+      AND no open Opportunity.
+    Condition B: composite_score < PriorityWeightsConfig.dormancy_score_threshold.
+  Either condition → set dormancy_flag=TRUE, log dormancy_days.
+  Flag to AGT-106 as rebalancing_candidate. Do not reassign directly.
+
+SEMI-ANNUAL MODE:
+  Score ALL accounts (named + unassigned) using same 3-dimension model.
+  Calculate book_quality_score per rep = avg composite_score of named accounts.
+  Flag reps where book_quality_score < segment median − 1 stddev.
+  Output: full universe ranked list + book quality report by rep + segment.
+  Feed to AGT-106 6 weeks before annual/H1 review window.
+
+OUTPUT: AccountPriorityScore rows per triggered account.
+  Rep digest: JSON top-5 list with scores, deltas, trigger reasons.
+  Semi-annual: full universe score export + book quality summary.</pre>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-801 — Order Management</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-schema{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-amber{background:#FAEEDA;border:1px solid #EF9F27;color:#633806;font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-top:8px}
+.score-green{color:#085041;font-weight:700}
+.score-yellow{color:#633806;font-weight:700}
+.score-red{color:#712B13;font-weight:700}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-801 — Order Management</h1>
+<div class="subtitle">Layer 8: Revenue Operations · Accepted quote → order form → billing system handoff · Mid-term amendments · Finance-owned</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L8 · Agent 01</span>
+  <span class="badge badge-status">Specced · v25</span>
+  <span class="badge badge-schema">Schema adds: OrderLog, OrderLineItems, OrderApprovalLog, AmendmentLog</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-801 is the first agent in L8 Revenue Operations. It converts an accepted AGT-406 quote into a legally binding order form, routes it through the appropriate approval chain, and hands it off to the billing system. It also owns mid-term contract amendments — seat expansions, SKU additions, and pricing corrections. AGT-801 re-scores the deal independently of AGT-406; the order form introduces contractual terms (payment terms, commit structure, legal entity) not present in the quote, so the score inputs are materially different.</p>
+</div>
+
+<!-- ── TRIGGERS ────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Triggers</div>
+  <table>
+    <tr><th>Trigger</th><th>Source</th><th>Action</th></tr>
+    <tr><td>Quote accepted</td><td><code>QuoteLog.status = 'accepted'</code> (AGT-406)</td><td>Generate order form. Run deal score. Route for approval. Primary trigger.</td></tr>
+    <tr><td>Seat expansion</td><td>AGT-503 expansion play accepted by AM, or rep-initiated</td><td>Generate order form amendment. Re-score delta terms. Route if required.</td></tr>
+    <tr><td>SKU add</td><td>Rep-initiated new product line addition mid-term</td><td>Generate order form amendment. New line items appended to existing order.</td></tr>
+    <tr><td>Pricing correction</td><td>Finance-initiated or rep-submitted with manager approval</td><td>Generate corrected order form. Always requires Finance Director minimum approval regardless of score.</td></tr>
+  </table>
+</div>
+
+<!-- ── ORDER FORM CONTENTS ────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Order form contents</div>
+  <p class="prose" style="margin-bottom:10px">The order form is a legal document — not a pricing proposal. It includes everything in the accepted quote plus the following contractual terms:</p>
+  <table>
+    <tr><th>Section</th><th>Content</th><th>Source</th></tr>
+    <tr><td>Parties</td><td>Legal entity names and billing address for both parties</td><td>Accounts (legal_entity_name), Finance-provided</td></tr>
+    <tr><td>Payment terms</td><td>Net days (Net 30, Net 60, etc.)</td><td>OrderLog.payment_terms_days — defaulted from PricingConfig, overridable</td></tr>
+    <tr><td>Auto-renewal</td><td>Auto-renewal clause + notice period in days</td><td>OrderLog.auto_renewal, renewal_notice_days</td></tr>
+    <tr><td>Governing law</td><td>Jurisdiction (typically Delaware, USA)</td><td>OrderLog.governing_law</td></tr>
+    <tr><td>MSA reference</td><td>Reference to executed Master Service Agreement</td><td>OrderLog.msa_reference</td></tr>
+    <tr><td>SOW reference</td><td>Reference to Implementation SOW (if services on order)</td><td>OrderLog.sow_reference — from ImplementationSOW (AGT-602)</td></tr>
+    <tr><td>SKUs + pricing</td><td>All billable SKUs, unit prices, quantities, commitment amounts</td><td>OrderLineItems — one row per SKU</td></tr>
+    <tr><td>Commit frequency</td><td>Monthly / quarterly / annual. Ramp schedule if applicable (e.g. $50K Q1 → $75K Q2 → $100K Q3+)</td><td>OrderLineItems.commit_frequency, ramp_schedule (JSON)</td></tr>
+    <tr><td>Total contract value</td><td>Sum of all committed spend across full contract term</td><td>OrderLog.total_contract_value_usd</td></tr>
+  </table>
+  <div class="note">Billing contact on the order form (written by AGT-801) is the target for AGT-504 Customer Communications on future price change events. This is the integration point that makes AGT-504 contact routing work.</div>
+</div>
+
+<!-- ── DEAL SCORING ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Deal scoring (re-run at order stage)</div>
+  <p class="prose" style="margin-bottom:10px">AGT-801 scores the order form independently of AGT-406's quote score. Order form inputs include contractual terms not in the quote — payment terms, commit frequency, auto-renewal structure, legal entity. Score drives approval routing.</p>
+  <table>
+    <tr><th>Score band</th><th>Criteria</th><th>Approval required</th></tr>
+    <tr><td><span class="score-green">Green (75–100)</span></td><td>Pricing within standard bounds. Standard contractual terms. No policy exceptions.</td><td>Auto-approve. No human approval required.</td></tr>
+    <tr><td><span class="score-yellow">Yellow (50–74)</span></td><td>Pricing discount above standard threshold OR non-standard contractual terms (but within policy).</td><td>Yellow pricing → Finance Director. Yellow terms → Legal Director. Tracks are independent — both may fire simultaneously.</td></tr>
+    <tr><td><span class="score-red">Red (0–49)</span></td><td>Pricing significantly outside standard bounds OR materially non-standard terms (indemnification, liability caps, IP ownership deviations).</td><td>Red pricing → Finance VP + CRO. Red terms → Legal VP + CRO. Both tracks must clear independently. CRO approves on pricing track regardless of legal outcome.</td></tr>
+  </table>
+  <div class="note">Two-track parallel approval: Legal approves its terms independently. Finance + CRO approve pricing and deal terms. Both tracks must clear before the order form is sent to the customer. If only one track is triggered (e.g. yellow pricing, green terms), only that track's approval is required.</div>
+  <div class="alert-amber">Pricing corrections always require Finance Director minimum approval regardless of score — a correction implies a prior error, which is an audit event. Score-based routing applies on top of this floor.</div>
+</div>
+
+<!-- ── AMENDMENT LOGIC ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Mid-term amendments</div>
+  <table>
+    <tr><th>Amendment type</th><th>What changes</th><th>Approach</th></tr>
+    <tr><td>Seat expansion</td><td>Additional licenses added mid-term. Pro-rated billing for remainder of term.</td><td>New line items appended to existing order. Amendment scored independently. OrderLog.total_contract_value_usd updated.</td></tr>
+    <tr><td>SKU add</td><td>New product family added to existing contract.</td><td>New line items added. Commit frequency for new SKU may differ from existing SKUs. Amendment document references original order.</td></tr>
+    <tr><td>Pricing correction</td><td>Error in original pricing — unit price, discount, or quantity corrected.</td><td>Always Finance Director minimum approval. Credit memo or additional invoice generated by AGT-802 to reconcile delta. AmendmentLog records prior and corrected terms.</td></tr>
+  </table>
+  <div class="note">Amendments reference the original OrderLog record via AmendmentLog.order_id. The original order is not overwritten — it is versioned. AGT-802 sees the amendment and adjusts future billing accordingly.</div>
+</div>
+
+<!-- ── BILLING SYSTEM HANDOFF ─────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Billing system handoff</div>
+  <p class="prose">On approval, AGT-801 writes the structured OrderLog + OrderLineItems payload and signals AGT-802 to begin billing cycle setup. The billing system (Stripe, Zuora, NetSuite — external) receives the structured payload. AGT-801 does not interact directly with the billing system API — it writes to the OS schema and the billing system integration layer reads from it. This keeps the OS integration-agnostic.</p>
+</div>
+
+<div class="footer">
+  AGT-801 Order Management · Layer 8 · Finance-owned · Schema v25<br>
+  New tables: OrderLog, OrderLineItems, OrderApprovalLog, AmendmentLog<br>
+  Triggered by: AGT-406 QuoteLog.status = 'accepted' (primary) · Seat expansion · SKU add · Pricing correction<br>
+  Reads from: QuoteLog (AGT-406), PricingConfig (L0), ImplementationSOW (AGT-602), Accounts<br>
+  Writes to: OrderLog, OrderLineItems, OrderApprovalLog, AmendmentLog<br>
+  Feeds: AGT-802 (billing cycle setup), AGT-504 (billing contact on order form), AGT-601 (order signals pre-close onboarding)
+</div>
+</body>
+</html>

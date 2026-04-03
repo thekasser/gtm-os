@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-402 — Forecast Adjuster</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-ripple{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.wire-box{background:#E6F1FB;border:1px solid #85B7EB;color:#0C447C;font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-bottom:10px}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-402 — Forecast Adjuster</h1>
+<div class="subtitle">Layer 4: Deal &amp; Forecast Management · Bottoms-up AI forecast · Rep commit model · pct_of_target vs FP&amp;APlan</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L4 · Agent 02</span>
+  <span class="badge badge-status">Specced · v18 original + v23 ripple audit</span>
+  <span class="badge badge-ripple">L4 ripple audit: FP&amp;APlan versioning + expansion ACV from AGT-503</span>
+</div>
+
+<!-- ── RIPPLE AUDIT UPDATES ────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">L4 ripple audit updates (v23)</div>
+
+  <div class="wire-box">
+    <strong>Update 1 — FP&amp;APlan versioning (v21 schema)</strong><br>
+    FP&amp;APlan now carries <code>plan_version</code> (0+12, 1+11, 2+10, etc.), <code>reforecast_as_of_date</code>, and <code>is_board_plan</code> fields. AGT-402's <code>pct_of_target</code> field must join on the current operating plan version — not the board plan and not the original 0+12 plan.<br><br>
+    Rule: AGT-402 reads <code>FP&amp;APlan WHERE is_board_plan = FALSE ORDER BY reforecast_as_of_date DESC LIMIT 1</code> to get the current operating plan. Board plan is available as a secondary reference only — not the primary denominator for pct_of_target.
+  </div>
+
+  <div class="wire-box">
+    <strong>Update 2 — Expansion ACV included in bottoms-up forecast (locked decision)</strong><br>
+    AGT-402's bottoms-up forecast now includes three revenue components: new logo pipeline, renewal pipeline, and expansion ACV from AGT-503 ExpansionLog. Expansion ACV is read from <code>ExpansionLog.acv_estimate</code> where <code>play_type = 'new_play'</code> and <code>suppressed_reason IS NULL</code>. Expansion ACV is probability-weighted by churn risk tier: Low = 80%, Medium = 50%, High/Critical = 0% (suppressed by AGT-503 already, but defensive guard).<br><br>
+    Output format adds an expansion revenue line to the forecast breakdown alongside new logo and renewal. pct_of_target denominator uses the full FP&amp;APlan revenue target (which includes planned expansion revenue).
+  </div>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-402 produces the bottoms-up AI forecast — an agent-adjusted view of pipeline that incorporates deal health scores, rep commit patterns, and historical conversion rates. It supplements rep commits with a probability-weighted pipeline view and expresses both against FP&amp;APlan targets. Rep commit is sacred — AGT-402 models commit separately, never overrides it. Material deals are binary scenarios, not probabilistic.</p>
+</div>
+
+<!-- ── FORECAST COMPONENTS ────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Forecast components</div>
+  <table>
+    <tr><th>Component</th><th>Source</th><th>Method</th></tr>
+    <tr><td><strong>New logo pipeline</strong></td><td><code>Opportunities</code> — new business deals</td><td>Probability-weighted by AGT-401 deal health score + historical conversion rate by stage, segment, vertical</td></tr>
+    <tr><td><strong>Renewal pipeline</strong></td><td><code>Opportunities</code> — renewal deals + <code>ChurnRiskLog</code></td><td>AGT-401 deal health + AGT-502 churn risk tier used to adjust renewal probability. Critical/High churn risk deals discounted.</td></tr>
+    <tr><td><strong>Expansion ACV</strong></td><td><code>ExpansionLog</code> (AGT-503) — active plays only</td><td>acv_estimate weighted by churn risk tier: Low = 80%, Medium = 50%, High/Critical = 0%</td></tr>
+    <tr><td><strong>Rep commit</strong></td><td>Rep-entered commit field on Opportunities</td><td>Presented as-is. Never adjusted by agent. Displayed alongside AI forecast for comparison.</td></tr>
+  </table>
+  <div class="note">Material deals (&gt;25% of segment quota) are modeled as binary scenarios — closed/not closed — not assigned a probability. These are flagged separately in the forecast output and excluded from the probability-weighted total to avoid distorting the AI number.</div>
+</div>
+
+<!-- ── PCT_OF_TARGET ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">pct_of_target output</div>
+  <p class="prose" style="margin-bottom:10px">Every forecast run outputs <code>pct_of_target</code> by segment — AI forecast total ÷ current operating FP&amp;APlan revenue target. Three reference points always included:</p>
+  <table>
+    <tr><th>Reference</th><th>Source</th><th>Notes</th></tr>
+    <tr><td>Current operating plan</td><td><code>FP&amp;APlan</code> — most recent non-board version</td><td>Primary denominator. Rolls from 0+12 → 1+11 → 2+10 as actuals close.</td></tr>
+    <tr><td>Board plan</td><td><code>FP&amp;APlan WHERE is_board_plan = TRUE</code></td><td>Secondary reference. External benchmark for CRO and Finance — not used as denominator.</td></tr>
+    <tr><td>Prior period AI forecast</td><td>Prior forecast run output</td><td>Week-over-week and month-over-month trend. Sourced from previous AGT-402 output record.</td></tr>
+  </table>
+</div>
+
+<!-- ── SCHEMA READS ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Key schema reads</div>
+  <table>
+    <tr><th>Table</th><th>Fields used</th><th>Purpose</th></tr>
+    <tr><td><code>Opportunities</code></td><td>stage, amount, close_date, rep_commit, segment</td><td>Core pipeline data for new logo + renewal</td></tr>
+    <tr><td><code>CustomerHealthLog</code> (AGT-501)</td><td>health_score, churn_risk_tier</td><td>Renewal probability adjustment</td></tr>
+    <tr><td><code>ExpansionLog</code> (AGT-503)</td><td>acv_estimate, play_type, suppressed_reason, expansion_candidate</td><td>Expansion revenue component (v23)</td></tr>
+    <tr><td><code>FP&amp;APlan</code></td><td>revenue_target_usd, plan_version, reforecast_as_of_date, is_board_plan</td><td>pct_of_target denominator — current operating version only</td></tr>
+    <tr><td><code>QuotaStore</code></td><td>quota_amount by rep + segment</td><td>Material deal threshold calculation (25% of segment quota)</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  AGT-402 Forecast Adjuster · Layer 4 · Schema v18 (original) + v23 (ripple audit)<br>
+  v23 changes: FP&amp;APlan version join specced (current operating plan only); expansion ACV from ExpansionLog added as third forecast component<br>
+  Reads from: Opportunities, CustomerHealthLog (AGT-501), ExpansionLog (AGT-503), FP&amp;APlan, QuotaStore<br>
+  Feeds: AGT-404 (top-down vs bottoms-up comparison), AGT-702 (forward forecast input to MetricsCalcLog), AGT-704 (WBR/MBR forecast section)
+</div>
+</body>
+</html>

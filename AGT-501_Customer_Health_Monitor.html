@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-501 — Customer Health Monitor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-ripple{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.wire-box{background:#E6F1FB;border:1px solid #85B7EB;color:#0C447C;font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-bottom:10px}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-501 — Customer Health Monitor</h1>
+<div class="subtitle">Layer 5: Post-Sale Retention · Daily health scoring · 7 dimensions + ConvIntelligence adj + payment modifier · Canonical source for AGT-502 and AGT-503</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L5 · Agent 01</span>
+  <span class="badge badge-status">Specced · v19 original + v25 ripple update</span>
+  <span class="badge badge-ripple">L8 ripple: seat utilization dimension reads UsageMeteringLog explicitly</span>
+</div>
+
+<!-- ── L8 RIPPLE UPDATE ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">L8 ripple update (v25)</div>
+  <div class="wire-box">
+    <strong>Update — seat utilization dimension source: UsageMeteringLog</strong><br>
+    The seat utilization dimension (18 pts max) previously referenced "AGT-804 usage data feed" without specifying the schema table. UsageMeteringLog now exists as the canonical usage data source (added in v25 with AGT-804).<br><br>
+    AGT-501 seat utilization dimension reads:<br>
+    &nbsp;· <code>UsageMeteringLog WHERE account_id = [account] AND sku_id LIKE 'SKU-SEAT%' AND period_end &gt;= [trailing 30-day window]</code><br>
+    &nbsp;· Utilization rate = <code>units_consumed ÷ commit_units</code> for the most recent complete metering period<br>
+    &nbsp;· Score: &gt;80% utilization = full points; 60–80% = partial; &lt;60% = low utilization signal<br><br>
+    Non-blocking dependency: if UsageMeteringLog has no records for this account (AGT-804 not live or seat SKU not metered), the seat utilization dimension is flagged as <code>data_gap</code> — same behavior as before. No change to scoring logic, only the explicit data source is now named.
+  </div>
+  <div class="wire-box">
+    <strong>Update — CSM call ConvIntelligence adjustment: call_owner_role filter</strong><br>
+    ConvIntelligence.call_owner_role field (added v23) enables AGT-501 to correctly filter CSM-owned calls for the ConvIntelligence adjustment (+12 pts max). AGT-501 reads <code>ConvIntelligence WHERE account_id = [account] AND call_owner_role = 'CSM' AND call_date &gt;= [trailing 30 days]</code>. Selling-role calls (AE, SDR, SE) are excluded from this adjustment — they are not signals of customer health, only of deal activity.
+  </div>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-501 runs daily batch scoring for all active customer accounts. It writes CustomerHealthLog as the canonical daily record — AGT-502 (Churn Risk Detector) and AGT-503 (Expansion Trigger) read exclusively from this table. It is the single source of truth for account health across the post-sale stack.</p>
+</div>
+
+<!-- ── SCORING MODEL ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Scoring model — 7 dimensions (100 pts base)</div>
+  <table>
+    <tr><th>Dimension</th><th>Max pts</th><th>Source</th><th>Notes</th></tr>
+    <tr><td>Product usage trend</td><td>22</td><td><code>UsageMeteringLog</code> — consumption trend across trailing 3 periods</td><td>Trending up = full pts. Flat = partial. Declining = low pts.</td></tr>
+    <tr><td>Exec sponsor engagement</td><td>20</td><td><code>Contacts</code> — economic_buyer and champion persona types</td><td>Persona-typed engagement from Contacts table (v18 L2 ripple pattern)</td></tr>
+    <tr><td>Seat utilization</td><td>18</td><td><code>UsageMeteringLog WHERE sku_id LIKE 'SKU-SEAT%'</code></td><td>Most recent complete period. Data_gap if no records.</td></tr>
+    <tr><td>NPS / CSAT</td><td>14</td><td>NPS/CSAT survey system (external feed)</td><td>No OnboardingLog proxy — data_gap during onboarding by design.</td></tr>
+    <tr><td>Engagement recency</td><td>12</td><td><code>ConvIntelligence</code>, <code>QBRLog</code>, <code>ABMEngagementLog</code></td><td>Days since last meaningful touchpoint across all channels.</td></tr>
+    <tr><td>Support ticket trend</td><td>8</td><td>Support system feed (external)</td><td>Volume + severity trend. Escalating tickets = lower score.</td></tr>
+    <tr><td>Competitive threat</td><td>6</td><td><code>ConvIntelligence.competitors_mentioned</code>, <code>CompetitiveKnowledgeBase</code></td><td>Active competitive evaluation signal.</td></tr>
+  </table>
+  <div class="note">During onboarding (<code>Accounts.onboarding_status = 'active'</code>): AGT-501 substitutes OnboardingLog signals for dimensions where live data doesn't exist. Seat utilization, exec sponsor engagement, usage trend, and engagement recency all have defined OnboardingLog substitutes. Records flagged <code>in_onboarding = TRUE</code> in CustomerHealthLog.</div>
+</div>
+
+<!-- ── ADJUSTMENTS & MODIFIERS ────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Adjustments and modifiers (applied after 7-dimension base)</div>
+  <table>
+    <tr><th>Adjustment</th><th>Value</th><th>Source</th></tr>
+    <tr><td>ConvIntelligence adjustment</td><td>Up to +12 pts</td><td><code>ConvIntelligence WHERE call_owner_role = 'CSM'</code> — trailing 30-day pattern of sentiment, talk ratio, next-step quality (v23)</td></tr>
+    <tr><td>Payment health modifier</td><td>Cap or floor</td><td><code>CustomerHealthLog.payment_health_status</code> from AGT-803: Current = no effect; Overdue = cap at 77; Failed = cap at 62; Suspended = floor at Critical. Applied last.</td></tr>
+  </table>
+</div>
+
+<!-- ── KEY OUTPUTS ────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Key outputs — CustomerHealthLog fields</div>
+  <table>
+    <tr><th>Field</th><th>Notes</th></tr>
+    <tr><td><code>raw_health_score</code></td><td>7-dimension score + ConvIntelligence adjustment, before payment modifier</td></tr>
+    <tr><td><code>health_score</code></td><td>Post-modifier final score. This is what AGT-502 and AGT-503 read.</td></tr>
+    <tr><td><code>score_delta</code></td><td>Change from prior day. Used by AGT-502 for ≥15 pt drop alert.</td></tr>
+    <tr><td><code>payment_health_status</code></td><td>Written by AGT-803. AGT-501 reads and applies modifier.</td></tr>
+    <tr><td><code>sponsor_departure_flag</code></td><td>Passes to AGT-502 immediately on same run — does not wait for next AGT-502 cycle.</td></tr>
+    <tr><td><code>in_onboarding</code></td><td>TRUE when Accounts.onboarding_status = 'active'. Signals OnboardingLog substitution mode.</td></tr>
+    <tr><td><code>data_gap_dimensions</code></td><td>JSON array of dimensions scored as data_gap this run.</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  AGT-501 Customer Health Monitor · Layer 5 · Schema v19 (original) + v25 (L8 ripple)<br>
+  v25 changes: seat utilization dimension explicitly reads UsageMeteringLog; ConvIntelligence adjustment explicitly filters call_owner_role = 'CSM'<br>
+  Reads from: UsageMeteringLog (seat utilization + product usage), Contacts (exec sponsor), ConvIntelligence (call_owner_role = CSM), QBRLog (engagement recency), OnboardingLog (onboarding substitutes), CustomerHealthLog.payment_health_status (AGT-803)<br>
+  Writes to: CustomerHealthLog (daily — canonical source for AGT-502 and AGT-503)<br>
+  Feeds: AGT-502 Churn Risk Detector · AGT-503 Expansion Trigger Agent
+</div>
+</body>
+</html>

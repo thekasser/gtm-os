@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-701 — Rep Performance & Coaching</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-schema{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #eee;vertical-align:top;line-height:1.6}
+tr:nth-child(even) td{background:#f9f9f9}
+.pill{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;white-space:nowrap}
+.pill-ae{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.pill-am{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.pill-csm{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.pill-sdr{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.pill-all{background:#f0f0f0;color:#333;border:1px solid #ccc}
+.pill-alert{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.pill-green{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.pill-amber{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.note{font-size:11px;color:#888;padding:8px 12px;background:#f5f5f5;border-radius:8px;border-left:3px solid #ddd;line-height:1.6;margin-top:8px}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-green{background:#E1F5EE;border-left:3px solid #5DCAA5;color:#085041}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.flow-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.step-num{font-size:11px;font-weight:700;background:#0D1B2A;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-body{font-size:12px;color:#333;line-height:1.6}
+.step-body strong{color:#111}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-701 — Rep Performance & Coaching</h1>
+<div class="subtitle">Layer 7: Measurement & Feedback · Role-parameterized coaching across AE, AM, CSM, SDR</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L7 · Agent 01</span>
+  <span class="badge badge-status">Specced · v21</span>
+  <span class="badge badge-schema">Schema adds: RepSkillAssessmentLog, RepCoachingLog</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-701 is the individual-level performance and coaching agent for the GTM OS. It operates across four roles — AE, AM, CSM, SDR — using a single shared architecture with role-specific metric inputs. The agent detects performance patterns, recommends corrective actions for human approval, and escalates persistent gaps to management. It does not replace manager judgment; it surfaces signal systematically so managers are never operating blind.</p>
+</div>
+
+<!-- ── ROLE ARCHITECTURE ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Role parameterization</div>
+  <p class="prose">One agent, four role configs. The output skeleton is identical across roles: performance summary → pattern diagnosis → recommended actions → escalation flags. What populates each section is role-specific. Role is determined by <code>RepActivity.role</code> at runtime — no separate agent instances required.</p>
+  <div style="margin-top:12px">
+    <table>
+      <tr><th>Section</th><th>AE</th><th>AM</th><th>CSM</th><th>SDR</th></tr>
+      <tr><td><strong>Performance summary</strong></td><td>Quota attainment vs pace, forecast accuracy</td><td>NRR by cohort, renewal rate</td><td>TTV achievement, health trajectory</td><td>Meeting acceptance, opp conversion</td></tr>
+      <tr><td><strong>Pattern diagnosis</strong></td><td>Stage conversion gaps, deal velocity vs benchmark</td><td>Health score trend, expansion conversion</td><td>Onboarding adherence, escalation rate</td><td>Response rate by step, talk time ratio</td></tr>
+      <tr><td><strong>Skill gaps</strong></td><td>Objection handling, product knowledge, pricing/negotiation</td><td>Objection handling, product knowledge, pricing/negotiation</td><td>Product knowledge, sales methodology</td><td>Objection handling, discovery question quality</td></tr>
+      <tr><td><strong>Recommended actions</strong></td><td colspan="4">Role-specific coaching actions — human approval required before delivery</td></tr>
+      <tr><td><strong>Escalation flags</strong></td><td colspan="4">Fires when defined thresholds are breached or patterns persist</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ── METRIC INPUTS ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Metric inputs by role</div>
+
+  <div class="subsection-title"><span class="pill pill-ae">AE</span></div>
+  <table>
+    <tr><th>Metric</th><th>Source table</th><th>Notes</th></tr>
+    <tr><td>Quota attainment vs pace</td><td><code>QuotaRetirementLedger</code>, <code>QuotaStore</code></td><td>Compares closed + committed to time-weighted quota pace</td></tr>
+    <tr><td>Stage conversion rates</td><td><code>Opportunities</code></td><td>By stage pair vs segment benchmark</td></tr>
+    <tr><td>Deal velocity vs segment benchmark</td><td><code>Opportunities</code></td><td>Days per stage vs segment median</td></tr>
+    <tr><td>ConvIntelligence: objection handling + next-step quality</td><td><code>ConvIntelligence</code></td><td>Trailing 30-day pattern from AGT-407 scoring</td></tr>
+    <tr><td>AGT-405 deal advance scoring</td><td><code>OpportunityBriefLog</code></td><td>Did rep execute stated stage objectives?</td></tr>
+    <tr><td>Forecast accuracy (rep commit vs closed)</td><td><code>QuotaRetirementLedger</code></td><td>Rep commit accuracy fed to AGT-703 as distinct output</td></tr>
+    <tr><td>Product knowledge gaps</td><td><code>ConvIntelligence</code>, <code>RepSkillAssessmentLog</code></td><td>Detected from call patterns; written to RepSkillAssessmentLog</td></tr>
+    <tr><td>Pricing/term negotiation gaps vs segment benchmark</td><td><code>QuoteLog</code>, <code>RepSkillAssessmentLog</code></td><td>Discount depth, term exceptions vs benchmark</td></tr>
+  </table>
+
+  <div class="subsection-title"><span class="pill pill-am">AM</span></div>
+  <table>
+    <tr><th>Metric</th><th>Source table</th><th>Notes</th></tr>
+    <tr><td>Health score trend across book</td><td><code>CustomerHealthLog</code></td><td>Directional trend, not single-point score</td></tr>
+    <tr><td>Expansion conversion rate</td><td><code>ExpansionLog</code></td><td>Plays opened vs closed vs suppressed</td></tr>
+    <tr><td>Renewal rate + renewal opp open timing</td><td><code>Opportunities</code>, <code>ChurnRiskLog</code></td><td>Flags AM who opens renewal opp late relative to proximity window</td></tr>
+    <tr><td>QBR cadence adherence</td><td><code>QBRLog</code></td><td>QBRs scheduled and completed vs accounts requiring one</td></tr>
+    <tr><td>AGT-603 QBR outcome quality</td><td><code>QBRLog</code></td><td>Post-QBR outcome field logged by CSM</td></tr>
+    <tr><td>NRR by account cohort</td><td><code>ChurnRiskLog</code>, <code>ExpansionLog</code></td><td>Segment × vertical cohort comparison</td></tr>
+    <tr><td>Objection handling</td><td><code>ConvIntelligence</code></td><td>AM-owned calls; trailing 30-day pattern</td></tr>
+    <tr><td>Product knowledge gaps</td><td><code>ConvIntelligence</code>, <code>RepSkillAssessmentLog</code></td><td>Detected from call patterns</td></tr>
+    <tr><td>Pricing/term negotiation gaps vs segment benchmark</td><td><code>QuoteLog</code>, <code>RepSkillAssessmentLog</code></td><td>Expansion deal discount depth vs benchmark</td></tr>
+  </table>
+
+  <div class="subsection-title"><span class="pill pill-csm">CSM</span></div>
+  <table>
+    <tr><th>Metric</th><th>Source table</th><th>Notes</th></tr>
+    <tr><td>TTV achievement vs target</td><td><code>OnboardingLog</code>, <code>Accounts</code></td><td>ttv_achieved_days vs ttv_target_days from AGT-601</td></tr>
+    <tr><td>NPS/CSAT trend</td><td><code>CustomerHealthLog</code></td><td>NPS/CSAT dimension trend across CSM's book</td></tr>
+    <tr><td>Onboarding milestone adherence</td><td><code>OnboardingLog</code></td><td>Milestone completion on time vs target per AGT-601 schedule</td></tr>
+    <tr><td>Health score trajectory across book</td><td><code>CustomerHealthLog</code></td><td>Directional trend; flags CSMs with deteriorating books</td></tr>
+    <tr><td>ConvIntelligence: CSM call sentiment + talk ratio</td><td><code>ConvIntelligence</code></td><td>CSM-owned calls; sentiment trend + talk ratio vs benchmark</td></tr>
+    <tr><td>Escalation rate</td><td><code>CustomerHealthLog</code></td><td>Frequency of Critical/High tier accounts in CSM's book</td></tr>
+    <tr><td>Product knowledge gaps</td><td><code>ConvIntelligence</code>, <code>RepSkillAssessmentLog</code></td><td>Detected from call patterns</td></tr>
+    <tr><td>Sales methodology gaps</td><td><code>RepSkillAssessmentLog</code></td><td>Expansion motion execution quality</td></tr>
+  </table>
+
+  <div class="subsection-title"><span class="pill pill-sdr">SDR</span></div>
+  <table>
+    <tr><th>Metric</th><th>Source table</th><th>Notes</th></tr>
+    <tr><td>Meeting acceptance rate</td><td><code>CadenceEventLog</code></td><td>Meetings booked vs touchpoints sent</td></tr>
+    <tr><td>Sequence performance by cadence type</td><td><code>CadenceEventLog</code></td><td>Response and acceptance rates by cadence type (cold, warm, ABM, re-engage)</td></tr>
+    <tr><td>Response rate by step</td><td><code>CadenceEventLog</code></td><td>Step-level response rates to identify drop-off points</td></tr>
+    <tr><td>Conversion to qualified opp</td><td><code>Leads</code>, <code>Opportunities</code></td><td>Meetings booked → AE-qualified opp rate</td></tr>
+    <tr><td>Outreach volume vs activity targets</td><td><code>CadenceEventLog</code></td><td>Volume compliance vs targets in CompPlans/activity expectations</td></tr>
+    <tr><td>AGT-303 cadence intelligence flags</td><td><code>CadenceEventLog</code></td><td>Risk flags and recommendations generated by AGT-303</td></tr>
+    <tr><td>Objection handling</td><td><code>ConvIntelligence</code></td><td>Discovery call objection patterns vs team benchmark</td></tr>
+    <tr><td>Talk time ratio vs team benchmark</td><td><code>ConvIntelligence</code></td><td>SDR talk ratio on discovery calls vs team median</td></tr>
+    <tr><td>Discovery question quality</td><td><code>ConvIntelligence</code>, <code>RepSkillAssessmentLog</code></td><td>Question depth and qualification coverage detected from transcripts</td></tr>
+  </table>
+</div>
+
+<!-- ── CADENCE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cadence</div>
+  <table>
+    <tr><th>Trigger</th><th>Output</th><th>Recipients</th></tr>
+    <tr><td><strong>Monthly digest</strong> — runs on first business day of each month</td><td>Full performance summary + pattern diagnosis + recommended actions for prior month</td><td>Rep (coaching artifact) + Manager (pattern summary)</td></tr>
+    <tr><td><strong>Daily flag</strong> — critical threshold breach detected</td><td>Point alert with specific metric, current value, threshold breached, recommended action</td><td>Manager only — rep not alerted on daily flags</td></tr>
+    <tr><td><strong>Manager on-demand</strong> — explicit request</td><td>Full rep performance view, same format as monthly digest</td><td>Manager only</td></tr>
+  </table>
+  <div class="note">Monthly digest is the primary coaching artifact. Daily flags are exception-only — they should not be frequent. If daily flags are firing repeatedly for the same rep, the escalation path activates.</div>
+</div>
+
+<!-- ── RECIPIENT MODEL ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Differentiated recipient model</div>
+  <div class="two-col">
+    <div>
+      <div class="subsection-title">Rep receives</div>
+      <p class="prose">Monthly digest only. Contains: performance summary vs benchmarks, pattern diagnosis (what the agent observed), recommended actions (presented as suggestions pending manager approval — rep sees the recommendation after manager confirms, not before). Rep does not receive daily flags or escalation notices.</p>
+    </div>
+    <div>
+      <div class="subsection-title">Manager receives</div>
+      <p class="prose">Monthly pattern summary (roll-up across their book, not individual rep detail). Daily flags on threshold breaches. Escalation notices when patterns persist. Manager on-demand view available at any time. Manager approves recommended actions before they are surfaced to reps.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── COACHING POSTURE ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Coaching posture</div>
+  <p class="prose">AGT-701 is both diagnostic and prescriptive. Pattern detection is always active. Recommended actions are always generated. The distinction is in delivery: recommendations are held for manager approval before surfacing to reps. The escalation layer activates when approved recommendations go unresolved.</p>
+
+  <div class="subsection-title">Standard flow</div>
+  <div class="flow-step"><div class="step-num">1</div><div class="step-body"><strong>Pattern detected</strong> — agent identifies a performance gap from metric inputs (e.g., stage 2→3 conversion 18pts below segment benchmark for 4 consecutive weeks)</div></div>
+  <div class="flow-step"><div class="step-num">2</div><div class="step-body"><strong>Recommended action generated</strong> — specific, actionable coaching recommendation written to <code>RepCoachingLog</code> with status <code>pending_approval</code></div></div>
+  <div class="flow-step"><div class="step-num">3</div><div class="step-body"><strong>Manager notified</strong> — pattern summary delivered with recommendation. Manager approves, modifies, or dismisses.</div></div>
+  <div class="flow-step"><div class="step-num">4</div><div class="step-body"><strong>Rep notified</strong> — approved recommendation surfaced in next monthly digest. Dismissed recommendations are logged but not surfaced.</div></div>
+
+  <div class="subsection-title">Escalation flow (pattern persistence)</div>
+  <div class="flow-step"><div class="step-num">1</div><div class="step-body"><strong>Week 1</strong> — pattern flagged, recommendation generated, manager notified</div></div>
+  <div class="flow-step"><div class="step-num">2</div><div class="step-body"><strong>Week 3 (same pattern, no improvement)</strong> — automatic SLM escalation. No manager discretion. <code>RepCoachingLog.escalated_to_slm = TRUE</code>. SLM receives pattern summary + full 3-week history.</div></div>
+  <div class="flow-step"><div class="step-num">3</div><div class="step-body"><strong>Post-escalation</strong> — SLM owns resolution. Agent continues monitoring and flags if pattern persists beyond escalation.</div></div>
+
+  <div class="alert-box alert-amber" style="margin-top:12px">Pattern persistence clock resets on measurable improvement — not on a recommended action being approved. Improvement is defined as the flagged metric moving in the correct direction by ≥10% vs the prior measurement period.</div>
+</div>
+
+<!-- ── ESCALATION THRESHOLDS ─────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Escalation thresholds</div>
+  <table>
+    <tr><th>Condition</th><th>Roles</th><th>Escalation target</th><th>Notes</th></tr>
+    <tr><td>Attainment &lt;50% with &lt;6 weeks remaining in quarter</td><td><span class="pill pill-ae">AE</span></td><td>Manager + SLM concurrently</td><td>Severity warrants skipping standard manager-first routing</td></tr>
+    <tr><td>Same pattern flagged 3+ consecutive weeks, no improvement</td><td><span class="pill pill-all">All</span></td><td>SLM</td><td>Pattern persistence clock; resets on ≥10% directional improvement</td></tr>
+    <tr><td>ConvIntelligence quality score below threshold for 30+ days</td><td><span class="pill pill-all">All</span></td><td>Manager</td><td>Threshold = bottom quartile of role cohort on trailing 30-day score</td></tr>
+    <tr><td>Critical health drop across majority of AM/CSM book</td><td><span class="pill pill-am">AM</span> <span class="pill pill-csm">CSM</span></td><td>Manager + SLM</td><td>Majority = &gt;50% of accounts in rep's book drop one tier in same period</td></tr>
+    <tr><td>Manager on-demand escalation request</td><td><span class="pill pill-all">All</span></td><td>SLM</td><td>Always available; manager provides context note</td></tr>
+  </table>
+</div>
+
+<!-- ── SKILL GAP DETECTION ───────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Skill gap detection model</div>
+  <p class="prose">Skill gaps (product knowledge, pricing/negotiation, objection handling, sales methodology, discovery question quality, talk time ratio) are not self-reported — they are detected from patterns in ConvIntelligence and QuoteLog data and written to <code>RepSkillAssessmentLog</code>. This table persists skill gap signals over time, enabling trend detection (improving vs deteriorating) and cohort comparison (rep vs role benchmark).</p>
+  <div class="note"><strong>Schema dependency:</strong> RepSkillAssessmentLog is a net new table introduced in v21. Fields: rep_id, role, assessment_date, skill_dimension, gap_detected (bool), severity (low/medium/high), evidence_source (ConvIntelligence / QuoteLog / CadenceEventLog), trend (improving/stable/deteriorating), cohort_percentile.</div>
+</div>
+
+<!-- ── OUTPUT TABLES ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema — tables written by AGT-701</div>
+  <table>
+    <tr><th>Table</th><th>Type</th><th>One row per</th><th>Key fields</th></tr>
+    <tr>
+      <td><code>RepSkillAssessmentLog</code></td>
+      <td>Net new (v21)</td>
+      <td>Rep × skill dimension × assessment date</td>
+      <td>rep_id, role, skill_dimension, gap_detected, severity, evidence_source, trend, cohort_percentile</td>
+    </tr>
+    <tr>
+      <td><code>RepCoachingLog</code></td>
+      <td>Net new (v21)</td>
+      <td>Rep × coaching event</td>
+      <td>rep_id, role, coaching_date, pattern_detected, recommended_action, approval_status, approved_by, escalated_to_slm, escalation_date, resolution_date, improvement_detected</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── TABLES READ ────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema — tables read by AGT-701</div>
+  <p class="prose" style="margin-bottom:8px">QuotaRetirementLedger · QuotaStore · CompPlans · Opportunities · CadenceEventLog · ConvIntelligence · OpportunityBriefLog · DiscoveryBriefLog · CustomerHealthLog · ChurnRiskLog · ExpansionLog · OnboardingLog · QBRLog · QuoteLog · Leads · Accounts · TerritoryDefinitions</p>
+  <div class="note">RepActivity table assumed as a cross-cutting activity log. If not yet in schema, AGT-701 requires it in v21 — fields: rep_id, role, activity_date, activity_type, account_id, contact_id.</div>
+</div>
+
+<!-- ── DOWNSTREAM ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Downstream consumers</div>
+  <table>
+    <tr><th>Consumer</th><th>What they receive</th></tr>
+    <tr><td>AGT-703 Win-Loss & Forecast Accuracy</td><td>Rep-level forecast accuracy (commit vs closed) as a distinct coaching input</td></tr>
+    <tr><td>AGT-704 Business Review Orchestrator</td><td>RepCoachingLog patterns surfaced in WBR (team-level) and MBR (persistent gaps + escalations)</td></tr>
+    <tr><td>Manager</td><td>Monthly pattern summary across book + daily flags + escalation notices</td></tr>
+    <tr><td>SLM</td><td>Escalation notices with full pattern history</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN GUARDRAILS ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design guardrails</div>
+  <div class="alert-box alert-green">Rep never receives a coaching recommendation before manager approves it. Human-in-the-loop is non-negotiable at the delivery gate.</div>
+  <div class="alert-box alert-amber" style="margin-top:8px">Escalation to SLM at week 3 is automatic — manager cannot suppress it. This is intentional. If the pattern has persisted three weeks without resolution, it has become an organizational issue, not a single-manager issue.</div>
+  <div class="alert-box alert-red" style="margin-top:8px">AGT-701 does not write to CompPlans, QuotaStore, or any comp-bearing table. Coaching signal is advisory only. Any comp or quota adjustment triggered by coaching insight routes through AGT-101/102/104 with full approval chains.</div>
+</div>
+
+<div class="footer">
+  AGT-701 Rep Performance & Coaching · Layer 7 · Schema v21<br>
+  New tables: RepSkillAssessmentLog, RepCoachingLog<br>
+  Reads from: QuotaRetirementLedger, QuotaStore, CompPlans, Opportunities, CadenceEventLog, ConvIntelligence, OpportunityBriefLog, DiscoveryBriefLog, CustomerHealthLog, ChurnRiskLog, ExpansionLog, OnboardingLog, QBRLog, QuoteLog, Leads, Accounts, TerritoryDefinitions<br>
+  Feeds: AGT-703 (rep commit accuracy), AGT-704 (WBR/MBR coaching patterns)
+</div>
+
+</body>
+</html>

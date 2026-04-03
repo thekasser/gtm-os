@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-301 — Outreach Generator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-ripple{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.ripple-box{font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-bottom:10px}
+.ripple-l2{background:#FAEEDA;border:1px solid #EF9F27;color:#633806}
+.wire-box{background:#E6F1FB;border:1px solid #85B7EB;color:#0C447C;font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-bottom:10px}
+.send-table td:nth-child(2){font-weight:600}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-301 — Outreach Generator</h1>
+<div class="subtitle">Layer 3: Outreach &amp; Cadence · Event-triggered sequence generation · 4 cadence types · ABM research gate · Priority queue order</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L3 · Agent 01</span>
+  <span class="badge badge-status">Specced · v18 original + v22 wire update</span>
+  <span class="badge badge-ripple">L2 ripples wired: ABM sequence_type + priority_score_at_queue</span>
+</div>
+
+<!-- ── L2 WIRE ITEMS ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">L2 wire items (v22)</div>
+
+  <div class="wire-box">
+    <strong>Wire 1 — sequence_type written to CadenceEventLog at draft time</strong><br>
+    When AGT-301 drafts a sequence, it reads <code>Accounts.abm_active</code> and <code>Accounts.abm_tier</code> and writes <code>CadenceEventLog.sequence_type</code>:<br>
+    &nbsp;· <code>abm_active = TRUE</code> AND <code>abm_tier = '1:1'</code> → <code>sequence_type = 'abm_bespoke'</code><br>
+    &nbsp;· <code>abm_active = TRUE</code> AND <code>abm_tier = '1:few'</code> → <code>sequence_type = 'abm_cluster'</code><br>
+    &nbsp;· <code>cadence_type = 'nurture'</code> (AGT-304 sequences) → <code>sequence_type = 'nurture'</code><br>
+    &nbsp;· All other → <code>sequence_type = 'standard'</code><br>
+    Sequence content and step cadence are unchanged. The field is a classification label for AGT-303 analysis — not a behavior modifier.
+  </div>
+
+  <div class="wire-box">
+    <strong>Wire 2 — priority_score_at_queue written to CadenceEventLog at queue time</strong><br>
+    When AGT-301 registers a sequence with AGT-302 (Cadence Coordinator), it reads <code>AccountPriorityScore.composite_score</code> for the account and writes it to <code>CadenceEventLog.priority_score_at_queue</code>. Score is snapshotted at queue time — it does not update as the score changes during the sequence. Enables AGT-303 to analyze whether high-priority accounts received timely outreach relative to their score at queue. If no AccountPriorityScore record exists for the account, field is NULL — no blocking behavior.
+  </div>
+
+  <div class="ripple-l2">
+    <strong>Existing L2 ripple (v18, unchanged):</strong> When <code>Accounts.abm_active = TRUE</code>, AGT-301 runs a deeper enrichment pull across all 6 enrichment categories + recent news/triggers before drafting each step. ABM sequence template and step cadence are unchanged — personalization depth only. Queue order: highest <code>AccountPriorityScore.composite_score</code> drafted first across all queued sequences.
+  </div>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-301 generates personalized multi-step outreach sequences triggered by lead routing, state transitions from AGT-302, or rep on-demand requests. It owns 4 cadence types and produces sequences across 5 channels. Every sequence is registered with AGT-302 (Cadence Coordinator) as the single source of truth for active cadences. AGT-301 never sends — it drafts and queues. AGT-302 owns all send execution.</p>
+</div>
+
+<!-- ── TRIGGERS ────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Triggers</div>
+  <table>
+    <tr><th>Trigger</th><th>Source</th><th>Notes</th></tr>
+    <tr><td>Lead routed</td><td>AGT-202 Lead Router</td><td>Primary trigger. New lead assigned to rep → sequence generation initiated.</td></tr>
+    <tr><td>State transition</td><td>AGT-302 Cadence Coordinator</td><td>Coordinator signals a cadence type change (e.g. Cold → Objection Handling on negative sentiment reply). AGT-301 generates the new sequence.</td></tr>
+    <tr><td>Rep on-demand</td><td>Rep interface</td><td>Rep requests a sequence outside normal routing flow. All on-demand sequences go through AGT-302 compliance gate before activation.</td></tr>
+  </table>
+</div>
+
+<!-- ── CADENCE TYPES ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cadence types</div>
+  <table>
+    <tr><th>Type</th><th>Steps</th><th>Duration</th><th>Purpose</th></tr>
+    <tr><td><strong>Cold Outreach</strong></td><td>10</td><td>~33 days</td><td>Primary prospecting cadence. All 5 channels. Call steps auto-skip if not actioned within step window — sequence advances regardless.</td></tr>
+    <tr><td><strong>Objection Handling</strong></td><td>7</td><td>~21 days</td><td>Triggered by negative/neutral sentiment reply that doesn't close the door. More targeted; fewer touchpoints; higher specificity.</td></tr>
+    <tr><td><strong>Pre-Meeting Prep</strong></td><td>3</td><td>3–5 days pre-meeting</td><td>Confirmation + context setting + logistics. Triggered by meeting booked signal from AGT-202 before a deal exists (AGT-305 handles the brief itself).</td></tr>
+    <tr><td><strong>Post-Meeting Follow-up</strong></td><td>5</td><td>~14 days</td><td>Recap + next step reinforcement + re-engagement if meeting didn't convert. Triggered by AGT-302 on meeting completion signal.</td></tr>
+  </table>
+</div>
+
+<!-- ── PERSONALIZATION INPUTS ─────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Personalization inputs</div>
+  <table>
+    <tr><th>Input</th><th>Source</th><th>How used</th></tr>
+    <tr><td>ICP tier</td><td><code>Accounts.icp_tier</code> (AGT-201)</td><td>Tone, ask level, urgency framing. T1 = most senior ask, highest specificity. T2 = value-oriented. T3 → marketing only, not this agent.</td></tr>
+    <tr><td>GTM motion</td><td><code>Leads.gtm_motion_at_routing</code></td><td>Outbound cold vs inbound vs PLG determines angle and framing. PLG = product-led angle; cold = pain-led.</td></tr>
+    <tr><td>Industry / vertical</td><td><code>Accounts.vertical</code></td><td>Vertical-specific pain points and proof points from AGT-403 CompetitiveKnowledgeBase and rep coaching notes.</td></tr>
+    <tr><td>Persona / title</td><td><code>Contacts.persona_type</code></td><td>Seniority and role priorities. Economic buyer vs champion vs technical evaluator get different messaging angles.</td></tr>
+    <tr><td>Competitor flag</td><td><code>Accounts.crm_vendor</code> + technographic fields</td><td>If competitor detected: displacement angle activated. Rep coaching note flags competitive context for review.</td></tr>
+    <tr><td>ABM tier</td><td><code>Accounts.abm_active</code>, <code>abm_tier</code></td><td>ABM accounts trigger deeper research pass before drafting (all 6 enrichment categories + recent news). No template or cadence change — personalization depth only.</td></tr>
+    <tr><td>Priority score</td><td><code>AccountPriorityScore.composite_score</code></td><td>Queue order only — highest score drafted first when multiple sequences are queued. No effect on content, timing, or step count.</td></tr>
+  </table>
+</div>
+
+<!-- ── HUMAN-IN-THE-LOOP ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Human-in-the-loop model</div>
+  <table class="send-table">
+    <tr><th>Scenario</th><th>Mode</th><th>Rule</th></tr>
+    <tr><td>Inbound lead, PLG signal, or marketing-qualified intent</td><td>Auto-send</td><td>Step 1 sends immediately on routing. No grace period. Rep notified after send.</td></tr>
+    <tr><td>Outbound cold — all steps 2–10</td><td>Draft → auto</td><td>Queued in rep send queue. 2 business day grace period. Auto-sends day 3 if no rep action.</td></tr>
+    <tr><td>T1 Enterprise — all outbound steps</td><td>Draft only</td><td>Auto-send never fires for T1 Enterprise outbound. Rep must explicitly approve. No exceptions.</td></tr>
+    <tr><td>Competitor displacement angle detected</td><td>Draft → auto</td><td>Standard grace period. Agent flags competitive context in coaching note. Rep should review.</td></tr>
+    <tr><td>Call / video steps — all tiers</td><td>Draft only</td><td>Agent generates script and talking points. Rep executes manually.</td></tr>
+  </table>
+  <div class="note">Call steps skipped automatically if not actioned within step window. Sequence advances regardless — the step is logged as skipped in CadenceEventLog, not failed.</div>
+</div>
+
+<!-- ── SEQUENCE STOP / TRANSITION LOGIC ──────────────────── -->
+<div class="section">
+  <div class="section-title">Sequence state transitions</div>
+  <p class="prose" style="margin-bottom:10px">A reply or meeting doesn't end the relationship with the sequence system — it transitions the prospect into a different cadence. AGT-302 owns transition execution; AGT-301 generates the new sequence on signal.</p>
+  <table>
+    <tr><th>Signal</th><th>Transition</th></tr>
+    <tr><td>Positive sentiment reply</td><td>Pause cold cadence → AGT-302 queues Post-Meeting Follow-up prep if meeting booked, or rep-action prompt if not</td></tr>
+    <tr><td>Negative / neutral reply (door still open)</td><td>Cold Outreach → Objection Handling cadence (AGT-301 generates on AGT-302 signal)</td></tr>
+    <tr><td>Meeting booked</td><td>Cold Outreach → Pre-Meeting Prep cadence</td></tr>
+    <tr><td>Meeting completed — no deal</td><td>Pre-Meeting → Post-Meeting Follow-up cadence</td></tr>
+    <tr><td>Opportunity created</td><td>All outreach sequences terminate → AGT-405 Meeting Opportunity Prep takes over</td></tr>
+    <tr><td>Prospect unsubscribes</td><td>Hard stop. All sequences terminated. Flag propagates to AGT-302 compliance gate — cannot be re-enrolled.</td></tr>
+    <tr><td>Rep manually opts out</td><td>Hard stop. Sequence terminated. Logged in CadenceEventLog.</td></tr>
+  </table>
+</div>
+
+<!-- ── SCHEMA WRITES ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema writes</div>
+  <table>
+    <tr><th>Table</th><th>Field</th><th>When written</th></tr>
+    <tr><td><code>CadenceEventLog</code></td><td><code>sequence_type</code></td><td>At sequence draft time. Derived from abm_active + abm_tier. (v22)</td></tr>
+    <tr><td><code>CadenceEventLog</code></td><td><code>priority_score_at_queue</code></td><td>At queue registration with AGT-302. Snapshotted from AccountPriorityScore. (v22)</td></tr>
+    <tr><td><code>CadenceEventLog</code></td><td>All other standard fields</td><td>Per-step event logging: step_number, channel, event_type, timestamp, etc.</td></tr>
+    <tr><td><code>Leads</code></td><td>Cadence fields</td><td>Sequence status, last contact date, step count updates.</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  AGT-301 Outreach Generator · Layer 3 · Schema v18 (original spec) + v22 (L2 wire items)<br>
+  v22 additions to CadenceEventLog: sequence_type, priority_score_at_queue<br>
+  Reads from: Accounts (abm_active, abm_tier, vertical, crm_vendor), Contacts (persona_type), AccountPriorityScore (composite_score), Leads (gtm_motion_at_routing), AGT-201 (icp_tier), AGT-403 (CompetitiveKnowledgeBase)<br>
+  Registers with: AGT-302 Cadence Coordinator (all sequences — AGT-302 owns send execution)<br>
+  Feeds: AGT-302 (sequence registration), AGT-303 (CadenceEventLog reads), AGT-305 (meeting booked trigger handoff)
+</div>
+
+</body>
+</html>

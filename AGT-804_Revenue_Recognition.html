@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-804 — Revenue Recognition</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-schema{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-804 — Revenue Recognition</h1>
+<div class="subtitle">Layer 8: Revenue Operations · ASC 606 recognition · Deferred revenue schedules · Usage metering · GTM OS feeds · Finance-owned</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L8 · Agent 04</span>
+  <span class="badge badge-status">Specced · v25</span>
+  <span class="badge badge-schema">Schema adds: RevenueRecognitionLog, DeferredRevenueSchedule, UsageMeteringLog</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-804 computes revenue recognition per ASC 606, writes deferred revenue schedules for consumption by the accounting system (NetSuite or equivalent), and receives usage metering data from the external product system. It is the canonical source of recognized revenue in the OS — AGT-702's Magic Number calculation and AGT-402's expansion revenue forecast both read from AGT-804's outputs. It also feeds AGT-503 usage expansion signals and AGT-501 seat utilization data via UsageMeteringLog.</p>
+</div>
+
+<!-- ── RECOGNITION METHODS ────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Recognition methods by SKU type</div>
+  <table>
+    <tr><th>SKU type</th><th>Method</th><th>Mechanics</th></tr>
+    <tr><td><strong>Seat license</strong></td><td>Straight-line ratable</td><td>Total contract value ÷ contract term in months = monthly recognized amount. Recognition begins on term_start date regardless of when the invoice is paid. DeferredRevenueSchedule records the full schedule at order activation.</td></tr>
+    <tr><td><strong>Consumption</strong></td><td>Usage recognized</td><td>Recognized in the period consumed per UsageMeteringLog. Up to committed amount recognized as each metering period closes. Overage recognized when invoiced. No deferred revenue on consumption — recognized as used.</td></tr>
+    <tr><td><strong>Professional services</strong></td><td>Milestone delivery</td><td>Recognized when milestone is complete and customer has signed off (TechnicalMilestoneLog.customer_sign_off = TRUE). Revenue deferred until sign-off. Each milestone is an independent performance obligation under ASC 606.</td></tr>
+  </table>
+  <div class="note">Recognition is independent of billing cadence. An annual upfront invoice for a seat license generates 12 months of deferred revenue that unwinds ratably — billing timing does not affect recognition. AGT-804 separates billed amounts (from InvoiceLog) from recognized amounts (RevenueRecognitionLog) so AGT-702 always uses recognized revenue, not billed revenue, in Magic Number calculation.</div>
+</div>
+
+<!-- ── USAGE METERING LOG ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">UsageMeteringLog</div>
+  <p class="prose" style="margin-bottom:10px">Usage data originates from the external product metering system. AGT-804 receives it as a periodic feed (minimum monthly). The schema is the integration layer — the product system writes to UsageMeteringLog, and multiple OS agents read from it for their own purposes.</p>
+  <table>
+    <tr><th>Key</th><th>Granularity</th><th>Notes</th></tr>
+    <tr><td>account_id + sku_id + period_start + period_end</td><td>One row per account per SKU per metering period</td><td>An account with 3 consumption SKUs generates 3 rows per monthly period. Seat utilization SKUs also metered (active_seats used vs licensed).</td></tr>
+  </table>
+  <table>
+    <tr><th>Consumer</th><th>What they read</th><th>Purpose</th></tr>
+    <tr><td>AGT-804 (self)</td><td>units_consumed, overage_units</td><td>Revenue recognition computation for consumption SKUs</td></tr>
+    <tr><td>AGT-802</td><td>units_consumed, overage_amount_usd</td><td>Consumption invoice generation</td></tr>
+    <tr><td>AGT-503 Expansion Trigger</td><td>units_consumed vs commit_units, overage_units</td><td>Consumption overage (+40 pts) and seat utilization >80% for 2+ months (+30 pts) expansion signals</td></tr>
+    <tr><td>AGT-501 Customer Health</td><td>units_consumed vs commit_units (seat utilization dimension)</td><td>Seat utilization dimension score (18 pts max in health model)</td></tr>
+  </table>
+  <div class="note">UsageMeteringLog is the single metering source for all OS agents. AGT-503 and AGT-501 do not independently query the product system — they read UsageMeteringLog. This keeps the external integration point in one place (AGT-804) and all consumers downstream of it.</div>
+</div>
+
+<!-- ── DEFERRED REVENUE ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Deferred revenue schedule</div>
+  <p class="prose" style="margin-bottom:10px">AGT-804 writes DeferredRevenueSchedule at order activation. The accounting system (NetSuite or equivalent) reads from this table to post journal entries — AGT-804 computes the schedule, it does not post journals directly.</p>
+  <table>
+    <tr><th>Field</th><th>Purpose</th></tr>
+    <tr><td><code>total_contract_value_usd</code></td><td>Full contract value for this SKU — basis for deferred calculation</td></tr>
+    <tr><td><code>monthly_recognition_amount_usd</code></td><td>TCV ÷ term months. Null for milestone-based SKUs.</td></tr>
+    <tr><td><code>cumulative_recognized_usd</code></td><td>Running total of recognized revenue to date. Updated monthly.</td></tr>
+    <tr><td><code>deferred_balance_usd</code></td><td>TCV − cumulative_recognized. This is the deferred revenue liability on the balance sheet.</td></tr>
+    <tr><td><code>schedule_status</code></td><td>active / complete / amended. Amended when a mid-term change affects the recognition schedule.</td></tr>
+  </table>
+</div>
+
+<!-- ── GTM OS FEEDS ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">GTM OS feeds</div>
+  <table>
+    <tr><th>Consumer</th><th>What AGT-804 provides</th><th>How used</th></tr>
+    <tr><td>AGT-702 GTM Health Monitor</td><td>RevenueRecognitionLog — recognized revenue by period</td><td>Magic Number numerator (net new recognized revenue). Ensures efficiency metrics use recognized revenue, not billed revenue.</td></tr>
+    <tr><td>AGT-402 Forecast Adjuster</td><td>UsageMeteringLog — consumption trends</td><td>Expansion ACV probability weighting. Accounts trending toward overage have higher expansion probability.</td></tr>
+    <tr><td>AGT-503 Expansion Trigger</td><td>UsageMeteringLog — overage and seat utilization signals</td><td>Consumption overage (+40 pts) and seat utilization >80% for 2+ months (+30 pts). AGT-804 usage events bypass AGT-503's scheduled daily cycle — usage threshold events trigger directly.</td></tr>
+    <tr><td>AGT-501 Customer Health</td><td>UsageMeteringLog — seat utilization</td><td>Seat utilization dimension (18 pts max). Units consumed vs licensed seats.</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  AGT-804 Revenue Recognition · Layer 8 · Finance-owned · Schema v25<br>
+  New tables: RevenueRecognitionLog, DeferredRevenueSchedule, UsageMeteringLog<br>
+  Triggered by: OrderLog activation (seat license recognition schedule), metering period close (consumption), TechnicalMilestoneLog sign-off (services)<br>
+  Reads from: OrderLog, OrderLineItems (AGT-801), InvoiceLog (AGT-802), TechnicalMilestoneLog (AGT-602), UsageMeteringLog (external product system feed)<br>
+  Writes to: RevenueRecognitionLog, DeferredRevenueSchedule, UsageMeteringLog (receives external feed)<br>
+  Feeds: AGT-702 MetricsCalcLog (recognized revenue for Magic Number) · AGT-503 ExpansionLog (usage signals) · AGT-501 CustomerHealthLog (seat utilization) · AGT-402 (consumption trend context) · Accounting system (DeferredRevenueSchedule for journal entries)
+</div>
+</body>
+</html>

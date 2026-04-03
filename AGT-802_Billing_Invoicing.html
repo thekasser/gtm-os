@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-802 — Billing &amp; Invoicing</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-schema{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-802 — Billing &amp; Invoicing</h1>
+<div class="subtitle">Layer 8: Revenue Operations · Invoice generation · Consumption billing · SOW milestone billing · Credit memos &amp; refunds · Finance-owned</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L8 · Agent 02</span>
+  <span class="badge badge-status">Specced · v25</span>
+  <span class="badge badge-schema">Schema adds: InvoiceLog, InvoiceLineItems, CreditMemoLog</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-802 owns the full invoice lifecycle — generation, delivery, credit memos, and refunds. It reads OrderLog and OrderLineItems (AGT-801) as the source of truth for what to bill, reads UsageMeteringLog for consumption amounts, and reads TechnicalMilestoneLog (AGT-602) for SOW milestone completion signals. It never decides what was sold — it executes billing against what AGT-801 approved.</p>
+</div>
+
+<!-- ── BILLING TYPES ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Billing types</div>
+  <table>
+    <tr><th>Type</th><th>Trigger</th><th>Cadence</th><th>Source</th></tr>
+    <tr><td><strong>Recurring (seat license)</strong></td><td>OrderLog approval + term start date</td><td>Monthly / quarterly / annual — per OrderLineItems.billing_cadence</td><td>OrderLineItems.quantity × unit_price_usd per period</td></tr>
+    <tr><td><strong>Consumption</strong></td><td>End of metering period</td><td>Monthly (always — consumption billed monthly regardless of seat cadence)</td><td>UsageMeteringLog.units_consumed × unit_price_usd. Overage above commit billed separately.</td></tr>
+    <tr><td><strong>SOW milestone</strong></td><td>Milestone completion signal</td><td>Event-driven — fires when milestone is marked complete</td><td>ImplementationSOW milestone payment schedule. Two signal sources: TechnicalMilestoneLog (AGT-602 IE completion) or manual Finance entry.</td></tr>
+    <tr><td><strong>Amendment delta</strong></td><td>AmendmentLog record from AGT-801</td><td>On amendment approval</td><td>Pro-rated delta for seat expansion or SKU add. Credit for pricing correction delta.</td></tr>
+  </table>
+  <div class="note">Consumption is always billed monthly even when the seat license cadence is quarterly or annual. These appear as separate line items on separate invoices — they are not combined. AGT-803 tracks payment status on each invoice independently.</div>
+</div>
+
+<!-- ── CREDIT MEMOS & REFUNDS ─────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Credit memos &amp; refunds</div>
+  <table>
+    <tr><th>Trigger source</th><th>Approval required</th><th>Process</th></tr>
+    <tr><td>Customer dispute</td><td>Finance Director. If rep-submitted: manager approval first, then Finance Director.</td><td>Credit applied to next invoice or refunded to payment method. CreditMemoLog records dispute details and resolution.</td></tr>
+    <tr><td>Billing error</td><td>Finance Director (always — billing error is an audit event).</td><td>Corrected invoice generated. Credit memo for overbilled amount. AmendmentLog updated if order terms were the source of the error.</td></tr>
+    <tr><td>Contract downgrade</td><td>Finance Director. Downgrade must be reflected in an AGT-801 amendment first.</td><td>Pro-rated credit for unused committed period. Applied to future invoices or refunded.</td></tr>
+    <tr><td>Rep submission</td><td>Manager approval → Finance Director approval. Two-step gate.</td><td>Rep submits credit request with reason. Manager approves the business case. Finance Director approves the credit amount. CreditMemoLog.requested_by records rep ID.</td></tr>
+  </table>
+</div>
+
+<!-- ── SOW MILESTONE BILLING ──────────────────────────────── -->
+<div class="section">
+  <div class="section-title">SOW milestone billing</div>
+  <p class="prose" style="margin-bottom:10px">Professional services billing is milestone-based, not ratable. AGT-802 holds SOW line item invoices until a milestone completion signal is received.</p>
+  <table>
+    <tr><th>Signal source</th><th>How it works</th></tr>
+    <tr><td>AGT-602 TechnicalMilestoneLog</td><td>When IE marks a milestone complete and customer signs off (<code>customer_sign_off = TRUE</code>), AGT-602 writes the milestone record. AGT-802 polls TechnicalMilestoneLog for new completions and triggers the corresponding invoice per ImplementationSOW payment schedule.</td></tr>
+    <tr><td>Manual Finance entry</td><td>Finance can directly mark a milestone as billable in ImplementationSOW when AGT-602 is not active or for non-technical milestones (e.g. project kickoff, go-live acceptance). AGT-802 treats manual and AGT-602 signals identically.</td></tr>
+  </table>
+  <div class="note">Customer sign-off is required on the TechnicalMilestoneLog record before AGT-802 invoices. AGT-802 never auto-invoices a milestone on IE completion alone — customer acceptance is the billing gate.</div>
+</div>
+
+<div class="footer">
+  AGT-802 Billing &amp; Invoicing · Layer 8 · Finance-owned · Schema v25<br>
+  New tables: InvoiceLog, InvoiceLineItems, CreditMemoLog<br>
+  Triggered by: AGT-801 order approval · UsageMeteringLog period close · TechnicalMilestoneLog customer sign-off · AmendmentLog updates<br>
+  Reads from: OrderLog, OrderLineItems (AGT-801), UsageMeteringLog (AGT-804/external), TechnicalMilestoneLog (AGT-602), ImplementationSOW<br>
+  Writes to: InvoiceLog, InvoiceLineItems, CreditMemoLog<br>
+  Feeds: AGT-803 (InvoiceLog — payment tracking), AGT-804 (InvoiceLog — revenue recognition input)
+</div>
+</body>
+</html>

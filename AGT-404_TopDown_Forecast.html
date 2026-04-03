@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-404 — Top-Down Forecast Agent</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-ripple{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.wire-box{background:#E6F1FB;border:1px solid #85B7EB;color:#0C447C;font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-bottom:10px}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-404 — Top-Down Forecast Agent</h1>
+<div class="subtitle">Layer 4: Deal &amp; Forecast Management · Pipeline cohort conversion model · FP&amp;APlan feasibility comparison</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L4 · Agent 04</span>
+  <span class="badge badge-status">Specced · v18 original + v23 ripple audit</span>
+  <span class="badge badge-ripple">L4 ripple audit: FP&amp;APlan versioning — join on current operating plan_version</span>
+</div>
+
+<!-- ── RIPPLE AUDIT UPDATES ────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">L4 ripple audit updates (v23)</div>
+
+  <div class="wire-box">
+    <strong>Update — FP&amp;APlan versioning (v21 schema)</strong><br>
+    FP&amp;APlan now carries <code>plan_version</code>, <code>reforecast_as_of_date</code>, and <code>is_board_plan</code> fields. AGT-404's feasibility comparison must reference the current operating plan — not the original 0+12 board plan — as pipeline trajectory evolves through the year.<br><br>
+    Rule: AGT-404 reads <code>FP&amp;APlan WHERE is_board_plan = FALSE ORDER BY reforecast_as_of_date DESC LIMIT 1</code> for the operating plan comparison. Board plan is included as a secondary reference line in the output (labeled separately) so Finance and CRO can see both: "where we are vs what we told the board" vs "where we are vs our current internal target."<br><br>
+    Output adds: <code>plan_version</code> label on every comparison line so the reader knows which plan version the % refers to. Avoids confusion when operating plan has been reforecast mid-year.
+  </div>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-404 produces the top-down forecast — a pipeline cohort conversion model that derives a revenue projection from historical conversion rates applied to current pipeline by cohort. It runs independently of AGT-402 (bottoms-up) and the two are reconciled in AGT-704 WBR/MBR synthesis. AGT-404 expresses its projection as a % of FP&amp;APlan target, providing a board-ready on-track/off-track narrative alongside the forecast number.</p>
+</div>
+
+<!-- ── COHORT MODEL ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cohort conversion model</div>
+  <p class="prose" style="margin-bottom:10px">Pipeline is segmented into cohorts. Historical conversion rates are applied per cohort to derive a close probability independent of rep-entered stage or deal health scores.</p>
+  <table>
+    <tr><th>Cohort dimension</th><th>Purpose</th></tr>
+    <tr><td>Segment (SMB / MM / Enterprise)</td><td>Conversion rates differ materially by segment — Enterprise deals close at lower rates but higher ACV</td></tr>
+    <tr><td>Stage entered + time in stage</td><td>Deals that have lingered in a stage beyond historical median convert at lower rates</td></tr>
+    <tr><td>Vertical</td><td>Industry-specific conversion patterns — FinTech and HealthTech historically close at different rates</td></tr>
+    <tr><td>Quarter-of-year</td><td>Q4 closing dynamics differ from Q1 — seasonality applied</td></tr>
+  </table>
+</div>
+
+<!-- ── PLAN COMPARISON OUTPUT ────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Plan comparison output</div>
+  <table>
+    <tr><th>Output line</th><th>Source</th><th>Label in output</th></tr>
+    <tr><td>Top-down pipeline trajectory</td><td>Cohort conversion model applied to Opportunities</td><td>"Top-down forecast: $X"</td></tr>
+    <tr><td>vs Current operating plan</td><td>FP&amp;APlan — most recent non-board version</td><td>"vs {plan_version} plan: X% of target"</td></tr>
+    <tr><td>vs Board plan</td><td>FP&amp;APlan — is_board_plan = TRUE</td><td>"vs Board plan: X% of target"</td></tr>
+    <tr><td>vs AGT-402 bottoms-up</td><td>AGT-402 most recent forecast output</td><td>"Bottoms-up: $Y (delta: ±$Z)"</td></tr>
+    <tr><td>vs Prior period top-down</td><td>Prior AGT-404 run</td><td>"Prior period: $W (trend: improving/deteriorating)"</td></tr>
+  </table>
+  <div class="note">plan_version label on every comparison line is required — when operating plan has been reforecast (e.g. 3+9 vs original 0+12), the reader must know which plan the % refers to. A 95% of 3+9 plan is very different from 95% of 0+12 plan if the reforecast was a material downward revision.</div>
+</div>
+
+<div class="footer">
+  AGT-404 Top-Down Forecast Agent · Layer 4 · Schema v18 (original) + v23 (ripple audit)<br>
+  v23 changes: FP&amp;APlan version join specced; plan_version label added to all comparison output lines; board plan displayed as secondary reference<br>
+  Reads from: Opportunities (pipeline cohorts), FP&amp;APlan (current operating + board plan versions), AGT-402 output (bottoms-up comparison)<br>
+  Feeds: AGT-702 MetricsCalcLog (top-down trajectory input), AGT-704 WBR/MBR (top-down vs bottoms-up reconciliation section)
+</div>
+</body>
+</html>

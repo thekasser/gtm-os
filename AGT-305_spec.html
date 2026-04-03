@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-305 Meeting Discovery Prep Agent</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:880px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.bt{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.card-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.card-body{font-size:12px;color:#555;line-height:1.65}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.db{background:#185FA5}.dt{background:#0F6E56}.da{background:#854F0B}.dp{background:#534AB7}.dr{background:#A32D2D}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-step{display:flex;gap:0;align-items:stretch}
+.tl-num{width:34px;flex-shrink:0;display:flex;flex-direction:column;align-items:center}
+.tl-circle{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:9px}
+.tl-line{width:1px;background:#e0e0e0;flex:1;margin:0 auto}
+.tl-body{flex:1;padding:8px 0 10px 8px;border-bottom:1px solid #f0f0f0}
+.tl-step:last-child .tl-body{border-bottom:none}
+.tl-title{font-size:12px;font-weight:600;color:#111;margin-bottom:2px}
+.tl-detail{font-size:11px;color:#555;line-height:1.55}
+.cn-blue{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.cn-teal{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.cn-amber{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.cn-purple{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.cn-red{background:#FCEBEB;color:#791F1F;border:1px solid #F09595}
+.cn-gray{background:#F1EFE8;color:#444441;border:1px solid #B4B2A9}
+.brief-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bc{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px}
+.bc-badge{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600;display:inline-block;margin-bottom:6px}
+.bb-std{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.bb-abm{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.bc-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.bc-body{font-size:11px;color:#555;line-height:1.6}
+.loop-row{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #eee;font-size:12px}
+.loop-row:last-child{border-bottom:none}
+.loop-phase{min-width:110px;font-weight:600;color:#111;font-size:11px}
+.loop-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.lb-v1{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.lb-v2{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.lb-dep{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.loop-desc{font-size:11px;color:#666;line-height:1.5}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tag-new{font-size:10px;padding:1px 6px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC;white-space:nowrap}
+.tag-ext{font-size:10px;padding:1px 6px;border-radius:8px;background:#E1F5EE;color:#085041;border:1px solid #5DCAA5;white-space:nowrap}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}
+.dep-row:last-child{border-bottom:none}
+.da2{min-width:170px;font-weight:600;color:#111}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+.v1-tag{font-size:10px;padding:1px 6px;border-radius:8px;background:#E1F5EE;color:#085041;border:1px solid #5DCAA5;margin-left:6px}
+.v2-tag{font-size:10px;padding:1px 6px;border-radius:8px;background:#FAEEDA;color:#633806;border:1px solid #EF9F27;margin-left:6px}
+</style>
+</head>
+<body>
+<h1>AGT-305 — Meeting discovery prep agent</h1>
+<div class="hsub">Layer 3 · Outreach & cadence · Event-triggered + 4am batch refresh · Rep-facing pre-discovery brief</div>
+<div class="badges">
+  <span class="badge bv">v1.0 specced</span>
+  <span class="badge bl">Layer 3</span>
+  <span class="badge bt">Option 1 now · Option 4 later</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Triggered by meeting booked from outreach cadence — before any deal exists.</strong> This is the final act of the L3 outreach journey before the conversation begins. Once a deal is opened post-meeting, AGT-405 (L4) takes over for all subsequent meeting prep.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Two delivery moments.</strong> Draft generated immediately on booking so the rep has context from day one. Refreshed at 4am rep local time on the meeting day — same brief structure, updated with latest intent signals, news triggers, and enrichment. The refresh is a batch job, not a rolling timer per meeting.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Rep edits the draft before the refresh fires.</strong> Rep can annotate, override sections, or add context between booking and 4am. Refresh preserves rep edits and updates only signal-driven sections (intent, news, enrichment). Talk track and discovery questions are not overwritten on refresh unless the rep has cleared their draft edits.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>ABM accounts get a deeper research pass.</strong> When abm_tier is set, all six enrichment categories are re-pulled before drafting plus full news/trigger scan. Adds latency to initial draft generation — flagged to rep. Content depth materially higher for bespoke plays.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Brief stored permanently for post-call scoring.</strong> Option 1 (v1): AGT-407 Conversation Intelligence reads stored brief post-call, scores adherence and hypothesis accuracy, surfaces discrepancies to rep and FLM. Option 4 (once AGT-407 live + 30+ calls per vertical): accuracy scores feed back into pain hypothesis generation to improve future briefs.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Delivery timeline</div>
+  <div class="timeline">
+    <div class="tl-step">
+      <div class="tl-num"><div class="tl-circle cn-blue">1</div><div class="tl-line"></div></div>
+      <div class="tl-body">
+        <div class="tl-title">Meeting booked — draft generated</div>
+        <div class="tl-detail">CadenceEventLog event_type = meeting_booked triggers AGT-305. For ABM accounts: enrichment re-pull fires first (async, rep notified of delay). Draft brief written for all 7 sections. Delivered to rep. DiscoveryBriefLog row created with status = draft.</div>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num"><div class="tl-circle cn-amber">2</div><div class="tl-line"></div></div>
+      <div class="tl-body">
+        <div class="tl-title">Rep review window</div>
+        <div class="tl-detail">Rep reads draft, edits any section, adds context the agent couldn't know (internal relationship history, verbal commitments from prior outreach). Edits logged in DiscoveryBriefLog.rep_edits with timestamp. No deadline — window closes when refresh fires at 4am.</div>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num"><div class="tl-circle cn-teal">3</div><div class="tl-line"></div></div>
+      <div class="tl-body">
+        <div class="tl-title">4am rep local time — refresh batch job</div>
+        <div class="tl-detail">Runs every day for any meeting scheduled that calendar day. Pulls latest intent signals, news triggers, and enrichment updates. Regenerates signal-dependent sections (account overview signals, pain hypothesis intent data, competitive context). Preserves all rep edits. Updates DiscoveryBriefLog.refresh_generated_at. Rep receives updated brief notification.</div>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num"><div class="tl-circle cn-gray">4</div><div class="tl-line"></div></div>
+      <div class="tl-body">
+        <div class="tl-title">Meeting occurs</div>
+        <div class="tl-detail">Brief is locked. DiscoveryBriefLog.status = used. Meeting recorded by AGT-407 (when live). Brief_id linked to call transcript for post-call scoring.</div>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num"><div class="tl-circle cn-purple">5</div><div class="tl-line"></div></div>
+      <div class="tl-body">
+        <div class="tl-title">Post-call scoring (AGT-407) <span class="v1-tag">v1</span></div>
+        <div class="tl-detail">AGT-407 reads DiscoveryBriefLog + call transcript. Scores: adherence (did rep ask suggested discovery questions? use talk track opening?) and hypothesis accuracy (did stated pain match brief prediction?). Discrepancies surfaced to rep and FLM. Scores written to DiscoveryBriefLog nullable fields.</div>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num"><div class="tl-circle cn-red" style="margin-top:9px">6</div></div>
+      <div class="tl-body" style="border-bottom:none">
+        <div class="tl-title">Feedback loop into hypothesis generation <span class="v2-tag">Option 4 — future</span></div>
+        <div class="tl-detail">Activates when AGT-407 is live AND ≥30 scored calls per vertical exist. Hypothesis accuracy scores by vertical + segment feed back into pain hypothesis generation model. Brief quality improves over time. RevOps-controlled threshold for activation.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Brief sections — all 7</div>
+  <div class="brief-grid">
+    <div class="bc">
+      <div class="bc-badge bb-std">Standard</div>
+      <div class="bc-title">Account overview</div>
+      <div class="bc-body">Company snapshot: segment, employee count, industry, ICP score + tier, enrichment summary (funding stage, revenue estimate, cloud provider, CRM). Refreshed at 4am with latest enrichment confidence.</div>
+    </div>
+    <div class="bc">
+      <div class="bc-badge bb-std">Standard</div>
+      <div class="bc-title">Pain hypothesis</div>
+      <div class="bc-body">Agent-generated from: vertical pain patterns + intent signals (topic clusters from Bombora/G2 hook) + tech stack signals (what they have → what they might need). Explicitly marked as hypothesis, not fact. Confidence rated. Updated at 4am with latest intent data.</div>
+    </div>
+    <div class="bc">
+      <div class="bc-badge bb-std">Standard</div>
+      <div class="bc-title">Suggested discovery questions</div>
+      <div class="bc-body">5–7 questions tailored to persona type (economic buyer / champion / technical evaluator) and vertical. Ordered by discovery priority. Post-call adherence scored by AGT-407 against these specific questions.</div>
+    </div>
+    <div class="bc">
+      <div class="bc-badge bb-std">Standard</div>
+      <div class="bc-title">Stakeholder context</div>
+      <div class="bc-body">Who is attending: name, title, persona type, LinkedIn summary (from Contacts enrichment), all prior outreach touches (from CadenceEventLog), engagement signals (opened, clicked, replied). Rep editable — add context agent can't see.</div>
+    </div>
+    <div class="bc">
+      <div class="bc-badge bb-std">Standard</div>
+      <div class="bc-title">Talk track</div>
+      <div class="bc-body">Recommended opening based on outreach history (what worked to get the meeting — reference it). Value framing aligned to vertical and ICP tier. Top 2 objection anticipations with suggested responses. AGT-407 scores opening adherence.</div>
+    </div>
+    <div class="bc">
+      <div class="bc-badge bb-std">Standard</div>
+      <div class="bc-title">Competitive context</div>
+      <div class="bc-body">Known competitor tech stack from AGT-204 technographic enrichment. CompetitiveKnowledgeBase displacement angle if relevant. If no competitor detected: neutral. Updated at 4am if new competitive signal detected.</div>
+    </div>
+    <div class="bc" style="grid-column:1/-1">
+      <div class="bc-badge bb-abm">ABM accounts only</div>
+      <div class="bc-title">ABM playbook alignment</div>
+      <div class="bc-body">Which TAL tier (1:1 or 1:few), which ABMPlaybook is active, specific play objective for this meeting (e.g. "1:1 Enterprise bespoke — objective: identify economic buyer and validate business transformation pain"). How this meeting fits the broader play sequence. Only present when Accounts.abm_active = TRUE.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Post-call feedback loop architecture</div>
+  <div class="card">
+    <div class="loop-row">
+      <span class="loop-phase">Brief stored</span>
+      <span class="loop-badge lb-v1">v1 live</span>
+      <span class="loop-desc">DiscoveryBriefLog persists all sections, rep edits, and metadata at time of meeting. brief_id linked to meeting event. Nullable score fields pre-built for future population.</span>
+    </div>
+    <div class="loop-row">
+      <span class="loop-phase">AGT-407 scoring</span>
+      <span class="loop-badge lb-dep">requires AGT-407</span>
+      <span class="loop-desc">Post-call: adherence_score (0–100, did rep follow brief?), hypothesis_accuracy_score (0–100, did prediction match discovery?), discrepancy_notes (text, what differed). Surfaced to rep same day; FLM weekly summary.</span>
+    </div>
+    <div class="loop-row">
+      <span class="loop-phase">Feedback activation</span>
+      <span class="loop-badge lb-v2">Option 4 — future</span>
+      <span class="loop-desc">Gate: AGT-407 live AND ≥30 scored calls per vertical. When met: hypothesis accuracy scores by vertical + segment + ICP tier used to recalibrate pain hypothesis generation. RevOps activates via config flag.</span>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema — 1 new table</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Status</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr style="border-bottom:none">
+          <td><strong>DiscoveryBriefLog</strong></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">brief_id, account_id, lead_id, employee_crm_id, meeting_date, meeting_event_id, draft_generated_at, refresh_generated_at, abm_tier_at_brief, priority_score_at_brief, account_overview (text), pain_hypothesis (text), pain_hypothesis_confidence (0–1), discovery_questions (JSON array), stakeholder_context (JSON), talk_track (text), competitive_context (text), abm_playbook_section (text, nullable), rep_edited (bool), rep_edit_timestamp, rep_edit_notes (text), status (draft/refreshed/used/expired), adherence_score (nullable), hypothesis_accuracy_score (nullable), post_call_discrepancies (text, nullable), post_call_scored_at (nullable), scored_by_agent (AGT-407, nullable), feedback_loop_active (bool, default FALSE), notes</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da2">CadenceEventLog (AGT-302)</span><span class="dd reads">reads</span><span class="dd2">meeting_booked event triggers brief generation. Source of truth for outreach history and what worked.</span></div>
+    <div class="dep-row"><span class="da2">Accounts + Contacts (AGT-204)</span><span class="dd reads">reads</span><span class="dd2">Account enrichment, ICP score, intent signals, stakeholder personas for all 7 sections.</span></div>
+    <div class="dep-row"><span class="da2">TargetAccountList (AGT-203)</span><span class="dd reads">reads</span><span class="dd2">abm_active + abm_tier flags. Triggers ABM research pass and ABM playbook section.</span></div>
+    <div class="dep-row"><span class="da2">ABMPlaybook (AGT-203)</span><span class="dd reads">reads</span><span class="dd2">Active play and objectives for ABM playbook alignment section.</span></div>
+    <div class="dep-row"><span class="da2">AccountPriorityScore (AGT-206)</span><span class="dd reads">reads</span><span class="dd2">priority_score_at_brief logged on DiscoveryBriefLog. Informs urgency framing in talk track.</span></div>
+    <div class="dep-row"><span class="da2">CompetitiveKnowledgeBase (AGT-403)</span><span class="dd reads">reads</span><span class="dd2">Competitor displacement angles and battle card context for competitive section.</span></div>
+    <div class="dep-row"><span class="da2">DiscoveryBriefLog</span><span class="dd writes">writes</span><span class="dd2">Draft on booking. Refresh at 4am. Rep edits preserved. Post-call scores written by AGT-407.</span></div>
+    <div class="dep-row"><span class="da2">AGT-407 Conv. Intelligence</span><span class="dd trig">downstream</span><span class="dd2">Reads DiscoveryBriefLog post-call to score adherence + hypothesis accuracy. Populates nullable score fields.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-305, the Meeting Discovery Prep agent for a B2B SaaS GTM OS.
+
+ROLE: Generate and refresh pre-discovery meeting briefs for reps.
+Triggered by meeting_booked events from outreach cadences. No deal exists yet.
+Briefs are stored permanently — post-call scoring by AGT-407 reads them.
+
+TRIGGER: CadenceEventLog WHERE event_type = 'meeting_booked'.
+  Extract: account_id, employee_crm_id (rep), meeting_date, meeting_event_id.
+  Check Accounts.abm_active for ABM research path.
+
+ABM PATH (if abm_active = TRUE):
+  Before drafting: re-pull all 6 enrichment categories from EnrichmentLog.
+  Pull latest news/trigger signals. Notify rep of brief generation delay.
+  Include ABMPlaybook section in brief.
+
+STANDARD PATH (abm_active = FALSE):
+  Proceed with existing enrichment data from Accounts + Contacts.
+
+DRAFT GENERATION — all 7 sections:
+1. ACCOUNT OVERVIEW:
+   Segment, employee_count, industry, icp_score, icp_tier, enrichment summary
+   (funding_stage, revenue_estimate_usd, cloud_provider, crm_vendor).
+   Mark data freshness (last_enriched_date per signal type).
+
+2. PAIN HYPOTHESIS:
+   Synthesize from: vertical pain patterns + intent_topics (if available) +
+   tech_stack signals (what they have, what gaps imply).
+   State as hypothesis. Rate confidence (0–1). Flag as agent-generated, not verified.
+   Example: "Hypothesis (confidence 0.72): Likely evaluating API infrastructure
+   alternatives — intent signal shows 3 Bombora topics around 'API management'
+   and current stack shows AWS but no API gateway tooling detected."
+
+3. SUGGESTED DISCOVERY QUESTIONS:
+   5–7 questions. Tailored to: persona_type of meeting contacts + vertical.
+   Order by discovery priority (start with business outcomes, then technical).
+   JSON array format for AGT-407 adherence scoring.
+
+4. STAKEHOLDER CONTEXT:
+   For each contact attending: name, title, persona_type, linkedin_url,
+   all CadenceEventLog touches (what was sent, what they engaged with),
+   engagement_signal (last action). Rep-editable section.
+
+5. TALK TRACK:
+   Opening: reference what got the meeting (last engagement signal from cadence).
+   Value framing: aligned to vertical + ICP tier.
+   Top 2 objection anticipations + suggested responses.
+
+6. COMPETITIVE CONTEXT:
+   From Contacts.crm_vendor + AGT-204 technographic enrichment:
+   known competitor stack. If CompetitiveKnowledgeBase has displacement play
+   for this competitor → include angle. If no competitor detected → state neutral.
+
+7. ABM PLAYBOOK ALIGNMENT (if abm_active = TRUE only):
+   abm_tier, playbook_id, play_name, play_description, meeting objective.
+
+WRITE DiscoveryBriefLog: status = 'draft', draft_generated_at = now().
+Notify rep.
+
+4AM BATCH REFRESH (daily, for meetings scheduled today):
+  Pull: latest intent_score, intent_topics, news triggers from EnrichmentLog.
+  Regenerate sections: 1 (account overview signals), 2 (pain hypothesis intent data),
+    6 (competitive context if new technographic data).
+  PRESERVE all rep edits (rep_edited = TRUE rows).
+  Update status = 'refreshed', refresh_generated_at = 4am local.
+  Notify rep of refresh.
+
+ON MEETING COMPLETION:
+  Set status = 'used'. Link meeting_event_id for AGT-407 pickup.
+
+POST-CALL (when AGT-407 is live):
+  AGT-407 writes to: adherence_score, hypothesis_accuracy_score,
+    post_call_discrepancies, post_call_scored_at.
+  Surface discrepancies to rep (same day) and FLM (weekly summary).
+
+OPTION 4 GATE (future — do not activate until flag set):
+  feedback_loop_active = TRUE (RevOps-set) AND
+  ≥30 scored calls exist for this vertical + segment combination.
+  When active: hypothesis accuracy scores calibrate pain hypothesis generation.</pre>
+</div>
+
+</body>
+</html>

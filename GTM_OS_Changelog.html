@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GTM OS — Agent Changelog</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+.doc-title{font-size:22px;font-weight:600;margin-bottom:4px}
+.doc-sub{font-size:13px;color:#666;margin-bottom:6px;line-height:1.6}
+.doc-note{font-size:12px;color:#888;padding:8px 12px;background:#f5f5f5;border-radius:8px;margin-bottom:28px;border-left:3px solid #ddd;line-height:1.6}
+.controls{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.filter-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid var(--c,#ddd);background:var(--bg,#f5f5f5);color:var(--fg,#555);cursor:pointer;transition:all .15s;font-family:Arial,sans-serif}
+.filter-btn.active{font-weight:600;border-width:1px}
+.count{font-size:11px;color:#888;margin-left:auto}
+.version-block{margin-bottom:28px}
+.version-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #e8e8e8}
+.version-pill{font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px;background:#0D1B2A;color:#fff}
+.version-date{font-size:12px;color:#888}
+.version-summary{font-size:12px;color:#555}
+.entry{border:1px solid #e4e4e4;border-radius:10px;margin-bottom:8px;overflow:hidden}
+.entry-hdr{display:grid;grid-template-columns:110px 180px 120px 1fr;gap:0;padding:9px 14px;align-items:center;cursor:pointer;background:#fff;transition:background .1s}
+.entry-hdr:hover{background:#fafafa}
+.agent-id{font-family:monospace;font-size:11px;font-weight:600;color:#111}
+.agent-name{font-size:12px;font-weight:500;color:#111}
+.change-type{display:flex;gap:4px;flex-wrap:wrap}
+.ct{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap}
+.ct-add{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.ct-update{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.ct-schema{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.ct-prompt{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.ct-ripple{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.ct-new{background:#EAF3DE;color:#27500A;border:1px solid #97C459}
+.entry-summary{font-size:11px;color:#666}
+.chevron{font-size:10px;color:#bbb;margin-left:auto;transition:transform .2s;flex-shrink:0}
+.chevron.open{transform:rotate(180deg)}
+.entry-body{display:none;padding:0 14px 13px;border-top:1px solid #f0f0f0;background:#fafafa}
+.entry-body.open{display:block}
+.detail-grid{display:grid;grid-template-columns:130px 1fr;gap:4px 12px;margin-top:10px}
+.detail-lbl{font-size:11px;font-weight:600;color:#888;padding-top:2px}
+.detail-val{font-size:12px;color:#333;line-height:1.6}
+.detail-val code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.detail-val ul{margin:4px 0 0 16px;padding:0}
+.detail-val li{margin-bottom:3px}
+.impact-green{color:#085041;font-weight:500}
+.impact-amber{color:#633806;font-weight:500}
+.impact-neutral{color:#444441}
+.divider{height:1px;background:#e8e8e8;margin:12px 0}
+.layer-tag{font-size:10px;padding:1px 6px;border-radius:6px;font-weight:600;margin-left:6px}
+.lt-l1{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.lt-l2{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.lt-l3{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.lt-l4{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.lt-l5{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.lt-l7{background:#EAF3DE;color:#27500A;border:1px solid #97C459}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+</style>
+</head>
+<body>
+
+<div class="doc-title">GTM OS — Agent changelog</div>
+<div class="doc-sub">All agent delta changes tracked by schema version. Each entry records: what changed, why, what triggered it, and downstream impact.</div>
+<div class="doc-note"><strong>How to read this:</strong> Entries are grouped by schema version. Change types: <strong>New agent</strong> — net new agent added. <strong>Update</strong> — behavioral or logic change to existing agent. <strong>Schema</strong> — table or field addition/extension. <strong>Prompt</strong> — system prompt delta. <strong>Ripple</strong> — change triggered by another agent or layer being added. Click any entry to expand the full detail.</div>
+
+<div class="controls">
+  <button class="filter-btn active" style="--c:#aaa;--bg:#f5f5f5;--fg:#333" onclick="filterAll()">All changes</button>
+  <button class="filter-btn" style="--c:#AFA9EC;--bg:#EEEDFE;--fg:#3C3489" onclick="filterLayer('L1')">L1</button>
+  <button class="filter-btn" style="--c:#85B7EB;--bg:#E6F1FB;--fg:#0C447C" onclick="filterLayer('L2')">L2</button>
+  <button class="filter-btn" style="--c:#EF9F27;--bg:#FAEEDA;--fg:#633806" onclick="filterLayer('L3')">L3</button>
+  <button class="filter-btn" style="--c:#5DCAA5;--bg:#E1F5EE;--fg:#085041" onclick="filterLayer('L4')">L4</button>
+  <button class="filter-btn" style="--c:#F0997B;--bg:#FAECE7;--fg:#712B13" onclick="filterLayer('L5')">L5</button>
+  <button class="filter-btn" style="--c:#AFA9EC;--bg:#EEEDFE;--fg:#3C3489" onclick="filterLayer('L6')">L6</button>
+  <button class="filter-btn" style="--c:#97C459;--bg:#EAF3DE;--fg:#27500A" onclick="filterLayer('L7')">L7</button>
+  <button class="filter-btn" style="--c:#5DCAA5;--bg:#E1F5EE;--fg:#085041" onclick="filterType('new')">New agents only</button>
+  <button class="filter-btn" style="--c:#F0997B;--bg:#FAECE7;--fg:#712B13" onclick="filterType('ripple')">Ripples only</button>
+  <span class="count" id="cnt"></span>
+</div>
+
+<div id="log">
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v23→v24: AGT-107 — Quota Plan Document Agent                           -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L1">
+  <div class="version-hdr">
+    <span class="version-pill">v23 → v24</span>
+    <span class="version-date">AGT-107 — Quota Plan Document Agent</span>
+    <span class="version-summary">1 new agent specced — legally deployable plan docs from AGT-101/102 outputs. E-signature gate. QuotaPlanDocLog added.</span>
+  </div>
+
+  <div class="entry" data-layer="L1" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-107<span class="layer-tag lt-l1">L1</span></span>
+      <span class="agent-name">Quota Plan Document Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Document execution agent. Three output formats. E-signature gate before plan is active. Amendment recommendation logic. AGT-104 integration.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Generates legally deployable quota plan documents from approved AGT-101/102 outputs. Execution-only — never sets quota or modifies plan terms. Three triggers: AGT-102 final approval (annual), new rep hire (onboarding), AGT-104 exception path (mid-year amendment). Three output formats per generation: URL-based HTML for rep view + e-signature, PDF generated at signature time as legal record, structured JSON payload for downstream system consumption.</div>
+        <div class="detail-lbl">Document contents</div><div class="detail-val">Quota targets (annual + quarterly + monthly where applicable), payout curve, kickers + accelerators, draw terms (section omitted if no draw), territory/named account list, plan governance summary. OTE split excluded (governed by offer letter/HR). SPIFs excluded (separate short-term documents).</div>
+        <div class="detail-lbl">E-signature gate</div><div class="detail-val">Plan not legally active until e-signature received. AGT-103 attainment computes but AGT-104 holds payout pending signature. Signature overdue (5 business days) → manager + HR notified, flagged in CompAuditLog. Integration: v1 hook (DocuSign/equivalent in live deployment; manual HR fallback in pre-integration).</div>
+        <div class="detail-lbl">Amendment logic</div><div class="detail-val">Agent recommends addendum (quota-only changes) vs full reissue (structural term changes: new kickers, territory reassignment, draw terms, payout curve change). RevOps makes final selection before generation begins — agent never auto-selects. Override rationale required if RevOps deviates from recommendation. All selections logged in QuotaPlanDocLog.</div>
+        <div class="detail-lbl">AGT-104 integration</div><div class="detail-val">AGT-104 plan approval gate now reads QuotaPlanDocLog.signature_received. Reps with pending_signature held individually — not the full cohort. Signature completeness audit added to AGT-104's 12 controls.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>QuotaPlanDocLog</code> — one row per document generation event. 21 fields: doc_id, rep_id, plan_id, quota_store_id, trigger_type, doc_type, doc_version, doc_status, html_url, structured_payload, pdf_url, generated_at, signature_received, signed_at, signature_overdue_notified, superseded_by_doc_id, amendment_recommendation, amendment_selection, amendment_selection_by, amendment_override_rationale, exception_log_id.</div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Planned at L1 original build (v11–v16). Specced now as the last L1 agent. No earlier sessions had the full AGT-102/104 design locked to spec against.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes the legal deployment gap in L1</span> — quota and comp plan design were fully specced but the mechanism for producing a legally binding rep-facing document was absent. <span class="impact-amber">AGT-104 signature completeness audit is a new control</span> — existing comp governance now covers the full lifecycle from quota approval through signed plan delivery. <span class="impact-neutral">AGT-103 payout behavior unchanged</span> — attainment computes regardless of signature status; AGT-104 controls the payout hold, not AGT-103.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v11–v16: Layer 1 original build                                        -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L1">
+  <div class="version-hdr">
+    <span class="version-pill">v11 → v16</span>
+    <span class="version-date">Layer 1 original build</span>
+    <span class="version-summary">6 agents added — Sales planning & compensation complete</span>
+  </div>
+
+  <div class="entry" data-layer="L1" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-101<span class="layer-tag lt-l1">L1</span></span>
+      <span class="agent-name">Quota Setting Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Hybrid top-down/bottoms-up quota model with 9 guardrails and 4-gate approval</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Hybrid top-down/bottoms-up quota methodology. eRep ramp model (0.25→0.50→0.75→1.0). Nine guardrails. Four-gate approval chain (SLM→RevOps→CRO/FP&A/HR→publish). Segment-differentiated quotas (AE: SMB $400K, MM $800K, Ent $1.6M).</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>QuotaStore</code> (625 rows), <code>RampSchedules</code>, <code>AccountQuotaTargets</code>, <code>QuotaAmendmentLog</code></div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 1 original build.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Foundational.</span> All downstream productivity ratios (AGT-105, AGT-205, AGT-702) derive quota targets from QuotaStore.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L1" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-102<span class="layer-tag lt-l1">L1</span></span>
+      <span class="agent-name">Comp Plan Design Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Comp plan generation with kickers, SPIFs, draw terms, and payout curves</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Translates AGT-101 quota outputs into legally deployable comp plans. OTE splits, gate/multiplier curves, quadratic usage curve, kickers, SPIFs, recoverable/non-recoverable draw. Soft approval gate.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>CompPlans</code> extended (cols 22–31), <code>TIPolicy</code>, <code>TIBudgetModel</code>, <code>Kickers</code>, <code>SPIFs</code></div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 1 original build.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Foundational.</span> TIBudgetModel feeds AGT-105 loaded HC cost model. TIPolicy feeds AGT-104 TI% variance control.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L1" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-103<span class="layer-tag lt-l1">L1</span></span>
+      <span class="agent-name">Comp Attainment & Payout Calculator</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Daily batch payout engine with QuotaRetirementLedger and DrawLedger</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Daily batch payout calculation. QuotaRetirementLedger as transaction layer (one row per deal/usage event). DrawLedger for recoverable draw tracking. AttainmentSnapshot deliberately excluded — intra-period attainment is a display problem.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>QuotaRetirementLedger</code>, <code>PayoutHistory</code>, <code>DrawLedger</code></div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 1 original build.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Foundational.</span> PayoutHistory feeds AGT-102 TI budget calibration (Option B), AGT-105 TI spend in loaded HC model, AGT-702 GTM Health Monitor S&M spend.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L1" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-104<span class="layer-tag lt-l1">L1</span></span>
+      <span class="agent-name">Comp Governance & Audit Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">12-control daily audit layer. One autonomous action: territory ROE payout holds.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. 12 controls: payout accuracy, draw integrity, kicker stacking, quota amendment audit, TI% variance, ROE violations, plan approval gate, SOX chain, duplicate detection, clawback triggers, usage gate audit, policy exception log. Clawback writes DrawLedger recovery rows.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>CompAuditLog</code>, <code>ExceptionLog</code>. DrawLedger extended: new <code>draw_type = clawback_recovery</code>.</div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 1 original build.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Audit layer. No downstream data dependencies created.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L1" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-105<span class="layer-tag lt-l1">L1</span></span>
+      <span class="agent-name">Sales Capacity Planning Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Monthly rolling 13–24 month eRep projection. Three guardrails reconciled to one hiring recommendation.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Three productivity layers (eRep, fully loaded GTM HC, GTM + Marketing HC). Magic Number, R40, and CAC Payback guardrails run independently and reconcile to a single hiring recommendation. FP&APlan as top-down constraint source.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>FP&APlan</code>, <code>CapacityPlan</code>, <code>HiringPlan</code>, <code>AttritionLog</code>, <code>MarketingHC</code></div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 1 original build.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">FP&APlan is foundational for Layers 4 and 7.</span> AGT-402 and AGT-404 reference revenue targets. AGT-702 references metric targets. AGT-205 TAM/SAM references plan for feasibility check.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L1" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-106<span class="layer-tag lt-l1">L1</span></span>
+      <span class="agent-name">Territory Design Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Named account lists + rules-based routing. routing_eligible behavioral capacity gate.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Role-differentiated carve: AM/CSM/Enterprise AE on named account lists; SMB/MM AE on rules-based routing (segment × geo × vertical). routing_eligible flag uses behavioral capacity signals (strict AND logic).</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>TerritoryDefinitions</code>, <code>TerritoryAssignmentLog</code></div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 1 original build.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">TerritoryDefinitions is the routing authority for AGT-202 Lead Router v2.</span> routing_eligible gate is used by AGT-202 and feeds AGT-206 dormancy flags back to AGT-106.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v17: Layer 2 build                                                     -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L2">
+  <div class="version-hdr">
+    <span class="version-pill">v17</span>
+    <span class="version-date">Layer 2 build</span>
+    <span class="version-summary">6 agents added — ICP & lead management complete. 10 new tables. Accounts + Leads extended.</span>
+  </div>
+
+  <div class="entry" data-layer="L2" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-201<span class="layer-tag lt-l2">L2</span></span>
+      <span class="agent-name">ICP Scorer</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-update">Update from original</span></div>
+      <span class="entry-summary">Segment bands redefined. Vertical taxonomy aligned to TerritoryDefinitions 8-vertical standard.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Segment bands updated: SMB 5–200, Mid-Market 201–2,000, Enterprise 2,001+. Dimension 2 vertical taxonomy aligned to TerritoryDefinitions (FinTech, HealthTech, SaaS, RetailTech, HR Tech, EdTech, Cybersecurity, Logistics). Segment removed as a scoring dimension — confirmed as routing input only.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">Original bands predated segment redefinition decision. Vertical alignment needed so ICP scoring and territory routing reference the same 8-vertical taxonomy.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-amber">Scoring recalibration expected on existing accounts.</span> Accounts near tier boundaries may shift T1↔T2. AGT-202 routing tier SLAs unaffected (T1=2hr, T2=24hr remain).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L2" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-202<span class="layer-tag lt-l2">L2</span></span>
+      <span class="agent-name">Lead Router v2.0</span>
+      <div class="change-type"><span class="ct ct-new">Re-specced</span><span class="ct ct-ripple">Ripple from AGT-106</span></div>
+      <span class="entry-summary">TerritoryDefinitions replaces RepBook as routing authority. PLG gate added. Vertical preference tier added.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val"><ul><li>Routing authority source changed from RepBook to <code>TerritoryDefinitions</code></li><li><code>routing_eligible</code> gate added — checked before every assignment</li><li>Motion gate (R2) added — PLG/inbound bypasses SDR entirely, routes to AE direct</li><li>Vertical preference tier (P2) added to rules-based cascade</li><li>Workload imbalance threshold specified: >1.5 SD above segment mean (rolling 30 days)</li><li>Named account rep ineligible → <code>named_account_hold</code> flag + segment manager. Rep reclaims on return.</li></ul></div>
+        <div class="detail-lbl">Why</div><div class="detail-val">AGT-106 Territory Design (v14) introduced TerritoryDefinitions as the authoritative account ownership source. AGT-202 v1 was built before this existed and used RepBook instead. SDR motion decision: SDRs are purely outbound — PLG accounts should never hit a cold outreach sequence.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val">Leads extended: <code>gtm_motion_at_routing</code>, <code>routing_rule_applied</code>, <code>named_account_hold</code>, <code>vertical_match</code>, <code>workload_flag</code>, <code>first_contact_timestamp</code>, <code>tier_change_post_contact</code></div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-amber">Routing behavior change.</span> PLG leads previously hitting SDR sequences now route directly to AE. Accounts with named rep ineligible now hold rather than fall back to segment manager immediately.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L2" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-203<span class="layer-tag lt-l2">L2</span></span>
+      <span class="agent-name">ABM Target Selection Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">T1-only ABM program. 1:1 bespoke and 1:few cluster tiers. Quarterly TAL + event-triggered.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Target account selection only (not outreach execution). T1 accounts only. Enterprise: 1:1 and 1:few eligible. MM: 1:few only. SMB: SLM nomination only. Agent proposes → rep confirms 1:1 → FLM confirms 1:few → SLM approves.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>TargetAccountList</code>, <code>ABMPlaybook</code>, <code>ABMEngagementLog</code>. Accounts extended: <code>abm_active</code>, <code>abm_tier</code></div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">ABM status creates downstream behavior changes in 3 agents:</span> AGT-202 named account lock (no fallback routing), AGT-301 deeper research pass, AGT-304 nurture suppression.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L2" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-204<span class="layer-tag lt-l2">L2</span></span>
+      <span class="agent-name">Lead Enrichment Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Signal-differentiated re-enrichment. 6 data categories. Confidence-weighted overwrite. Triggers ICP rescore.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Pre-score enrichment (30s timeout gate) + signal-differentiated periodic re-enrichment. Intent/news: daily (T1). Contact: monthly. Firmographic/technographic: quarterly. Confidence-weighted overwrite. ICP auto-recalculates on scored field update. 30s timeout: AGT-201 scores with available data, enrichment completes async.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>EnrichmentLog</code>, <code>EnrichmentQueue</code>, <code>Contacts</code> (net new cross-cutting table). Accounts extended: 15 enrichment fields including <code>intent_score</code>, <code>funding_amount_usd</code>, <code>crm_vendor</code>, enrichment date fields.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Unblocks AGT-201 Dimensions 4+5 (25 pts previously data_gap).</span> <code>crm_vendor</code> and technographic fields feed AGT-403 competitor pre-population at deal open (see v17→v18 AGT-403 ripple). Contacts table feeds AGT-305, AGT-401, AGT-405 stakeholder mapping.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L2" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-205<span class="layer-tag lt-l2">L2</span></span>
+      <span class="agent-name">TAM/SAM Sizing Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">288-cell model. Hybrid top-down TAM / bottom-up SAM. FP&APlan feasibility check.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. TAM/SAM/SOM × segment × vertical × geo × product family (288 cells). Hybrid methodology. FP&APlan feasibility check on every run. Whitespace flags to AGT-203. SOM feeds AGT-105 "what would have to be true" scenarios.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>MarketAssumptions</code> (RevOps-owned, versioned), <code>MarketSizeModel</code></div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Feasibility check creates a live validation against FP&APlan targets.</span> If FP&APlan Y2 target exceeds SOM, AGT-205 flags the gap — first agent to challenge the financial plan from a market sizing perspective.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L2" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-206<span class="layer-tag lt-l2">L2</span></span>
+      <span class="agent-name">Account Prioritization Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Event-triggered within-book ranking. Intent decay formula. Semi-annual full-universe scoring feeds AGT-106.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. 3-dimension model: fit (40%), intent (40%), opportunity (20%). Intent decay: score × e^(-hours/72). Event-triggered re-rank (intent spike, stage change, enrichment). Semi-annual full-universe scoring feeds AGT-106 territory rebalancing. Pin-only rep override with 30-day expiry.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>AccountPriorityScore</code>, <code>PriorityWeightsConfig</code></div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Priority score feeds AGT-301 queue order</span> (highest priority sequences drafted first). <span class="impact-green">Semi-annual scores feed AGT-106</span> territory rebalancing. Dormancy flags identify accounts for removal from rep books.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v17→v18: Layer 3 updates + new agents                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L3">
+  <div class="version-hdr">
+    <span class="version-pill">v17 → v18</span>
+    <span class="version-date">Layer 3 updates</span>
+    <span class="version-summary">2 agent updates (L2 ripples), 1 new agent specced, 1 removed from OS</span>
+  </div>
+
+  <div class="entry" data-layer="L3" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-301<span class="layer-tag lt-l3">L3</span></span>
+      <span class="agent-name">Outreach Generator</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L2</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">ABM accounts trigger deeper research pass. AGT-206 priority score sets queue order.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change 1</div><div class="detail-val">When <code>Accounts.abm_active = TRUE</code>: agent runs a deeper enrichment pull (all 6 enrichment categories + recent news/triggers) before drafting each step. ABM sequence template and step cadence unchanged — personalization depth only.</div>
+        <div class="detail-lbl">Change 2</div><div class="detail-val"><code>AccountPriorityScore.composite_score</code> determines draft order when multiple sequences are queued. Highest score drafted first. No effect on step timing, cadence structure, or sequence content.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">AGT-203 ABM Target Selection (Layer 2) added <code>abm_active</code> and <code>abm_tier</code> to Accounts. AGT-206 Account Prioritization (Layer 2) added <code>composite_score</code> as a rep-facing priority signal that should influence agent work queue.</div>
+        <div class="detail-lbl">Schema change</div><div class="detail-val">None. No new tables or fields. Prompt-only delta.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Sequence quality improvement for ABM accounts. Queue ordering change is non-breaking — sequence content and timing unchanged.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L3" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-304<span class="layer-tag lt-l3">L3</span></span>
+      <span class="agent-name">Marketing Nurture Agent</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L2</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">ABM suppression gate added. Accounts with abm_active=TRUE excluded from generic nurture.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">First check before any nurture enrollment: <code>IF Accounts.abm_active = TRUE → exclude from nurture</code>. Exclusion logged in NurtureRecommendations with <code>reason = 'ABM active suppression'</code>. Account re-enters nurture eligibility when <code>abm_active</code> resets to FALSE on TAL exit.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">AGT-203 ABM Target Selection creates bespoke outreach plays for T1 accounts. Generic nurture cadences running in parallel would create channel conflict and undermine the ABM play quality.</div>
+        <div class="detail-lbl">Schema change</div><div class="detail-val">None. Prompt-only delta. NurtureRecommendations already has a reason field.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-amber">Behavior change.</span> Any account currently in nurture that gets added to TAL will be suppressed from nurture on next enrollment check. Existing nurture sequences in-flight are not retroactively stopped — they complete and re-enrollment is blocked.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L3" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-305<span class="layer-tag lt-l3">L3</span></span>
+      <span class="agent-name">Meeting Discovery Prep Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Pre-first-meeting brief. 7 sections. Draft on booking + 4am refresh. AGT-407 scores post-call.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Triggered by meeting_booked from outreach cadence (no deal exists). 7-section brief: account overview, pain hypothesis, discovery questions, stakeholder context, talk track, competitive context, ABM playbook alignment. Draft on booking + 4am rep local time refresh on meeting day. AGT-407 scores adherence + hypothesis accuracy post-call. Option 4 feedback loop activates when ≥30 scored calls per vertical.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>DiscoveryBriefLog</code> (all 7 sections + rep edits + nullable post-call score fields)</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Creates DiscoveryBriefLog as a new data source for AGT-407 post-call scoring.</span> Option 4 feedback loop will improve pain hypothesis quality per vertical over time — closes a learning loop that currently doesn't exist in the OS.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L3" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-306<span class="layer-tag lt-l3">L3</span></span>
+      <span class="agent-name">Rep Daily Briefing Agent</span>
+      <div class="change-type"><span class="ct ct-update">Removed from OS</span></div>
+      <span class="entry-summary">Removed. Reps build their own personal briefing agents using the Rep Agent Builder Guide.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">AGT-306 Rep Daily Briefing Agent removed from GTM OS agent registry. Daily briefing is a personal workflow preference, not a system-level function.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">Reps have different briefing preferences. A system-mandated daily brief creates maintenance overhead and doesn't account for role variation (AE briefing vs CSM briefing vs SDR briefing are materially different). Better served by rep-built personal agents.</div>
+        <div class="detail-lbl">Enablement artifact</div><div class="detail-val">Rep Agent Builder Guide published — documents which GTM OS tables and agents reps can reference when building personal agents. Includes 4 example prompts (AE, CSM/AM, single-account deep dive, intent spike alert).</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">No downstream impact. No schema changes. Agent numbering gap at AGT-306 preserved intentionally as a record of the decision.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v21→v22: Layer 3 open wire items                                        -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L3">
+  <div class="version-hdr">
+    <span class="version-pill">v21 → v22</span>
+    <span class="version-date">Layer 3 open wire items</span>
+    <span class="version-summary">3 L2→L3 ripples wired — CadenceEventLog extended with 3 fields. AGT-301 + AGT-302 prompt deltas.</span>
+  </div>
+
+  <div class="entry" data-layer="L3" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-301<span class="layer-tag lt-l3">L3</span></span>
+      <span class="agent-name">Outreach Generator</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L2</span><span class="ct ct-schema">Schema</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">sequence_type and priority_score_at_queue written to CadenceEventLog at draft/queue time. Closes two open L2 wires.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Wire 1</div><div class="detail-val">AGT-301 now writes <code>CadenceEventLog.sequence_type</code> at sequence draft time. Derived from <code>Accounts.abm_active</code> + <code>abm_tier</code>: <code>abm_bespoke</code> (1:1 ABM), <code>abm_cluster</code> (1:few ABM), <code>nurture</code> (marketing nurture), <code>standard</code> (all other). Classification label only — no behavior change to sequence content, timing, or channel mix.</div>
+        <div class="detail-lbl">Wire 2</div><div class="detail-val">AGT-301 now writes <code>CadenceEventLog.priority_score_at_queue</code> at queue registration time. Snapshotted from <code>AccountPriorityScore.composite_score</code> at the moment of queue — does not update as score changes during the sequence. NULL if no AccountPriorityScore record exists for the account. Enables AGT-303 to analyze whether high-priority accounts received timely sequence execution relative to their score.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">ABM deeper research pass and priority queue order were wired in v18 (behavioral), but neither was traceable in CadenceEventLog. Without these fields, AGT-303 cannot distinguish ABM sequences from standard sequences or correlate priority score to sequence timing in analysis. Schema fields close the traceability gap.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>CadenceEventLog</code> extended: <code>sequence_type</code> (enum), <code>priority_score_at_queue</code> (float, nullable)</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">AGT-303 can now segment cadence performance by sequence_type</span> — ABM vs standard sequence efficacy becomes measurable for the first time. <span class="impact-green">Priority score correlation to sequence timing</span> enables AGT-303 to flag when high-priority accounts are queued but executed late relative to their score.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L3" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-302<span class="layer-tag lt-l3">L3</span></span>
+      <span class="agent-name">Cadence Coordinator</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L2</span><span class="ct ct-schema">Schema</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">ABM backstop gate added as Gate 2 in coordination sequence. suppressed_reason field written on all gate blocks. Closes third open L2 wire.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Wire 3</div><div class="detail-val">AGT-302 adds an explicit ABM nurture backstop as Gate 2 in its coordination sequence (after compliance check, before touch cap). If <code>sequence_type = 'nurture'</code> AND <code>Accounts.abm_active = TRUE</code>: block activation, write <code>suppressed_reason = 'abm_active_suppression'</code> to CadenceEventLog, notify originating agent. AGT-302 also writes <code>suppressed_reason</code> for all other gate blocks: <code>touch_cap_exceeded</code>, <code>compliance_block</code>, <code>conflict_resolved_queued</code>.</div>
+        <div class="detail-lbl">Why a backstop</div><div class="detail-val">AGT-304 is the primary ABM suppression gate for nurture enrollment. But AGT-302 previously had no visibility into whether future routing paths might bypass AGT-304 (e.g. a marketing automation trigger). The backstop ensures the OS-level constraint holds regardless of origination path. The <code>suppressed_reason</code> field provides AGT-303 with a unified suppression audit trail across all gate types and sequence origins.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>CadenceEventLog</code> extended: <code>suppressed_reason</code> (string, nullable). Written exclusively by AGT-302. AGT-304 continues to log suppression in <code>NurtureRecommendations</code> — AGT-302 writes to CadenceEventLog so suppression is visible in the unified cadence audit trail.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">No behavior change for accounts not flagged abm_active — existing conflict resolution and touch cap logic unchanged.</span> <span class="impact-green">AGT-303 gains a suppression audit trail</span> — can now report on how often ABM suppression fires, touch cap holds, and conflict resolution blocks occur across the cadence universe.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v22→v23: Layer 4 ripple audit                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L4">
+  <div class="version-hdr">
+    <span class="version-pill">v22 → v23</span>
+    <span class="version-date">Layer 4 ripple audit</span>
+    <span class="version-summary">5 agents updated — FP&amp;APlan versioning, expansion ACV, MAP late-stage read, new KB feeds, call_owner_role. 1 schema add.</span>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-402<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Forecast Adjuster</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from v21 + L5</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">FP&amp;APlan version join specced. Expansion ACV from AGT-503 ExpansionLog added as third forecast component.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change 1</div><div class="detail-val">FP&amp;APlan versioning (v21) introduced <code>plan_version</code>, <code>reforecast_as_of_date</code>, and <code>is_board_plan</code>. AGT-402's <code>pct_of_target</code> join is now explicitly specced: reads <code>FP&amp;APlan WHERE is_board_plan = FALSE ORDER BY reforecast_as_of_date DESC LIMIT 1</code> — the current operating plan, not the board plan. Board plan displayed as secondary reference only.</div>
+        <div class="detail-lbl">Change 2</div><div class="detail-val">Expansion ACV from <code>ExpansionLog.acv_estimate</code> (AGT-503) added as a third forecast component alongside new logo and renewal pipeline. Weighted by churn risk tier: Low = 80%, Medium = 50%, High/Critical = 0%. Forecast output adds an expansion revenue line to the breakdown. pct_of_target denominator uses the full FP&amp;APlan revenue target including planned expansion.</div>
+        <div class="detail-lbl">Schema change</div><div class="detail-val">None. Both FP&amp;APlan versioning fields and ExpansionLog already exist. Prompt-only delta.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Expansion revenue is now visible in the bottoms-up forecast</span> — NRR upside is quantified in the forward revenue view for the first time. <span class="impact-neutral">FP&amp;APlan version join prevents the operating plan from being compared against the original board plan mid-year when reforecast has occurred.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-403<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Competitive Intelligence Agent</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L6 + L7</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">VoCSynthesisLog (AGT-604) and CalibrationSignalLog (AGT-703) added as KB feed sources. KB now has 4 signal sources.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Two new CompetitiveKnowledgeBase feed sources: (1) <code>VoCSynthesisLog</code> (AGT-604) — monthly synthesis surfaces competitor themes from CSM calls and QBR outcomes. Post-sale competitive signal tagged <code>signal_source = 'voc'</code>. Read on each monthly AGT-604 synthesis run. (2) <code>CalibrationSignalLog</code> (AGT-703) — quarterly win-loss competitive dimension provides outcome-verified win/loss rates by competitor × segment × vertical. Tagged <code>signal_source = 'win_loss'</code>. win_loss entries take precedence over call_mention entries when signals conflict on a competitor's strength/weakness.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">Original KB only had pre-deal and mid-deal signals (technographic enrichment + live call mentions). Post-sale and outcome-verified signals are higher quality for displacement angle generation — a competitor that wins deals against us is more important to track than one that's merely mentioned.</div>
+        <div class="detail-lbl">Schema change</div><div class="detail-val">None. VoCSynthesisLog and CalibrationSignalLog already exist. Prompt-only delta adding two read sources to KB maintenance logic.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">CompetitiveKnowledgeBase becomes a full-lifecycle competitive signal repository</span> — pre-deal (technographic), mid-deal (calls), post-sale (VoC), and outcome-verified (win-loss). Displacement angles generated by AGT-403 for AGT-301/305/405 are now informed by actual win/loss outcomes, not just mentions.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-404<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Top-Down Forecast Agent</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from v21</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">FP&amp;APlan version join specced. plan_version label added to all comparison output lines. Board plan as secondary reference.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Same FP&amp;APlan versioning fix as AGT-402. AGT-404's feasibility comparison now joins on the current operating plan version (non-board, most recent reforecast). Board plan displayed as a secondary reference line. Every comparison output line now carries a <code>plan_version</code> label (e.g. "3+9") so the reader knows which plan iteration the % refers to — critical when operating plan has been revised mid-year.</div>
+        <div class="detail-lbl">Schema change</div><div class="detail-val">None. Prompt-only delta.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Additive. Output gains plan_version label and a secondary board plan reference line. Prevents misleading pct_of_plan figures when operating plan has been reforecast downward mid-year.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-405<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Meeting Opportunity Prep Agent</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L6</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">MutualActionPlan read added to Section 6 (deal terms) for Proposal/Negotiation/Close stage briefs.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">MutualActionPlan (MAP) was introduced in v20 with AGT-601. AGT-405's deal terms section (Proposal/Negotiation/Close only) now reads <code>MutualActionPlan</code> where <code>opp_id</code> matches. Section 6 gains: MAP status (draft/customer_review/signed/not_applicable), open MAP action items and owners, outstanding rep commitments from MAP. If MAP not started for an eligible deal: brief flags "MAP not started — required before close." Nullable — omitted without error if no MAP record exists.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">MAP is created pre-close for Enterprise/high-ACV deals. A late-stage meeting brief that doesn't reference MAP commitments leaves the rep without visibility into what the selling team has formally committed to. Open MAP items are often the decisive close blockers.</div>
+        <div class="detail-lbl">Schema change</div><div class="detail-val">None. MutualActionPlan already exists. Prompt-only delta on Section 6 of AGT-405 brief generation logic.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Late-stage meeting briefs now surface MAP status and open commitments</span> — rep enters close meetings with full visibility into what's been promised and what's still open. <span class="impact-neutral">No impact on early-stage briefs — MAP is only read when deal is at Proposal or later.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-407<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Conversation Intelligence Agent</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L5</span><span class="ct ct-schema">Schema</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">call_owner_role field added to ConvIntelligence. Enables AGT-501 to filter CSM calls for customer health ConvIntelligence adjustment.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">AGT-501 Customer Health Monitor uses a ConvIntelligence adjustment from CSM-owned calls specifically — not all sales conversations. Without a <code>call_owner_role</code> field, AGT-501 cannot distinguish CSM calls from AE/SDR/AM/SE calls. AGT-407 now writes <code>call_owner_role</code> (enum: AE / SDR / AM / CSM / SE) on every ConvIntelligence record, derived from rep role in RepActivity or TerritoryDefinitions. Existing rows carry NULL until agent is re-run.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">AGT-501's ConvIntelligence adjustment was specced in v19 but the filtering mechanism was never created. CSM call sentiment feeding into a customer health score is materially different from AE call sentiment on a deal — conflating them would corrupt the health signal. call_owner_role is the filter key that makes this distinction possible.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>ConvIntelligence</code> extended: <code>call_owner_role</code> (enum: AE / SDR / AM / CSM / SE, nullable on existing rows)</div>
+        <div class="detail-lbl">Downstream consumers</div><div class="detail-val"><ul><li><strong>AGT-501</strong>: filters <code>call_owner_role = 'CSM'</code> for customer health adjustment</li><li><strong>AGT-701</strong>: filters by role for role-parameterized coaching inputs</li><li><strong>AGT-703</strong>: can segment conversation patterns by role in win-loss analysis</li></ul></div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Unblocks AGT-501 ConvIntelligence adjustment</span> — CSM call signals can now be correctly filtered and applied to customer health scoring. Without this field, AGT-501 had to skip the ConvIntelligence dimension or apply it incorrectly using all rep types.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v17→v18: Layer 4 ripples + new agents                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L4">
+  <div class="version-hdr">
+    <span class="version-pill">v17 → v18</span>
+    <span class="version-date">Layer 4 updates</span>
+    <span class="version-summary">4 agent ripple updates + 3 new agents specced</span>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-401<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Deal Health Monitor</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L2</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">Contacts table improves multi-threading signal. ABM deals raise Green threshold to 80.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change 1</div><div class="detail-val"><code>stakeholder_engagement_breadth</code> dimension now reads from Contacts table (which persona types are engaged: economic buyer, champion, technical evaluator) rather than raw RepActivity contact count. More precise signal — persona coverage matters more than raw contact count.</div>
+        <div class="detail-lbl">Change 2</div><div class="detail-val">When <code>Accounts.abm_active = TRUE</code>: minimum score for Green threshold raises from 75 → 80. Economic buyer engagement becomes a required dimension — score 0 on this dimension if economic buyer is not engaged, regardless of other scores.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">AGT-204 Lead Enrichment created the Contacts table (v17) with persona-typed records. AGT-203 ABM status signals a higher-scrutiny deal that warrants stricter health standards.</div>
+        <div class="detail-lbl">Schema change</div><div class="detail-val">None. Reads from existing Contacts table. Prompt-only delta.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-amber">ABM deals will score harder to reach Green.</span> Expected and intentional — ABM accounts warrant higher scrutiny. Non-ABM deals unaffected.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-402<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Forecast Adjuster</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L1</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">FP&APlan revenue targets added. Forecast output gains pct_of_target field by segment.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Forecast output adds <code>pct_of_target</code> field: AI forecast ÷ FP&APlan.revenue_target_usd by segment. Shows where each segment's pipeline trajectory sits relative to annual plan — not just absolute numbers.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">FP&APlan table (introduced in v16 with AGT-105) contains annual revenue targets by segment. The bottoms-up forecast gains meaning when expressed as % of target rather than just a dollar figure in isolation.</div>
+        <div class="detail-lbl">Schema change</div><div class="detail-val">None. FP&APlan already exists. Prompt-only delta adding one derived field to forecast output.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Additive. Existing forecast fields unchanged. New field provides coverage ratio context for CRO and Finance consumers.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-403<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Competitive Intelligence Agent</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L2</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">Technographic enrichment pre-populates competitor_detected at deal open — no longer waits for rep flag.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">When an opportunity opens, AGT-403 checks <code>Accounts.crm_vendor</code> and technographic enrichment fields against CompetitiveKnowledgeBase. If a competitor is detected: <code>Opportunities.competitor_detected = TRUE</code> pre-set at deal creation. Previously this only fired when a rep manually flagged a competitor mid-deal.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">AGT-204 Lead Enrichment (v17) added <code>crm_vendor</code> and technographic stack fields to Accounts. This data makes it possible to know the competitive landscape before the deal starts — rep shouldn't have to discover this themselves in a discovery call.</div>
+        <div class="detail-lbl">Schema change</div><div class="detail-val">None. Reads from existing <code>Accounts.crm_vendor</code>. Prompt-only delta.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Competitive context available from deal open, not mid-deal.</span> Reps enter discovery knowing the competitive landscape. CompetitiveKnowledgeBase can be pre-loaded with displacement angles before the first call.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-404<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Top-Down Forecast Agent</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L1</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">FP&APlan feasibility comparison added to top-down output — pipeline trajectory vs annual plan target.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Top-down forecast output adds a FP&APlan comparison line: "Current pipeline trajectory vs annual plan target" by segment. Shows whether the top-down model is on track to hit plan, and by how much it is over or under.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">FP&APlan table (v16) contains annual and 3-year revenue targets. The top-down forecast produces a revenue projection — expressing it as % of plan target closes the loop between the financial model and the sales forecast.</div>
+        <div class="detail-lbl">Schema change</div><div class="detail-val">None. FP&APlan already exists. Prompt-only delta.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Additive. Existing forecast fields unchanged. Provides board-ready on-track/off-track narrative alongside the forecast number.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-405<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Meeting Opportunity Prep Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Deal-active meeting briefs. 4 triggers. Stage-differentiated for Proposal/Negotiation/Close. AGT-407 scored.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. 4 triggers: stage advance, meeting scheduled, on-demand, deal health drop. 7 sections including deal terms (Proposal/Negotiation/Close only). Standard format for early stages, differentiated for late stages. Draft on trigger + 4am refresh on meeting day. Rep + internal attendees + manager (Amber/Red) receive brief. AGT-407 scores objective completion and deal advance quality.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>OpportunityBriefLog</code> (deal-active counterpart to DiscoveryBriefLog)</div>
+        <div class="detail-lbl">Key distinction from AGT-305</div><div class="detail-val">AGT-305 scores hypothesis accuracy (did pain prediction match reality?). AGT-405 scores deal advance quality (did deal move stage, did rep execute objectives?). Different feedback loops on the same scoring infrastructure.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Health drop trigger creates automatic recovery prep — manager notified immediately.</span> AGT-407 deal advance scoring creates a new coaching signal for AGT-701: which reps execute stage objectives vs which advance deals without meeting stated objectives.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-407<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Conversation Intelligence Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Analysis layer on top of recording platform transcripts. 5 dimensions. Feeds 5 downstream agents.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Analysis layer — transcription handled by Gong/Zoom/Chorus via webhook (hook in v1). 5 dimensions: sentiment, next step extraction, competitor detection, objection pattern extraction, email analysis. All conversations in scope regardless of deal stage. Per-conversation processing on transcript receipt.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>ConvIntelligence</code> extended with AGT-407 analysis fields: sentiment scores, next_steps (JSON), competitors_mentioned, objections_raised, conv_intelligence_score (0–3 for AGT-401), post_call_summary.</div>
+        <div class="detail-lbl">Downstream unblocked</div><div class="detail-val"><ul><li><strong>AGT-401</strong>: conv_intelligence dimension was data_gap (0pts). Now scoreable — full 9-dimension 100pt deal health score achievable.</li><li><strong>AGT-305</strong>: post-call hypothesis accuracy scoring now active.</li><li><strong>AGT-403</strong>: competitor mentions from calls feed CompetitiveKnowledgeBase.</li><li><strong>AGT-701</strong>: objection handling quality becomes a coaching input.</li></ul></div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Highest-impact new agent in Layer 4.</span> Unblocks the full deal health score and activates AGT-305's feedback loop. Every downstream agent that reads ConvIntelligence gains richer signal.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- Architecture decisions                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block">
+  <div class="version-hdr">
+    <span class="version-pill">Architecture</span>
+    <span class="version-date">Decisions that affect the full OS</span>
+    <span class="version-summary">Layer reorder, agent naming convention, Revenue Ops boundary</span>
+  </div>
+
+  <div class="entry" data-layer="arch" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id" style="font-family:Arial;font-size:11px">Layer order</span>
+      <span class="agent-name">L5/L6/L7 resequenced</span>
+      <div class="change-type"><span class="ct ct-update">Architecture decision</span></div>
+      <span class="entry-summary">Original L5 (measurement) moved to end. Post-sale retention now L5, lifecycle L6, measurement L7.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Layer reorder: L0→L1→L2→L3→L4→L5 (post-sale retention, was L6)→L6 (customer lifecycle, was L7)→L7 (measurement & feedback, was L5). Agent numbering updated accordingly: AGT-501–504, AGT-601–603, AGT-701–703.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">Measurement is a feedback layer that reads from all other layers and closes the loop back to L1. Placing it before post-sale layers was architecturally awkward — it implied measurement happens before customer management. Post-sale layers are sequential; measurement is horizontal.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Agent renumbering only. No behavior changes. AGT-011/012 (original) → AGT-701/702 (new). AGT-013/014/015 → AGT-501/502/503.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="arch" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id" style="font-family:Arial;font-size:11px">Agent registry</span>
+      <span class="agent-name">Canonical numbering convention</span>
+      <div class="change-type"><span class="ct ct-update">Architecture decision</span></div>
+      <span class="entry-summary">All agents get unique number + human-readable name. Layer-prefix numbering (AGT-101=L1 agent 01).</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Canonical agent registry established. Every agent has: unique number (AGT-XXX), human-readable name, purpose, layer, status. Layer-prefix convention: 1xx=L1, 2xx=L2, 3xx=L3, 4xx=L4, 5xx=L5, 6xx=L6, 7xx=L7, 8xx=L8. Text-only IDs (AGT-ABM, AGT-ENR, etc.) replaced with numbered equivalents.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">Mixed naming convention (some numbered, some text) made cross-references ambiguous and prevented self-documenting dependency tracking. Numbered IDs with human names provide both machine-readable precision and human-readable context.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Reference convention change only. All specs updated to use new IDs going forward.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="arch" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id" style="font-family:Arial;font-size:11px">L8 boundary</span>
+      <span class="agent-name">Revenue Operations layer defined</span>
+      <div class="change-type"><span class="ct ct-new">Architecture decision</span></div>
+      <span class="entry-summary">L8 Revenue Ops is same framework as GTM OS but Finance-owned. CPQ stays in L4. Invoicing/billing in L8.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">L8 Revenue Operations defined as a distinct module within the OS framework (same agent/schema architecture) but Finance-owned. GTM OS stops at signed quote. L8 covers order → invoice → payment → revenue recognition. CPQ (AGT-406) lives in L4 — it's used during active deals. L8 starts at AGT-801 Order Management, triggered by signed quote output from AGT-406.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">Invoicing and billing interact with billing infrastructure (Stripe, Zuora, NetSuite) rather than CRM/GTM tooling. Finance owns billing; GTM owns L1–L7. Clear ownership boundary reduces governance ambiguity while maintaining schema coherence for integration points (usage data→AGT-503, revenue recognition→AGT-702).</div>
+        <div class="detail-lbl">Integration points</div><div class="detail-val"><ul><li>AGT-406 CPQ output (signed quote) → AGT-801 Order Management input</li><li>AGT-804 usage data → AGT-503 Expansion Trigger (read-only feed)</li><li>AGT-804 revenue recognition → AGT-702 GTM Health Monitor (Magic Number calculation)</li><li>AGT-803 payment status → AGT-501 Customer Health (billing health signal)</li></ul></div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Architectural boundary defined. L8 agents not yet specced. Integration contracts with L4 and L5 are pre-defined.</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v17→v18: Layer 4 ripples + new agents (continued)                      -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L4">
+  <div class="version-hdr">
+    <span class="version-pill">v17 → v18</span>
+    <span class="version-date">Layer 4 new agents</span>
+    <span class="version-summary">3 new agents specced — Meeting Opportunity Prep, CPQ & Deal Desk, Conversation Intelligence</span>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-405<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Meeting Opportunity Prep Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Deal-active meeting briefs. 4 triggers. Stage-differentiated for Proposal/Negotiation/Close. AGT-407 scored.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Deal-active counterpart to AGT-305. 4 triggers: stage advance, meeting scheduled on opportunity, rep on-demand, deal health drop. 7 sections with stage-differentiated format for Proposal/Negotiation/Close (deal terms section added). Draft on trigger + 4am refresh on meeting day. Recipients: rep + internal calendar attendees + manager when Amber/Red. AGT-407 scores objective completion and deal advance quality post-meeting.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>OpportunityBriefLog</code> — deal-active counterpart to DiscoveryBriefLog. Includes nullable post-meeting scoring fields: objective_completion_rate, deal_advanced, deal_advance_quality_score, commitment_follow_through_score.</div>
+        <div class="detail-lbl">Key distinction from AGT-305</div><div class="detail-val">AGT-305 scores hypothesis accuracy (did pain prediction match reality?). AGT-405 scores deal advance quality (did deal move stage, did rep execute stated objectives?). Different feedback loops on the same scoring infrastructure.</div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 4 spec session — net new agent.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Health drop trigger creates automatic recovery prep — manager notified immediately regardless of normal band threshold.</span> AGT-407 deal advance scoring creates a new coaching signal for AGT-701: which reps execute stage objectives vs which advance deals without meeting stated objectives.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-406<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">CPQ & Deal Desk Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">URL-based HTML quote. 4 pricing models. 4-tier approval chain. Per-viewer interaction tracking. L8 handoff on acceptance.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Supports 4 pricing models: seat license, consumption commitment, pay-as-you-go, professional services. Seat + consumption can coexist as separate line items, not bundled. Agent proposes configuration, rep explicitly confirms before quote is generated. Quote is URL-based HTML — not a PDF. URL in pending state until all approvals clear. 4-tier approval chain (rep → manager → deal desk → CRO/VP) auto-routed based on deal configuration vs PricingConfig thresholds. Per-viewer trackable links for email delivery. Forwarding signal detection (new external IP = possible procurement loop-in).</div>
+        <div class="detail-lbl">Quote vs Order Form</div><div class="detail-val">Quote is a pricing proposal, not a legal document. Acceptance triggers AGT-801 (L8) which generates the formal order form from quote data. GTM OS boundary is at accepted quote. Billing contact on the OF (built by L8) is the target for AGT-504 Customer Communications on future price change events.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>PricingConfig</code> (L0 — Finance + RevOps owned, rate cards + discount thresholds), <code>QuoteLog</code> (state machine + line items), <code>QuoteApprovalLog</code> (per-tier approval audit trail), <code>QuoteViewLog</code> (per-viewer interaction tracking)</div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 4 spec session — net new agent.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">QuoteViewLog forwarding signal feeds AGT-401 deal health</span> — buyer engagement and procurement loop-in are positive deal signals. <span class="impact-green">PricingConfig is a new L0 policy table</span> read by AGT-405 (deal terms section) and AGT-504 (price change comms) in addition to AGT-406.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L4" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-407<span class="layer-tag lt-l4">L4</span></span>
+      <span class="agent-name">Conversation Intelligence Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Analysis layer on recording platform transcripts. 5 dimensions. Unblocks AGT-401 conv_intelligence score. Feeds 5 downstream agents.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Analysis layer only — transcription handled upstream by recording platform (Gong/Zoom/Chorus) via webhook (hook in v1). 5 analysis dimensions: sentiment scoring, next step extraction with commitment quality, competitor mention detection, objection pattern categorization, email thread analysis. Processes all sales conversations regardless of deal stage. Per-conversation processing on transcript receipt.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>ConvIntelligence</code> extended with AGT-407 analysis fields: overall_sentiment, sentiment_score, next_steps (JSON), next_step_committed, competitors_mentioned, objections_raised, unaddressed_showstopper, conv_intelligence_score (0–3, feeds AGT-401 deal health dimension), post_call_summary. Nullable fields — existing 100 rows carry NULL until agent is live.</div>
+        <div class="detail-lbl">Downstream unblocked</div><div class="detail-val"><ul><li><strong>AGT-401</strong>: conv_intelligence dimension was data_gap (0 pts). AGT-407 makes full 9-dimension 100pt deal health score achievable for the first time.</li><li><strong>AGT-305</strong>: post-call hypothesis accuracy scoring now active once brief_id is linked to conversation.</li><li><strong>AGT-405</strong>: post-meeting objective completion and deal advance quality scoring now active.</li><li><strong>AGT-403</strong>: competitor mentions from calls feed CompetitiveKnowledgeBase in real-time.</li><li><strong>AGT-701</strong>: objection handling quality and next step commitment rate become coaching inputs.</li></ul></div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 4 spec session — net new agent. Identified as dependency for AGT-401, AGT-305, and AGT-405.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Highest-impact new agent in Layer 4.</span> Unblocks the full deal health score. Activates the AGT-305 hypothesis accuracy feedback loop. Every downstream agent reading ConvIntelligence gains richer signal as call volume accumulates.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v18→v19: Layer 5 — Post-Sale Retention                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L5">
+  <div class="version-hdr">
+    <span class="version-pill">v18 → v19</span>
+    <span class="version-date">Layer 5 — Post-Sale Retention</span>
+    <span class="version-summary">4 agents specced — Customer health, churn risk, expansion trigger, customer communications. 6 new tables. Role convention corrected: AM as relationship owner.</span>
+  </div>
+
+  <div class="entry" data-layer="L5" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-501<span class="layer-tag lt-l5">L5</span></span>
+      <span class="agent-name">Customer Health Monitor</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span><span class="ct ct-ripple">Ripple from L2 + L8</span></div>
+      <span class="entry-summary">Daily health scoring engine. 7 dimensions + ConvIntelligence adj + payment health modifier. Canonical source for AGT-502 and AGT-503.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Daily batch scoring for all active customer accounts. 7-dimension model (100 pts base): product usage trend (22), exec sponsor engagement (20), seat utilization (18), NPS/CSAT (14), engagement recency (12), support ticket trend (8), competitive threat (6). ConvIntelligence adjustment from CSM-owned calls adds up to 12 pts (sentiment, talk ratio, next-step quality — trailing 30-day pattern). Payment health modifier (cap/floor) applied last. Writes CustomerHealthLog as canonical daily record — AGT-502 and AGT-503 read exclusively from this table.</div>
+        <div class="detail-lbl">Payment modifier</div><div class="detail-val">Current: no effect. Overdue: score capped at 77 (cannot reach Low tier). Failed: score capped at 62 (cannot reach Medium). Suspended: score floored at Critical regardless of all other dimensions. Sourced from AGT-803 (L8) read-only feed. Non-blocking — if AGT-803 not live, modifier skipped.</div>
+        <div class="detail-lbl">L2 ripple</div><div class="detail-val">Exec sponsor dimension reads from <code>Contacts</code> table persona-typed records (economic_buyer, champion) rather than raw RepActivity contact count. Same pattern as AGT-401 v18 update.</div>
+        <div class="detail-lbl">L8 integration</div><div class="detail-val">AGT-803 payment_health_status → CustomerHealthLog.payment_health_status. Read-only feed. Non-blocking dependency.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>CustomerHealthLog</code> — one row per account per day. Fields: raw_health_score, health_score (post-modifier), score_delta, payment_health_status, payment_modifier_applied, per-dimension scores (7 fields), conv_intelligence_adj, active_flags (JSON), data_gap_dimensions (JSON), sponsor_departure_flag.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Foundational for L5.</span> CustomerHealthLog is the single source of truth consumed by AGT-502 (churn risk) and AGT-503 (expansion). Sponsor departure flag passes to AGT-502 immediately on same run — does not wait for next AGT-502 cycle.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L5" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-502<span class="layer-tag lt-l5">L5</span></span>
+      <span class="agent-name">Churn Risk Detector</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span><span class="ct ct-update">Role correction</span></div>
+      <span class="entry-summary">Renewal proximity multiplier on AGT-501 scores. Four risk tiers. AM as primary alert recipient (corrects original spec). Tiered escalation + downstream triggers.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Runs daily after AGT-501 batch. Reads CustomerHealthLog health_score and applies renewal proximity multiplier: ≤30 days ×0.85, 31–60 ×0.92, 61–90 ×0.96, >90 ×1.0. Effective risk score drives tier assignment: Critical (0–44), High (45–62), Medium (63–77), Low (78–100). Immediate alerts on: score drop ≥15 pts, tier transition, sponsor_departure_flag (fires same run as AGT-501 detection). Weekly digest for all other accounts — one per AM, one per CSM, segment-level to SLM, org-wide NRR risk to CRO (feeds AGT-702).</div>
+        <div class="detail-lbl">Role correction</div><div class="detail-val">AM is relationship and revenue owner — primary alert recipient on all churn risk events. CSM is adoption influencer — notified concurrently as context, not action owner. Finance notified first on payment-status alerts (billing event before relationship event), then AM + CSM simultaneously. This corrects the original L6 spec which positioned CSM as primary.</div>
+        <div class="detail-lbl">Downstream triggers</div><div class="detail-val"><ul><li>Competitive threat + no plan → AGT-403 competitive brief</li><li>Low tier (score ≥78) → pass account_id to AGT-503 as expansion candidate</li><li>Renewal ≤90 days + no open renewal opp → AM flagged to open renewal opp (not autonomous)</li><li>Critical + high ACV → manager notified concurrently</li></ul></div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>ChurnRiskLog</code> — one row per account per run. Fields: effective_risk_score, churn_risk_tier, renewal_multiplier, renewal_proximity_days, alert_type, recommended_action, recovery_plan_logged, downstream_triggers (JSON), expansion_candidate.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Weekly org-wide NRR risk summary feeds AGT-702 GTM Health Monitor.</span> <span class="impact-amber">Role correction changes alert routing for all existing customers</span> — AM inbox receives what previously went to CSM as primary.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L5" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-503<span class="layer-tag lt-l5">L5</span></span>
+      <span class="agent-name">Expansion Trigger Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span><span class="ct ct-ripple">Ripple from L2 + L8</span></div>
+      <span class="entry-summary">5-signal expansion scoring. Churn risk gate + open opp check before any play. TerritoryDefinitions replaces RepBook for AM routing. AGT-804 usage feed.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Two entry paths: AGT-502 Low-tier pass (scheduled) and AGT-804 usage events (bypass scheduled cycle — overage/seat signals are immediate). Churn risk gate runs first: High/Critical = suppress, Medium = CSM confirm required, Low = proceed. Open opp check before any new play — if open expansion opp exists, enrichment path only (append context, single contextual update to AM, no new play created). Five signals: consumption overage +40 pts (immediate), seat utilization >80% for 2+ months +30 pts (immediate), ConvIntelligence feature inquiry + positive sentiment +30 pts (immediate), new stakeholder engaged +20 pts (digest), cross-sell peer cohort gap +15–25 pts (digest). Peer cohort: segment × vertical × size band, minimum 5 accounts, ≥60% match rate.</div>
+        <div class="detail-lbl">L2 ripple</div><div class="detail-val">AM routing uses <code>TerritoryDefinitions</code> as authoritative account ownership source. Original spec used RepBook. Same change applied to AGT-202 Lead Router in v17. Routing conflict fallback (AM unavailable) → segment manager, same chain as AGT-202.</div>
+        <div class="detail-lbl">L8 ripple</div><div class="detail-val">AGT-804 usage data feed replaces generic Revenue table as source for consumption overage and seat utilization signals. AGT-804 also bypasses the scheduled daily cycle — usage threshold events trigger AGT-503 directly.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>ExpansionLog</code> — one row per signal detection. Fields: expansion_score, play_type (new_play / enrichment / suppressed), suppressed_reason, signal_sources (JSON), expansion_play_type, acv_estimate, open_opp_exists, enriched_opp_id, routed_to_am, alert_type, csm_confirm_required, csm_confirmed_at. Accounts extended: expansion_score, expansion_play_type, expansion_acv_potential, expansion_routed_to, expansion_last_detected.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Expansion ACV potential feeds MetricsCalc expansion revenue forecast — first agent to quantify NRR upside in the OS.</span> Open opp check prevents duplicate plays and rep confusion — enrichment path preserves rep context without creating noise.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L5" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-504<span class="layer-tag lt-l5">L5</span></span>
+      <span class="agent-name">Customer Communications Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Transactional comms execution: price increases, ToS changes, EoS/EoL. Dual-track: internal AM brief + external comm. Hybrid trigger model. Human approval always required.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Execution-only — never initiates the decision to communicate. Dual-track: (1) internal brief to each AM scoped to their affected accounts, priority flags, and proactive outreach CTAs; (2) external transactional comm to appropriate contacts, gated by human approval. Always sends externally regardless of whether AM has contacted the customer first — internal brief is prep, not a replacement.</div>
+        <div class="detail-lbl">Trigger model</div><div class="detail-val">Hybrid. Price increases: PricingConfig scan detects future-dated rate delta — auto-initiates process, no manual entry required. EoS/EoL and ToS: manual entry to CommEventQueue (L0, RevOps-owned). AGT-504 polls CommEventQueue for pending records.</div>
+        <div class="detail-lbl">Contact logic</div><div class="detail-val">Price increase → billing contact on order form (AGT-801 source). ToS → billing contact + legal/signatory personas from Contacts table. EoS/EoL → all active users in Contacts table for affected accounts; falls back to billing contact if no Contacts records exist. Generic billing email detection: 1-business-day delay + AM flagged to identify human contact. Send proceeds after delay regardless of resolution. AGT-204 enrichment triggered as persistent fix.</div>
+        <div class="detail-lbl">Priority flags</div><div class="detail-val">Accounts flagged as priority in internal brief (requiring proactive AM outreach): churn risk tier ≥ Medium (AGT-502), renewal proximity ≤90 days, ABM-active, ACV ≥ segment P75 (configurable per event via CommEventQueue.acv_priority_threshold).</div>
+        <div class="detail-lbl">Approval gate</div><div class="detail-val">Human approval required before external comm sends — always. RevOps approves all comm types; Legal/Comms also required for ToS and EoS/EoL. Approval and lead time window run in parallel (both must clear). External comm never auto-sends.</div>
+        <div class="detail-lbl">Lead time</div><div class="detail-val">Default 3 business days between internal brief delivery and external send. Configurable per event (CommEventQueue.lead_time_days). Clock starts on brief delivery to AMs.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>CommEventQueue</code> (L0) — event anchor record, auto-created on PricingConfig detection or manually entered. Fields: comm_type, status, effective_date, affected_skus, change_summary, lead_time_days, acv_priority_threshold, approval fields, auto_detected flag, pricing_config_ref. <code>CommBriefLog</code> — one row per AM per event. <code>CommDeliveryLog</code> — one row per recipient per event, includes generic_email_flag, unresolved_generic_flag, delay_applied_days.</div>
+        <div class="detail-lbl">L0 dependency</div><div class="detail-val">PricingConfig (L0) — reads effective_date and rate_delta for price change detection and external comm content. CommEventQueue (L0) — RevOps-owned intake table for non-price comm events.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes the last unmanaged customer touchpoint in the OS.</span> Price changes, product sunset, and legal notices previously had no systematic AM prep path — priority customers could receive a transactional email before their AM knew it was coming. The internal brief window eliminates that gap. <span class="impact-neutral">CommDeliveryLog provides first audit trail for customer-facing transactional comms — useful for compliance and dispute resolution.</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v19→v20: Layer 6 — Customer Lifecycle                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L6">
+  <div class="version-hdr">
+    <span class="version-pill">v19 → v20</span>
+    <span class="version-date">Layer 6 — Customer Lifecycle</span>
+    <span class="version-summary">4 agents specced — Onboarding Orchestrator, Technical Implementation, QBR Prep, Voice of Customer. 10 new tables. MAP introduces comp gate wiring to AGT-104.</span>
+  </div>
+
+  <div class="entry" data-layer="L6" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-601<span class="layer-tag lt-l5">L6</span></span>
+      <span class="agent-name">Onboarding Orchestrator</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span><span class="ct ct-ripple">L1 comp gate</span></div>
+      <span class="entry-summary">PM layer for onboarding. Pre-close trigger for eligible deals. MAP sign-off gates ACV + usage comp via AGT-104. Continuous OnboardingLog writes enable AGT-501 health scoring from day one.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Pre-close trigger fires when deal health ≥ threshold AND stage ≥ Proposal for eligible deals (Enterprise, ACV ≥ threshold, implementation services on quote, SAM ≥ threshold). Post-close trigger fires for all segments at order execution (AGT-801 signal). Pre-close outputs: onboarding plan draft, internal kickoff brief (AM + CSM), resource requirement flag, post-sales risk alert with reject gate. Active onboarding: 7 configurable milestones (M1–M7). TTV = first value event + adoption threshold both required; RevOps defines value events per product in ProductValueEvents; selling team selects + dates in MAP; inheriting team signs off or escalates. Escalation triggers: customer unresponsive (2+ attempts), TTV trajectory miss. Onboarding closes: all milestones complete + CSM manual gate.</div>
+        <div class="detail-lbl">MAP comp gate</div><div class="detail-val">If post-sales rejects deal handoff or MAP sign-off not obtained: AGT-601 writes <code>exception_type = 'map_signoff_hold'</code> to ExceptionLog. AGT-104 picks up on next daily run and holds both ACV commission and usage realization payout. Hold lifts automatically on MAP sign-off. SLM notified immediately. SLM override allows deal to proceed despite rejection.</div>
+        <div class="detail-lbl">AGT-501 integration</div><div class="detail-val">OnboardingLog written continuously (not a closing summary). Every milestone, CSM activity, and exec touchpoint writes a record. AGT-501 reads OnboardingLog for accounts where <code>onboarding_status = 'active'</code> — substitutes OnboardingLog signals for dimensions where live data doesn't exist yet. Health records flagged <code>in_onboarding = TRUE</code>. Exec sponsor engagement, QBR recency, usage, and seat utilization dimensions all have defined OnboardingLog substitutes. NPS/CSAT stays data_gap — no proxy, by design.</div>
+        <div class="detail-lbl">L4 ripple</div><div class="detail-val">Reads ConvIntelligence and OpportunityBriefLog to extract technical win details and rep commitments into MAP. Reads QuoteLog for product configuration context. These are read-only — no writes back to L4 tables.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>MutualActionPlan</code> — shared L4/L6 handoff artifact with comp_hold_active field wiring to AGT-104. <code>OnboardingLog</code> — continuous milestone + activity log. <code>ProductValueEvents</code> (L0, RevOps-owned) — first value event definitions per SKU. <code>OnboardingMilestoneConfig</code> (L0, RevOps-owned) — milestone defaults per segment + product. Accounts extended: onboarding_status, onboarding_start_date, onboarding_complete_date, ttv_achieved_days, ttv_target_days, map_id (6 fields).</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes the institutional memory gap at handoff</span> — technical win details, rep commitments, and customer stakeholder map transfer from selling team to post-sales systematically. <span class="impact-amber">Comp hold gate creates a new governance dependency</span> — reps must ensure post-sales signs off on MAP or both ACV and usage comp are held. <span class="impact-green">OnboardingLog eliminates NULL health scores for newly closed customers</span> — AGT-501 has signals from day one.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L6" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-602<span class="layer-tag lt-l5">L6</span></span>
+      <span class="agent-name">Technical Implementation Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Technical workstream for onboarding. Activates in parallel with AGT-601 when implementation services are on quote. IE is technical owner. MAP is shared coordination layer.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Activation gate: QuoteLog contains implementation services line item OR ImplementationSOW record exists. Not active = AGT-601 covers M1 (technical setup) with CSM as owner using a simplified checklist. When active: runs in parallel with AGT-601 from close. Technical owner = Implementation Engineer when services purchased; CSM when not. Covers 6 technical milestones: environment provisioning, integration build, data migration, technical UAT, technical go-live sign-off, technical handoff to CSM. Reads MutualActionPlan for technical win details and customer technical stakeholder map. Writes TechnicalMilestoneLog — feeds AGT-601 M1 status. CSM sees AGT-602 status as simplified summary via AGT-601 — IE owns technical detail, CSM owns customer communication about it.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>ImplementationSOW</code> (L0) — SOW contract for purchased services: contracted hours, hours_consumed, roles_required, timeline, scope_summary, IE assignment, status. <code>TechnicalMilestoneLog</code> — per-milestone tracking with blocker_detail and customer_sign_off fields. feeds_agt601_milestone field links each technical milestone to AGT-601 M1 progression.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Gives Implementation Engineers their own agent workspace</span> — previously no agent in the OS served this role. <span class="impact-neutral">Also useful to SMB/MM CSMs as a technical checklist even without dedicated IE</span> — AGT-601 exposes simplified AGT-602 view when implementation services are not purchased.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L6" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-603<span class="layer-tag lt-l5">L6</span></span>
+      <span class="agent-name">QBR Prep Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Dual-trigger QBR prep (quarterly auto + meeting booking). 7 sections split by AM/CSM role. Internal brief + customer-facing artifact. Reads health, expansion, MAP, and renewal data.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Dual trigger: quarterly auto (fires X days before QBR due date, default 10 business days) OR meeting booking (whichever first). Dual output: internal prep brief (all 7 sections, full context including internal-only risk and renewal language) + customer-facing summary artifact (sections 1/2/3/6/7 only — expansion ACV and churn risk language are internal-only). Brief is split by role: AM owns sections 4 (expansion) and 5 (renewal); CSM owns sections 1 (usage), 3 (health), 6 (open issues); both own sections 2 (ROI vs MAP) and 7 (next commitments). Customer artifact: CSM edits before sending — agent drafts, human always reviews.</div>
+        <div class="detail-lbl">Key data dependencies</div><div class="detail-val">Section 2 (ROI narrative) reads MutualActionPlan.selected_value_events — requires AGT-601 MAP to be populated. Section 4 (expansion) reads ExpansionLog — requires AGT-503 to be active. Section 5 (renewal) reads ChurnRiskLog + Opportunities. Section 3 (health scorecard) reads CustomerHealthLog — translated to executive narrative, not raw scores.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>QBRLog</code> — internal brief content (JSON), customer artifact content (JSON), trigger type, health score at prep, expansion signals included flag, renewal proximity days, post-QBR outcome (CSM-logged), commitments agreed (JSON).</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">First agent in the OS to produce a customer-facing artifact</span> (all prior agents produce internal outputs only). QBRLog.qbr_outcome becomes a new VoC input for AGT-604. QBRLog.commitments_agreed feeds next QBR's MAP alignment check.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L6" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-604<span class="layer-tag lt-l5">L6</span></span>
+      <span class="agent-name">Voice of Customer Agent</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span><span class="ct ct-ripple">Feeds L0 + L2</span></div>
+      <span class="entry-summary">Monthly deep synthesis + weekly digest across 6 signal sources. 5 consumer outputs. Closes feedback loop to PricingConfig (L0), AGT-201 ICP model, and AGT-205 MarketAssumptions.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Six input signals: NPS verbatim + score, CSAT + comments, support ticket themes, ConvIntelligence (feature requests, objections, competitor mentions), CSM call notes + QBR outcomes, product usage patterns (adoption gap analysis). Monthly deep synthesis: full theme clustering across all sources. Weekly digest: anomaly flags and emerging themes from new signals only. Five consumer outputs: Product (feature themes, adoption gaps), RevOps (ICP refinement signals), Marketing (messaging gaps from objections), Finance/RevOps (pricing feedback for PricingConfig review), CRO (monthly org-wide executive narrative).</div>
+        <div class="detail-lbl">Feedback loops</div><div class="detail-val">AGT-201 ICP Scorer: ICP refinement signals flag when observed customer outcome patterns diverge from current scoring weights — input for RevOps-driven weight recalibration. AGT-205 MarketAssumptions: customer adoption patterns feed market sizing assumption updates. PricingConfig (L0): pricing objection patterns and value perception signals routed to Finance for review — VoC surfaces signal, Finance decides. AGT-702 GTM Health Monitor: customer sentiment trend included as a health signal in L7.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>VoCSynthesisLog</code> — per synthesis run: theme clusters (JSON), ICP refinement signals (JSON), pricing feedback (JSON), messaging gaps (JSON), CRO summary (text, monthly only). <code>VoCSignalLog</code> — individual signal records before synthesis. Denormalized segment + vertical fields on each record for cohort analysis without joins.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">First agent in the OS to create a feedback loop from customer outcomes back to L0 policy tables and L2 scoring models.</span> Closes the NRR loop: customer experience signals now systematically inform ICP model, pricing decisions, and market assumptions — not just reactive health monitoring. VoCSignalLog.included_in_synthesis field provides full traceability from raw signal to synthesized output.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v20→v21: Layer 7 — Measurement & Feedback                              -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L7">
+  <div class="version-hdr">
+    <span class="version-pill">v20 → v21</span>
+    <span class="version-date">Layer 7 — Measurement &amp; Feedback</span>
+    <span class="version-summary">3 agents specced (AGT-703 gap preserved) — Rep performance, GTM health, win-loss/forecast accuracy, business reviews. 8 new tables. FP&amp;APlan versioning extended.</span>
+  </div>
+
+  <div class="entry" data-layer="L7" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-701<span class="layer-tag lt-l7">L7</span></span>
+      <span class="agent-name">Rep Performance &amp; Coaching</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Role-parameterized coaching (AE/AM/CSM/SDR). Monthly digest + daily flag. SDR Coaching folded in as role module.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Role-parameterized across AE, AM, CSM, and SDR — shared skeleton, role-specific metric inputs. SDR Coaching folded in as a role module (not a separate agent). Monthly digest: manager-approved before delivery to rep, contains skill gap assessment, trend commentary, and recommended next action. Daily flag: fires only on critical threshold breach (attainment &lt;50% with ≤6 weeks remaining in period). Differentiated artifacts: rep receives coaching, manager receives pattern summary across their book.</div>
+        <div class="detail-lbl">Escalation model</div><div class="detail-val">Attainment &lt;50% with ≤6 weeks remaining → SLM notified concurrently with manager. Same pattern 3+ consecutive weeks unresolved → automatic SLM escalation regardless of manager action. Manager cannot suppress the auto-escalation.</div>
+        <div class="detail-lbl">L6 new inputs</div><div class="detail-val">Four new coaching signals available from L6: TTV performance vs target (AGT-601 OnboardingLog), onboarding milestone velocity (AGT-601), QBR outcome quality (AGT-603 QBRLog), MAP commitment follow-through (AGT-601 MutualActionPlan). These supplement the existing ConvIntelligence objection handling and AGT-405 deal advance quality signals from L4.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>RepSkillAssessmentLog</code> — per-rep per-period skill gap detection across role-specific dimensions. <code>RepCoachingLog</code> — coaching pattern tracking, manager approval state, delivery timestamp, rep acknowledgment.</div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 7 spec session — net new agent. SDR Coaching previously earmarked as a separate agent; folded in as role-parameterized module to avoid redundant infrastructure.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">RepCoachingLog becomes a new input for AGT-703 bias detection</span> — sustained coaching patterns on specific deal types or verticals can surface systematic forecast bias. <span class="impact-neutral">SDR consolidation reduces agent count from planned 40 to 39. AGT-703 gap preserves the intentional blank.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L7" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-702<span class="layer-tag lt-l7">L7</span></span>
+      <span class="agent-name">GTM Health Monitor</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">5 canonical GTM efficiency metrics. Cadenced snapshots only. MetricsCalcLog as write target. FP&amp;APlan versioned comparison. RevOps-first alert routing.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Computes and persists five canonical GTM efficiency metrics on cadence: Magic Number (revenue basis — never ARR), Rule of 40 (three variants: EBITDA, FCF, operating margin), NRR (&gt;110% target), GRR (&gt;85% target), CAC Payback (&lt;18 months target). All computed values written to MetricsCalcLog as the canonical persisted source — downstream agents read from MetricsCalcLog, never recompute. Snapshot model only: weekly (NRR trajectory + pipeline coverage), monthly (Magic Number, NRR/GRR actuals, R40), quarterly (CAC Payback, trailing averages). No continuous monitoring.</div>
+        <div class="detail-lbl">Plan comparison</div><div class="detail-val">Every MetricsCalcLog row includes four reference points: FP&amp;APlan current version (0+12 → 1+11 → 2+10 rolling), board-approved plan (is_board_plan flag), prior period actuals from MetricsCalcLog history, AGT-402 forward forecast vs plan target.</div>
+        <div class="detail-lbl">Alert routing</div><div class="detail-val">RevOps only — they triage and escalate. AGT-702 never routes directly to CRO, Finance, or reps. Calibration recommendations (quota, capacity, ICP weight recalibration) surface via AGT-704 MBR synthesis — not AGT-702.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>MetricsCalcLog</code> — one row per metric per period per snapshot run. Fields: snapshot_date, cadence, metric_name, metric_value, plan_version, plan_target, board_plan_target, prior_period_value, pct_of_plan, data_gap, data_gap_reason. <code>FP&amp;APlan extended</code>: plan_version (0+12 format), reforecast_as_of_date, is_board_plan fields added.</div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 7 spec session — net new agent. FP&amp;APlan versioning extension propagates to AGT-402 and AGT-404 which now reference current plan_version for pct_of_target comparisons.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">MetricsCalcLog is the first OS table to persist computed efficiency metrics as queryable data</span> — prior period comparisons and trend analysis now available without recomputation. <span class="impact-green">FP&amp;APlan versioning enables accurate plan-vs-actual comparisons</span> as the operating plan rolls forward through the year. AGT-703 reads MetricsCalcLog for historical metric context in forecast accuracy analysis.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L7" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-703<span class="layer-tag lt-l7">L7</span></span>
+      <span class="agent-name">— Intentionally blank —</span>
+      <div class="change-type"><span class="ct ct-update">Registry gap</span></div>
+      <span class="entry-summary">AGT-703 slot preserved intentionally. Same pattern as AGT-306. Win-Loss &amp; Forecast Accuracy assigned to the next available slot.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Decision</div><div class="detail-val">AGT-703 is intentionally blank. The Win-Loss &amp; Forecast Accuracy agent was originally scoped as AGT-703 but the slot was preserved blank during spec session due to agent consolidation decisions. Same pattern as AGT-306 (Rep Daily Briefing). Registry records the gap as a deliberate decision, not an omission.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">No functional impact. Total OS agent count is 39, not 40. Do not renumber. Do not backfill.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L7" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-704<span class="layer-tag lt-l7">L7</span></span>
+      <span class="agent-name">Business Review Orchestrator</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">WBR / MBR / exec QBR across three cadences. Pre-flight staleness gate. Hybrid MBR pull model. Structured doc + slides + BI payload. Action item owner routing.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Three cadence artifacts: WBR (5 sections — weekly, FLM + SLM + RevOps full + Finance read-only on sections 1 and 5), MBR (8 sections — monthly, broader leadership), exec QBR (7 sections — quarterly, board-ready). Every cadence produces three output formats: structured document, slides, and BI payload. Pre-flight staleness gate runs before every artifact generation — if any upstream source is stale, AGT-704 flags the gap and holds until data is current or human overrides.</div>
+        <div class="detail-lbl">MBR pull model</div><div class="detail-val">Hybrid. WBR narrative roll-up carries forward into MBR as section 1 context. Remaining MBR sections pull fresh from source tables (MetricsCalcLog, ChurnRiskLog, ExpansionLog, CalibrationSignalLog). This avoids a full recompute while ensuring metrics are current at MBR time.</div>
+        <div class="detail-lbl">Action items</div><div class="detail-val">Action items auto-assigned to owners via routing rules derived from item type and content. Routing rules: metric miss → RevOps owner; rep coaching → SLM owner; customer risk → AM owner; calibration signal → owning agent team. Humans confirm before distribution — never auto-sent. Action item lifecycle tracked in ActionItemLog.</div>
+        <div class="detail-lbl">Calibration surface</div><div class="detail-val">AGT-703 CalibrationSignalLog is surfaced in MBR section 6. AGT-704 contextualizes calibration signals (quota, comp, ICP, forecast model adjustments) for leadership review — it does not make the recalibration recommendation autonomously. Humans decide; AGT-704 presents the case.</div>
+        <div class="detail-lbl">On-cadence only</div><div class="detail-val">AGT-704 stays on cadence regardless of mid-period events (major deal wins/losses, leadership changes, market events). No unscheduled exec artifacts. If an urgent situation requires a brief, that is a human-authored document — not an AGT-704 output.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>BusinessReviewLog</code> — one row per cadence run. Fields: cadence type, artifact versions (doc/slides/BI payload links), staleness_gate_result, upstream_sources_checked, override_by (if staleness overridden). <code>ActionItemLog</code> — one row per action item. Fields: source_review_id, owner, routing_rule_applied, status, due_date, confirmed_at, closed_at.</div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Layer 7 spec session — net new agent.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">First agent in the OS to produce board-ready artifacts</span> — exec QBR output is designed for external consumption. <span class="impact-green">ActionItemLog closes the accountability gap</span> in business reviews — action items now have owners, due dates, and tracked resolution. <span class="impact-neutral">Staleness gate creates a forcing function</span> for upstream agents to stay on schedule — AGT-704 will not paper over stale data.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v24→v25: Layer 8 — Revenue Operations                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L8">
+  <div class="version-hdr">
+    <span class="version-pill">v24 → v25</span>
+    <span class="version-date">Layer 8 — Revenue Operations</span>
+    <span class="version-summary">4 agents specced — Order management, billing, payment health, revenue recognition. 11 new tables. Finance-owned. UsageMeteringLog is the unified usage data source for all OS agents.</span>
+  </div>
+
+  <div class="entry" data-layer="L8" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-801</span>
+      <span class="agent-name">Order Management</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Accepted quote → order form → billing handoff. Two-track parallel approval. Mid-term amendments. Re-scores deal independently of AGT-406.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Converts AGT-406 accepted quote into a legally binding order form. Order form adds to the quote: legal entity names + billing address, payment terms, auto-renewal clause + notice period, governing law, MSA reference, SOW reference (if services), commit frequency (monthly/quarterly/annual, rampable), all billable SKUs with unit prices + commitment amounts, total contract value. AGT-801 re-scores the deal (0–100, R/Y/G) against the order form terms — not inherited from AGT-406's quote score.</div>
+        <div class="detail-lbl">Approval model</div><div class="detail-val">Two independent tracks: (1) Pricing/deal terms: Green = auto-approve; Yellow = Finance Director; Red = Finance VP + CRO. (2) Legal terms: Green = auto-approve; Yellow = Legal Director; Red = Legal VP + CRO. Both tracks must clear independently. Pricing corrections always require Finance Director minimum regardless of score.</div>
+        <div class="detail-lbl">Amendments</div><div class="detail-val">Three amendment triggers: seat expansion, SKU add, pricing correction. Each generates an AmendmentLog record and re-routes through the approval chain. Original order is versioned, not overwritten.</div>
+        <div class="detail-lbl">Integration</div><div class="detail-val">Billing contact written to OrderLog by AGT-801 is the target for AGT-504 Customer Communications on price change events. AGT-601 reads QuoteLog + OrderLog for pre-close onboarding plan context.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>OrderLog</code>, <code>OrderLineItems</code>, <code>OrderApprovalLog</code>, <code>AmendmentLog</code></div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes the quote → legal contract gap</span> — the OS now covers the full commercial lifecycle from pricing proposal (AGT-406) through signed legal order form. <span class="impact-neutral">AGT-504's billing contact routing now has a reliable data source</span> — OrderLog is the authoritative record of who the billing contact is.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L8" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-802</span>
+      <span class="agent-name">Billing &amp; Invoicing</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Invoice generation across 3 billing types. SOW milestone billing. Credit memos and refunds with 4 trigger sources and rep submission path.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Three billing types: recurring (seat license — monthly/quarterly/annual per contract), consumption (always monthly — reads UsageMeteringLog for units consumed vs commit, overage billed separately), SOW milestone (event-driven — fires on TechnicalMilestoneLog customer sign-off or manual Finance entry). Amendment deltas billed on amendment approval (pro-rated seat expansion, credit for pricing correction).</div>
+        <div class="detail-lbl">Credit memos + refunds</div><div class="detail-val">Four trigger sources: customer dispute, billing error, contract downgrade, rep submission (manager approval → Finance Director approval — two-step gate). Finance Director minimum approval on all credit events. Billing errors always require Finance Director regardless of amount.</div>
+        <div class="detail-lbl">SOW milestone gate</div><div class="detail-val">Customer sign-off required (TechnicalMilestoneLog.customer_sign_off = TRUE) before AGT-802 invoices. IE completion alone does not trigger billing. Manual Finance entry accepted as equivalent signal when AGT-602 is not active.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>InvoiceLog</code>, <code>InvoiceLineItems</code>, <code>CreditMemoLog</code></div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Consumption and seat billing are now unified in the OS schema</span> — separate invoices per billing type per account are tracked in InvoiceLog and visible to AGT-803 for payment monitoring. <span class="impact-neutral">Rep credit submission path creates a governed channel</span> for sales-initiated billing adjustments without Finance having to manage ad hoc requests.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L8" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-803</span>
+      <span class="agent-name">Payment Health Monitor</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">3 retries (10–20 min / next BD / following BD). Finance-first escalation. Failed → Finance + AM. Suspended → Finance + AM + SLM. Writes payment_health_status to CustomerHealthLog.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Tracks payment status across all invoices. 3 retry maximum: Retry 1 at 10–20 minutes, Retry 2 next business day, Retry 3 following business day. Finance notified on Retries 1 and 2. Finance + AM notified simultaneously on Retry 3 failure. Suspended state is Finance-initiated (not automatic) — Finance + AM + SLM all notified simultaneously.</div>
+        <div class="detail-lbl">Health states</div><div class="detail-val">Current (no modifier) → Overdue (score capped at 77) → Failed (score capped at 62) → Suspended (score floored at Critical). States are per-account — one overdue invoice puts the account in Overdue state regardless of other invoices. Resolves to Current only when all outstanding invoices are paid.</div>
+        <div class="detail-lbl">AGT-501 feed</div><div class="detail-val">Writes payment_health_status to CustomerHealthLog on every status change. Non-blocking — if AGT-803 not live, AGT-501 skips the modifier and scores on behavioral dimensions alone. Modifier applied last in AGT-501 scoring sequence so cap/floor is visible as a distinct adjustment.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>PaymentEventLog</code> — one row per payment event (attempt, failure, retry, success, escalation)</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">AGT-501 payment modifier is now fully operational</span> — specced in v19 but the feed was always a planned integration. AGT-803 makes it live. <span class="impact-amber">AM notification at Failed status</span> means relationship owners now know about payment issues before customers lose access — previously this happened after Finance had already escalated externally.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L8" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-804</span>
+      <span class="agent-name">Revenue Recognition</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">ASC 606 recognition by SKU type. Deferred revenue schedules for accounting system. UsageMeteringLog as unified usage source for AGT-702, AGT-503, AGT-501, AGT-402.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Net new agent. Three recognition methods: seat licenses = straight-line ratable (TCV ÷ term months, begins on term_start regardless of invoice payment); consumption = usage recognized as consumed per UsageMeteringLog (no deferred revenue); professional services = milestone delivery on customer sign-off (each milestone is an independent performance obligation). AGT-804 writes DeferredRevenueSchedule for accounting system journal entries — it computes the schedule, the accounting system posts journals.</div>
+        <div class="detail-lbl">UsageMeteringLog</div><div class="detail-val">One row per account per SKU per metering period. External product system is the data source — AGT-804 receives the feed. Multiple OS agents read from UsageMeteringLog: AGT-804 (recognition), AGT-802 (consumption invoicing), AGT-503 (expansion signals — overage +40 pts, seat utilization >80% for 2+ months +30 pts), AGT-501 (seat utilization dimension, 18 pts max). Single external integration point; all consumers downstream of it.</div>
+        <div class="detail-lbl">GTM OS feeds</div><div class="detail-val">AGT-702 reads RevenueRecognitionLog for recognized revenue in Magic Number calculation — not billed revenue. AGT-503 usage threshold events bypass AGT-503's scheduled daily cycle and trigger directly. AGT-501 seat utilization dimension replaces any prior usage data references with UsageMeteringLog.</div>
+        <div class="detail-lbl">Schema adds</div><div class="detail-val"><code>RevenueRecognitionLog</code>, <code>DeferredRevenueSchedule</code>, <code>UsageMeteringLog</code></div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">AGT-702 Magic Number now uses recognized revenue</span> — the canonical efficiency metric is now computed on the correct basis (ASC 606 recognized, not billed). <span class="impact-green">UsageMeteringLog is the single metering integration point</span> — AGT-501 seat utilization and AGT-503 expansion signals no longer require separate product system integrations. <span class="impact-amber">L5/L6 ripple pending</span>: AGT-501 and AGT-503 specs should be updated to reference UsageMeteringLog explicitly, replacing any prior generic usage data source references.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v25→v26: L5 ripple from UsageMeteringLog + Rep Agent Builder Guide v2  -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L5">
+  <div class="version-hdr">
+    <span class="version-pill">v25 (no schema change)</span>
+    <span class="version-date">L5 ripple + Rep Agent Builder Guide v2</span>
+    <span class="version-summary">AGT-501 and AGT-503 specs updated to reference UsageMeteringLog explicitly. Rep Agent Builder Guide updated for L5–L7.</span>
+  </div>
+
+  <div class="entry" data-layer="L5" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-501<span class="layer-tag lt-l5">L5</span></span>
+      <span class="agent-name">Customer Health Monitor</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L8</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">Seat utilization dimension explicitly reads UsageMeteringLog. CSM call filter uses call_owner_role = 'CSM'.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change 1</div><div class="detail-val">Seat utilization dimension (18 pts max) now explicitly reads <code>UsageMeteringLog WHERE account_id = [account] AND sku_id LIKE 'SKU-SEAT%'</code>. Prior spec referenced "AGT-804 usage data feed" without naming the table. Non-blocking — if no UsageMeteringLog records exist for the account, dimension remains data_gap as before.</div>
+        <div class="detail-lbl">Change 2</div><div class="detail-val">ConvIntelligence adjustment now explicitly filters <code>call_owner_role = 'CSM'</code> (v23 field). Selling-role calls (AE, SDR, SE) excluded from customer health adjustment — they are deal activity signals, not customer health signals.</div>
+        <div class="detail-lbl">Schema change</div><div class="detail-val">None. UsageMeteringLog and call_owner_role already exist. Prompt-only delta.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Seat utilization dimension is now fully operational</span> — the data source is explicit and AGT-804 populates it. <span class="impact-green">CSM call filter prevents selling-role conversations from inflating customer health scores.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L5" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-503<span class="layer-tag lt-l5">L5</span></span>
+      <span class="agent-name">Expansion Trigger Agent</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple from L8</span><span class="ct ct-prompt">Prompt delta</span></div>
+      <span class="entry-summary">Consumption overage and seat utilization signals explicitly read UsageMeteringLog. Immediate bypass of scheduled cycle confirmed on threshold events.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Two expansion signals now explicitly source from UsageMeteringLog: (1) Consumption overage (+40 pts): <code>UsageMeteringLog WHERE overage_units &gt; 0 AND period_end = [most recent closed period]</code> — immediate trigger, bypasses scheduled daily cycle. (2) Seat utilization &gt;80% for 2+ months (+30 pts): <code>UsageMeteringLog WHERE (units_consumed / commit_units) &gt; 0.80</code> for 2+ consecutive periods — immediate trigger. AGT-804 threshold events push UsageMeteringLog writes in real-time; AGT-503 listens and fires on new records rather than waiting for the next scheduled run.</div>
+        <div class="detail-lbl">Schema change</div><div class="detail-val">None. UsageMeteringLog already exists. Prompt-only delta.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Usage-driven expansion signals are now fully wired end-to-end</span> — AGT-804 receives product metering data, writes UsageMeteringLog, AGT-503 reads it and fires immediately on threshold breach. No intermediate manual step or batch delay.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L5" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id" style="font-family:Arial;font-size:11px">Enablement</span>
+      <span class="agent-name">Rep Agent Builder Guide v2</span>
+      <div class="change-type"><span class="ct ct-update">Update</span></div>
+      <span class="entry-summary">Guide updated for L5–L7 tables. 5 new use case cards. 2 new example prompts. Schema reference extended to all layers.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Rep Agent Builder Guide updated from schema v17 (L1–L4 only) to v25 (L1–L7). New use case cards: customer health alerts (AM/CSM), expansion opportunities (AM/CSM), QBR prep (AM/CSM), onboarding status (CSM/AM), coaching plan (all roles). New example prompts: customer health + renewal focus, QBR prep for specific account, coaching plan summary. Schema reference extended with L5 (CustomerHealthLog, ChurnRiskLog, ExpansionLog), L6 (OnboardingLog, MutualActionPlan, QBRLog, VoCSynthesisLog), and L7 (RepSkillAssessmentLog, RepCoachingLog, MetricsCalcLog, BusinessReviewLog, ActionItemLog) tables. New guardrail added: don't share internal QBR content externally.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">AM and CSM roles now have first-class use cases in the guide</span> — v1 was predominantly AE/SDR facing. <span class="impact-neutral">No schema or agent behavior changes. Enablement artifact only.</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</div><!-- end #log -->
+
+<div class="footer">
+GTM OS Agent Changelog · Current schema: v25 · OS spec complete — all layers L1–L8 specced and ripple-audited · 40 active agents<br>
+v25 additions: OrderLog, OrderLineItems, OrderApprovalLog, AmendmentLog (AGT-801) · InvoiceLog, InvoiceLineItems, CreditMemoLog (AGT-802) · PaymentEventLog (AGT-803) · RevenueRecognitionLog, DeferredRevenueSchedule, UsageMeteringLog (AGT-804)<br>
+Post-v25 spec updates (no schema change): AGT-501 UsageMeteringLog seat utilization wire · AGT-503 UsageMeteringLog usage signal wire · Rep Agent Builder Guide v2 (L5–L7)<br>
+Changelog last updated: All spec work complete — GTM OS fully specced, ripple-audited, and documented
+</div>
+
+<script>
+function tog(hdr){
+  const body=hdr.nextElementSibling;
+  const chev=hdr.querySelector('.chevron');
+  const open=body.classList.toggle('open');
+  chev.classList.toggle('open',open);
+}
+function filterAll(){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.entry,.version-block').forEach(e=>e.style.display='');
+  updateCount();
+}
+function filterLayer(l){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.version-block').forEach(vb=>{
+    const show=vb.dataset.layer===l||vb.dataset.layer===undefined;
+    vb.style.display=show?'':'none';
+  });
+  document.querySelectorAll('.entry').forEach(e=>{
+    e.style.display=e.dataset.layer===l?'':'none';
+  });
+  updateCount();
+}
+function filterType(t){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.version-block').forEach(vb=>vb.style.display='');
+  document.querySelectorAll('.entry').forEach(e=>{
+    e.style.display=e.dataset.type===t?'':'none';
+  });
+  updateCount();
+}
+function updateCount(){
+  const vis=[...document.querySelectorAll('.entry')].filter(e=>e.style.display!=='none').length;
+  document.getElementById('cnt').textContent=vis+' entries';
+}
+updateCount();
+</script>
+</body>
+</html>

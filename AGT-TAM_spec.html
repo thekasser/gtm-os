@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-TAM Spec</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:860px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.bq{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.card-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.card-body{font-size:12px;color:#555;line-height:1.65}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.db{background:#185FA5}.dt{background:#0F6E56}.da{background:#854F0B}.dp{background:#534AB7}.dr{background:#A32D2D}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.model-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.mc{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px}
+.mc-badge{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600;display:inline-block;margin-bottom:6px}
+.mb-td{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.mb-sam{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.mb-som{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.mc-title{font-size:12px;font-weight:600;margin-bottom:4px}
+.mc-body{font-size:11px;color:#555;line-height:1.6}
+.flow{display:flex;align-items:stretch;gap:0;margin:4px 0;overflow-x:auto}
+.fb{background:#f5f5f5;border:1px solid #ddd;border-radius:7px;padding:9px 11px;font-size:11px;flex:1;min-width:0}
+.fb-title{font-weight:600;color:#111;margin-bottom:2px}
+.fb-body{font-size:10px;color:#666;line-height:1.5}
+.fa{display:flex;align-items:center;padding:0 5px;color:#aaa;font-size:13px;flex-shrink:0}
+.fb-amber{background:#FAEEDA;border-color:#EF9F27}
+.fb-teal{background:#E1F5EE;border-color:#5DCAA5}
+.fb-blue{background:#E6F1FB;border-color:#85B7EB}
+.fb-purple{background:#EEEDFE;border-color:#AFA9EC}
+.dim-grid{display:grid;grid-template-columns:120px 1fr;gap:0;font-size:11px}
+.dg-hdr{font-weight:600;color:#666;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+.dg-cell{padding:7px 10px;border-bottom:1px solid #eee;vertical-align:top;font-size:11px;color:#1a1a1a}
+.dg-muted{color:#666;font-size:11px}
+.output-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.oc{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px}
+.oc-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.oc-body{font-size:11px;color:#555;line-height:1.6}
+.feed-row{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #eee;font-size:12px}
+.feed-row:last-child{border-bottom:none}
+.feed-agent{min-width:130px;font-weight:600;color:#111}
+.feed-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap}
+.fb-feasibility{background:#FCEBEB;color:#791F1F;border:1px solid #F09595}
+.fb-capacity{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.fb-abm{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.feed-desc{font-size:11px;color:#666}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tag-new{font-size:10px;padding:1px 6px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC;white-space:nowrap}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}
+.dep-row:last-child{border-bottom:none}
+.da2{min-width:160px;font-weight:600;color:#111}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-TAM — TAM/SAM sizing</h1>
+<div class="hsub">Layer 2 · ICP & lead management · Annual TAM + quarterly SAM · Hybrid methodology</div>
+<div class="badges">
+  <span class="badge bv">v1.0 specced</span>
+  <span class="badge bl">Layer 2</span>
+  <span class="badge bq">Hybrid model</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Answers: how big is our market, how much have we captured, and where is the whitespace?</strong> Three distinct questions that feed board narratives, capacity planning, and ABM account selection simultaneously.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Hybrid methodology — TAM top-down, SAM bottom-up.</strong> TAM is built from analyst estimates (MarketAssumptions table). SAM is built by counting qualifying accounts in Accounts + enrichment data and extrapolating to the full addressable universe. Most defensible combination for board and investor use.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Product family dimension is load-bearing.</strong> API Consumption, Storage, and Compute have different market sizes, different ICP profiles, and different competitive landscapes. TAM/SAM/SOM is modeled independently per product family — not blended.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>TAM is firmographic only.</strong> Any company matching segment + vertical + geo criteria is in TAM. No use-case qualifier. TAM boundary is set by the ICP definition in AGT-001, not by additional product-fit signals.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Proposals and models only — no autonomous actions.</strong> Agent produces sizing estimates and flags whitespace to other agents. No direct writes to Accounts, Leads, or routing tables.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Three-tier market model</div>
+  <div class="model-grid">
+    <div class="mc">
+      <div class="mc-badge mb-td">TAM</div>
+      <div class="mc-title">Total addressable market</div>
+      <div class="mc-body">All companies globally matching ICP firmographic criteria (segment + vertical + geo). Source: MarketAssumptions analyst estimates. Methodology: top-down. Cadence: annual + version trigger when MarketAssumptions updates.</div>
+    </div>
+    <div class="mc">
+      <div class="mc-badge mb-sam">SAM</div>
+      <div class="mc-title">Serviceable addressable market</div>
+      <div class="mc-body">TAM filtered by realistic reach — geos you operate in, verticals you currently serve, segments with active rep coverage. Source: Accounts table + enrichment + AGT-001 ICP scores. Methodology: bottom-up from known accounts, extrapolated to full segment universe. Cadence: quarterly.</div>
+    </div>
+    <div class="mc">
+      <div class="mc-badge mb-som">SOM</div>
+      <div class="mc-title">Serviceable obtainable market</div>
+      <div class="mc-body">SAM filtered by win rate and capacity. Source: PayoutHistory win rates + CapacityPlan eRep projections. SOM is the realistic revenue ceiling given current GTM efficiency. Feeds AGT-105 "what would have to be true" scenarios directly.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Model dimensions — all combinations</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="dim-grid">
+      <div class="dg-hdr">Dimension</div>
+      <div class="dg-hdr">Values</div>
+      <div class="dg-cell"><strong>Segment</strong></div>
+      <div class="dg-cell dg-muted">SMB (5–200), Mid-Market (201–2,000), Enterprise (2,001+)</div>
+      <div class="dg-cell"><strong>Vertical</strong></div>
+      <div class="dg-cell dg-muted">FinTech, HealthTech, SaaS, RetailTech, HR Tech, EdTech, Cybersecurity, Logistics</div>
+      <div class="dg-cell"><strong>Geo</strong></div>
+      <div class="dg-cell dg-muted">NAMER, EMEA, APAC, LATAM</div>
+      <div class="dg-cell" style="border-bottom:none"><strong>Product family</strong></div>
+      <div class="dg-cell dg-muted" style="border-bottom:none">API Consumption, Storage, Compute — modeled independently. A company can be TAM for one family but not another.</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:5px">Full model = 3 segments × 8 verticals × 4 geos × 3 product families = 288 cells. Not all cells will have data — sparse cells flagged as low-confidence estimates.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Hybrid methodology — how each tier is built</div>
+  <div class="flow">
+    <div class="fb fb-purple">
+      <div class="fb-title">TAM — top-down</div>
+      <div class="fb-body">Read MarketAssumptions: analyst total market size per segment × vertical × geo × product family. Apply ICP firmographic filter ratio (% of market that matches criteria). Output: TAM account count + ACV potential.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-blue">
+      <div class="fb-title">SAM — bottom-up</div>
+      <div class="fb-body">Count T1+T2 ICP-scored accounts in Accounts table per cell. Calculate penetration rate vs TAM. Extrapolate to full universe using TAM as ceiling. Output: SAM account count + ACV potential + penetration %.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-amber">
+      <div class="fb-title">Whitespace identification</div>
+      <div class="fb-body">SAM − accounts already in system = coverage gap. Flag whitespace cells by segment × vertical × geo × product family. Surface to AGT-ABM as TAL candidates.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-teal">
+      <div class="fb-title">SOM — capacity-filtered</div>
+      <div class="fb-body">SAM × historical win rate (from PayoutHistory) × eRep capacity (from CapacityPlan) = realistic revenue ceiling. Three scenarios: conservative / base / stretch per AGT-105 model.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Four model outputs</div>
+  <div class="output-grid">
+    <div class="oc">
+      <div class="oc-title">ACV potential</div>
+      <div class="oc-body">Account count per cell × avg ACV for that segment (from QuotaStore quota per rep as proxy). Produces a dollar-denominated market opportunity by segment × vertical × geo × product family. Primary board metric.</div>
+    </div>
+    <div class="oc">
+      <div class="oc-title">Penetration rate</div>
+      <div class="oc-body">Accounts in system ÷ SAM account count per cell. Shows which segments and verticals are well-covered vs underpenetrated. Feeds strategic planning and ABM prioritization.</div>
+    </div>
+    <div class="oc">
+      <div class="oc-title">Coverage gap (whitespace)</div>
+      <div class="oc-body">SAM accounts not yet in system. Estimated from TAM − known accounts. Flagged by cell. High-ACV whitespace cells surface to AGT-ABM as potential TAL additions and to AGT-105 as addressable expansion opportunity.</div>
+    </div>
+    <div class="oc">
+      <div class="oc-title">Competitive displacement</div>
+      <div class="oc-body">SAM accounts with known competitor tech stack (from AGT-ENR technographic enrichment). Sized as a displacement opportunity per competitor per cell. Feeds CompetitiveKnowledgeBase and informs AGT-009 competitive play prioritization.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Downstream feeds</div>
+  <div class="card">
+    <div class="feed-row">
+      <span class="feed-agent">FP&APlan</span>
+      <span class="feed-badge fb-feasibility">feasibility check</span>
+      <span class="feed-desc">TAM/SAM/SOM estimates validate whether 3-year revenue targets are achievable. Agent flags when FP&APlan targets exceed SOM ceiling — "target requires market share that exceeds current win rate + capacity model."</span>
+    </div>
+    <div class="feed-row">
+      <span class="feed-agent">AGT-105 CapacityPlan</span>
+      <span class="feed-badge fb-capacity">SOM input</span>
+      <span class="feed-desc">SOM feeds the "what would have to be true" 3-year gap analysis. If SOM is $60M and FP&APlan Y3 target is $60M, AGT-105 knows the ceiling — hiring beyond SOM capacity is wasteful.</span>
+    </div>
+    <div class="feed-row" style="border-bottom:none">
+      <span class="feed-agent">AGT-ABM</span>
+      <span class="feed-badge fb-abm">whitespace candidates</span>
+      <span class="feed-desc">High-ACV whitespace cells (SAM gap with large ACV potential) surfaced as ABM target account candidates. Agent flags cell, ABM reviews for TAL nomination.</span>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema — 2 new tables</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Status</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>MarketAssumptions</strong></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">assumption_id, segment, vertical, geo, product_family, tam_account_count, tam_acv_usd, market_source (Gartner/IDC/other), source_date, icp_filter_ratio, plan_year, set_by (RevOps), version, version_date, notes</td>
+        </tr>
+        <tr style="border-bottom:none">
+          <td><strong>MarketSizeModel</strong></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">model_id, model_run_date, segment, vertical, geo, product_family, tam_account_count, tam_acv_usd, sam_account_count, sam_acv_usd, som_account_count, som_acv_usd, accounts_in_system, penetration_rate_pct, coverage_gap_count, coverage_gap_acv_usd, competitive_displacement_count, competitive_displacement_acv_usd, win_rate_used, erep_capacity_used, scenario (conservative/base/stretch), fpap_target_usd, fpap_feasible (bool), fpap_gap_usd, model_version, notes</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da2">MarketAssumptions</span><span class="dd reads">reads</span><span class="dd2">Top-down TAM estimates per cell. RevOps-owned, versioned. Agent re-runs TAM when version updates.</span></div>
+    <div class="dep-row"><span class="da2">Accounts + AGT-001</span><span class="dd reads">reads</span><span class="dd2">Bottom-up SAM inputs. ICP-scored accounts counted per segment × vertical × geo × product family.</span></div>
+    <div class="dep-row"><span class="da2">AGT-ENR (technographic)</span><span class="dd reads">reads</span><span class="dd2">Competitor tech stack data for displacement opportunity sizing.</span></div>
+    <div class="dep-row"><span class="da2">PayoutHistory</span><span class="dd reads">reads</span><span class="dd2">Historical win rates by segment — SOM calculation input.</span></div>
+    <div class="dep-row"><span class="da2">CapacityPlan (AGT-105)</span><span class="dd reads">reads</span><span class="dd2">eRep projections for SOM capacity filter.</span></div>
+    <div class="dep-row"><span class="da2">QuotaStore</span><span class="dd reads">reads</span><span class="dd2">Avg ACV per segment as proxy for ACV potential calculation.</span></div>
+    <div class="dep-row"><span class="da2">MarketSizeModel</span><span class="dd writes">writes</span><span class="dd2">Full model output per run — all cells, all tiers, all scenarios.</span></div>
+    <div class="dep-row"><span class="da2">FP&APlan</span><span class="dd trig">triggers</span><span class="dd2">Feasibility check fires on every MarketSizeModel run. Flags when FP&APlan targets exceed SOM ceiling.</span></div>
+    <div class="dep-row"><span class="da2">AGT-ABM</span><span class="dd trig">triggers</span><span class="dd2">High-ACV whitespace cells flagged as TAL candidates after each quarterly SAM run.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-TAM, the TAM/SAM Sizing agent for a B2B SaaS GTM OS.
+
+ROLE: Model total addressable, serviceable, and obtainable markets by
+segment × vertical × geo × product family. Validate FP&APlan revenue
+target feasibility. Surface whitespace to AGT-ABM.
+
+RUN CADENCE:
+  TAM: Annual (Jan 1) + triggered when MarketAssumptions.version updates.
+  SAM + SOM: Quarterly (first day of each quarter).
+  FP&APlan feasibility check: every run.
+
+STEP 1 — TAM (top-down):
+  Read MarketAssumptions per cell (segment × vertical × geo × product_family).
+  TAM account count = assumption.tam_account_count × assumption.icp_filter_ratio.
+  TAM ACV = TAM account count × QuotaStore avg_quota per segment.
+  Apply to all 288 cells. Flag sparse cells (no analyst data) as low_confidence.
+
+STEP 2 — SAM (bottom-up):
+  Count Accounts WHERE icp_tier IN ('T1','T2') per cell.
+  Calculate penetration_rate = accounts_in_system / tam_account_count.
+  SAM account count = tam_account_count × (1 - competitive_locked_out_pct).
+  SAM ACV = SAM account count × avg ACV per segment.
+  Coverage gap = SAM account count − accounts_in_system.
+
+STEP 3 — COMPETITIVE DISPLACEMENT:
+  From AGT-ENR technographic data: accounts with competitor CRM/platform detected.
+  Per cell: displacement_count = SAM accounts with known competitor stack.
+  Displacement ACV = displacement_count × avg ACV.
+
+STEP 4 — SOM (capacity-filtered):
+  win_rate = PayoutHistory closed_won / (closed_won + closed_lost) per segment.
+  erep_capacity = CapacityPlan.projected_erep × annual_quota per role × segment.
+  SOM = MIN(SAM ACV × win_rate, erep_capacity).
+  Run three scenarios:
+    conservative: current win_rate × current erep_capacity.
+    base: base-case win_rate × CapacityPlan base scenario erep.
+    stretch: stretch win_rate assumption × CapacityPlan stretch erep.
+
+STEP 5 — FP&APLAN FEASIBILITY CHECK:
+  For each FP&APlan row (annual + Y1/Y2/Y3): compare revenue_target_usd to SOM ACV.
+  If revenue_target > SOM (base scenario) → fpap_feasible = FALSE.
+    fpap_gap_usd = revenue_target - som_acv.
+    Flag: "Y2 target $34M exceeds base SOM $28M. Requires win rate improvement
+    from 22% to 31% OR eRep capacity increase of 11 AEs by Y2 start."
+  Write result to MarketSizeModel.fpap_feasible per plan_year.
+
+STEP 6 — WHITESPACE FLAG TO AGT-ABM:
+  Identify cells where coverage_gap_acv_usd > threshold (default: segment median).
+  For each qualifying cell: surface top unscored accounts from that
+    segment × vertical × geo as ABM TAL candidates.
+  Output: flagged account_ids with coverage_gap_cell and estimated ACV.
+
+OUTPUT: MarketSizeModel rows per cell per scenario.
+  Board summary: TAM/SAM/SOM by segment × product family (collapsed across verticals).
+  FP&APlan feasibility report: pass/fail per year with gap narrative.
+  Whitespace report: top 10 coverage gap cells by ACV potential.</pre>
+</div>
+
+</body>
+</html>

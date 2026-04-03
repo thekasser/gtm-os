@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-702 — GTM Health Monitor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-schema{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:11px;padding:10px 14px;border-radius:8px;line-height:1.6;margin-top:10px}
+.alert-amber{background:#FAEEDA;border:1px solid #EF9F27;color:#633806}
+.alert-green{background:#E1F5EE;border:1px solid #5DCAA5;color:#085041}
+.alert-blue{background:#E6F1FB;border:1px solid #85B7EB;color:#0C447C}
+.metric-card{border:1px solid #e4e4e4;border-radius:10px;padding:14px;margin-bottom:10px}
+.metric-name{font-size:13px;font-weight:700;color:#0D1B2A;margin-bottom:6px}
+.metric-formula{font-family:monospace;font-size:12px;background:#f5f5f5;padding:6px 10px;border-radius:6px;color:#333;margin-bottom:8px}
+.metric-meta{display:grid;grid-template-columns:120px 1fr;gap:4px 10px;font-size:11px}
+.metric-lbl{color:#888;font-weight:600;padding-top:2px}
+.metric-val{color:#333;line-height:1.6}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.decision-table td:first-child{font-weight:600;color:#444;width:240px}
+</style>
+</head>
+<body>
+
+<h1>AGT-702 — GTM Health Monitor</h1>
+<div class="subtitle">Layer 7: Measurement &amp; Feedback · Canonical GTM efficiency metrics · Cadenced snapshot model</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L7 · Agent 02</span>
+  <span class="badge badge-status">Specced · v21</span>
+  <span class="badge badge-schema">Schema adds: MetricsCalcLog, FP&amp;APlan versioning extension</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-702 is the canonical source for GTM efficiency metrics. It computes, persists, and reports the five core metrics — Magic Number, Rule of 40 (three variants), NRR, GRR, and CAC Payback — on a cadenced snapshot basis. It measures actuals against FP&amp;APlan versioned targets and prior period benchmarks, and routes metric snapshots to AGT-704 for WBR/MBR synthesis. It does not produce narrative or calibration recommendations — those belong to AGT-704. AGT-702 is metrics computation and reporting only.</p>
+</div>
+
+<!-- ── CANONICAL METRICS ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Canonical metrics</div>
+  <p class="prose" style="margin-bottom:14px">Five metric families. All computed values written to <code>MetricsCalcLog</code> as the canonical persisted source. Downstream agents read from MetricsCalcLog — never recompute.</p>
+
+  <div class="metric-card">
+    <div class="metric-name">1. Magic Number</div>
+    <div class="metric-formula">Magic Number = Net New Revenue (period) ÷ S&amp;M Spend (prior period)</div>
+    <div class="metric-meta">
+      <span class="metric-lbl">Revenue basis</span><span class="metric-val">Revenue (not ARR) — canonical, never changes</span>
+      <span class="metric-lbl">Net new revenue</span><span class="metric-val">New logo revenue + expansion revenue − churn revenue for the period</span>
+      <span class="metric-lbl">S&amp;M spend</span><span class="metric-val">PayoutHistory (TI spend) + MarketingHC loaded cost + sales HC loaded cost from CapacityPlan. Same basis used for CAC Payback.</span>
+      <span class="metric-lbl">Source tables</span><span class="metric-val"><code>Revenue</code>, <code>PayoutHistory</code>, <code>CapacityPlan</code>, <code>SpendByQuarter</code>, <code>MarketingHC</code></span>
+      <span class="metric-lbl">Target</span><span class="metric-val">&gt;1.0 = efficient growth; &lt;0.75 = efficiency concern</span>
+      <span class="metric-lbl">Cadence</span><span class="metric-val">Monthly snapshot (quarterly trailing average also persisted)</span>
+    </div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-name">2. Rule of 40 — Three variants</div>
+    <div class="metric-formula">Variant A: Revenue Growth % + EBITDA Margin %</div>
+    <div class="metric-formula">Variant B: Revenue Growth % + FCF Margin %</div>
+    <div class="metric-formula">Variant C: Revenue Growth % + Operating Margin %</div>
+    <div class="metric-meta">
+      <span class="metric-lbl">Why three</span><span class="metric-val">EBITDA, FCF, and operating margin tell different stories about cost discipline and capital efficiency. All three stored independently in MetricsCalcLog — not aggregated.</span>
+      <span class="metric-lbl">Revenue growth</span><span class="metric-val">YoY revenue growth % from <code>Revenue</code> table</span>
+      <span class="metric-lbl">Margin sources</span><span class="metric-val">Finance-provided via <code>SpendByQuarter</code>. If FCF or EBITDA not available, variant flagged as <code>data_gap</code> in MetricsCalcLog — does not block other variants.</span>
+      <span class="metric-lbl">Target</span><span class="metric-val">≥40 combined = healthy; all three variants tracked independently</span>
+      <span class="metric-lbl">Cadence</span><span class="metric-val">Quarterly (monthly revenue growth available; margin data quarterly)</span>
+    </div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-name">3. Net Revenue Retention (NRR)</div>
+    <div class="metric-formula">NRR = (Beginning ARR + Expansion − Churn − Downsell) ÷ Beginning ARR × 100</div>
+    <div class="metric-meta">
+      <span class="metric-lbl">Source tables</span><span class="metric-val"><code>Revenue</code>, <code>ChurnRiskLog</code> (AGT-502 churn actuals), <code>ExpansionLog</code> (AGT-503 expansion actuals)</span>
+      <span class="metric-lbl">Target</span><span class="metric-val">&gt;110% — canonical threshold, never changes</span>
+      <span class="metric-lbl">Weekly input</span><span class="metric-val">AGT-502 NRR risk summary feeds forward-looking NRR trajectory. Actuals reconciled monthly.</span>
+      <span class="metric-lbl">Cadence</span><span class="metric-val">Monthly actuals + weekly trajectory from AGT-502 risk summary</span>
+    </div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-name">4. Gross Revenue Retention (GRR)</div>
+    <div class="metric-formula">GRR = (Beginning ARR − Churn − Downsell) ÷ Beginning ARR × 100</div>
+    <div class="metric-meta">
+      <span class="metric-lbl">Distinction from NRR</span><span class="metric-val">GRR excludes expansion — measures pure retention quality. NRR can mask churn with expansion. Both required.</span>
+      <span class="metric-lbl">Source tables</span><span class="metric-val"><code>Revenue</code>, <code>ChurnRiskLog</code> (AGT-502 actuals)</span>
+      <span class="metric-lbl">Target</span><span class="metric-val">&gt;85% — canonical threshold, never changes</span>
+      <span class="metric-lbl">Cadence</span><span class="metric-val">Monthly</span>
+    </div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-name">5. CAC Payback Period</div>
+    <div class="metric-formula">CAC Payback = CAC ÷ (ACV × Gross Margin %) expressed in months</div>
+    <div class="metric-meta">
+      <span class="metric-lbl">CAC</span><span class="metric-val">Total S&amp;M spend ÷ new logos acquired in period. S&amp;M spend same basis as Magic Number.</span>
+      <span class="metric-lbl">Gross margin</span><span class="metric-val">From <code>SpendByQuarter</code> + <code>Revenue</code> — Finance-provided or computed from available cost data</span>
+      <span class="metric-lbl">Source tables</span><span class="metric-val"><code>Revenue</code>, <code>PayoutHistory</code>, <code>CapacityPlan</code>, <code>SpendByQuarter</code>, <code>Opportunities</code> (new logo count)</span>
+      <span class="metric-lbl">Target</span><span class="metric-val">&lt;18 months — canonical threshold, never changes</span>
+      <span class="metric-lbl">Cadence</span><span class="metric-val">Quarterly (monthly new logo counts too noisy for monthly CAC)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── PLAN VS ACTUAL ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Plan vs actual comparison model</div>
+  <p class="prose" style="margin-bottom:12px">Every MetricsCalcLog row includes a plan comparison. AGT-702 measures actuals against four reference points simultaneously.</p>
+  <table>
+    <tr><th>Reference point</th><th>Source</th><th>Notes</th></tr>
+    <tr><td><strong>FP&amp;APlan versioned target</strong></td><td><code>FP&amp;APlan</code> — current plan version</td><td>0+12 at year start. Rolls to 1+11, 2+10, etc. as actuals close. AGT-702 always reads the most current version via <code>plan_version</code> field.</td></tr>
+    <tr><td><strong>Board-approved plan</strong></td><td><code>FP&amp;APlan</code> — <code>is_board_plan = TRUE</code></td><td>May differ from current operating plan. Stored as a separate version in FP&amp;APlan. CRO and Finance use board plan as external benchmark.</td></tr>
+    <tr><td><strong>Prior period actuals</strong></td><td><code>MetricsCalcLog</code> — prior rows</td><td>QoQ and YoY comparison computed from persisted MetricsCalcLog history. This is why MetricsCalcLog must persist — prior period comparisons require historical rows.</td></tr>
+    <tr><td><strong>AGT-402 forward forecast</strong></td><td><code>Opportunities</code>, AGT-402 output</td><td>Forward-looking: where is the business tracking vs plan for the remainder of the period? Lagging metrics compared to plan; leading forecast compared to plan target.</td></tr>
+  </table>
+  <div class="note"><strong>FP&amp;APlan schema extension (v21):</strong> Three fields added — <code>plan_version</code> (string: "0+12", "1+11", "2+10", etc.), <code>reforecast_as_of_date</code> (date), <code>is_board_plan</code> (boolean). AGT-702, AGT-402, and AGT-404 always join on the most current plan_version for operating comparisons; is_board_plan flag isolates the external benchmark version.</div>
+</div>
+
+<!-- ── SNAPSHOT CADENCE ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Snapshot cadence</div>
+  <table>
+    <tr><th>Cadence</th><th>Metrics computed</th><th>Consumer</th></tr>
+    <tr><td><strong>Weekly</strong></td><td>NRR trajectory (from AGT-502 weekly digest), pipeline coverage vs plan, AGT-402 forward forecast vs FP&amp;APlan</td><td>AGT-704 WBR, RevOps</td></tr>
+    <tr><td><strong>Monthly</strong></td><td>Magic Number, NRR actuals, GRR, all R40 variants (if margin data available), all plan comparisons</td><td>AGT-704 MBR, RevOps, CRO (via AGT-704)</td></tr>
+    <tr><td><strong>Quarterly</strong></td><td>CAC Payback, R40 variants (margin finalized), trailing 4Q averages for all metrics</td><td>AGT-704 exec QBR, board package</td></tr>
+  </table>
+  <div class="alert-box alert-blue" style="margin-top:8px">No continuous monitoring. Snapshot cadence is correct for efficiency metrics. Mid-period deterioration on lagging metrics (Magic Number, R40, CAC Payback) reflects planned investment activity, not operational failure. Fast-moving alerts live in AGT-401, AGT-502, and AGT-402 — the agents closest to those signals.</div>
+</div>
+
+<!-- ── ALERT ROUTING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Alert routing</div>
+  <p class="prose" style="margin-bottom:12px">AGT-702 routes to RevOps only. RevOps triages and escalates. AGT-702 never routes directly to CRO, Finance, or individual reps.</p>
+  <table>
+    <tr><th>Condition</th><th>Alert type</th><th>Recipient</th></tr>
+    <tr><td>Magic Number &lt; 0.75 for two consecutive periods</td><td>Efficiency flag</td><td>RevOps → RevOps triages CRO escalation</td></tr>
+    <tr><td>NRR trajectory below 110% threshold</td><td>Retention risk flag</td><td>RevOps (AGT-502 also fires directly to AM — not duplicated here)</td></tr>
+    <tr><td>GRR below 85%</td><td>Churn quality flag</td><td>RevOps</td></tr>
+    <tr><td>CAC Payback &gt; 18 months</td><td>Efficiency flag</td><td>RevOps</td></tr>
+    <tr><td>Any metric &gt; 20% below FP&amp;APlan target for current period</td><td>Plan miss flag</td><td>RevOps → RevOps triages CRO + Finance escalation</td></tr>
+    <tr><td>Upstream data stale (MetricsCalcLog not refreshed on schedule)</td><td>Data quality flag</td><td>RevOps</td></tr>
+  </table>
+  <div class="note">RevOps is the single triage point for all AGT-702 alerts. This prevents alert fatigue at the CRO level and ensures context is added before escalation. If a sustained metric miss implies a need to revisit quota (AGT-101), capacity (AGT-105), or ICP weights (AGT-201), that recommendation surfaces through AGT-704 MBR synthesis. AGT-702 flags the miss; AGT-704 contextualizes it; humans decide.</div>
+</div>
+
+<!-- ── SCHEMA ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema additions (v21)</div>
+  <div class="subsection-title">MetricsCalcLog — net new table</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+    <tr><td><code>log_id</code></td><td>PK</td><td>One row per metric per period per snapshot run</td></tr>
+    <tr><td><code>snapshot_date</code></td><td>date</td><td>Date of computation</td></tr>
+    <tr><td><code>cadence</code></td><td>enum</td><td>weekly / monthly / quarterly</td></tr>
+    <tr><td><code>metric_name</code></td><td>string</td><td>magic_number, r40_ebitda, r40_fcf, r40_operating, nrr, grr, cac_payback</td></tr>
+    <tr><td><code>metric_value</code></td><td>float</td><td>Computed value for this period</td></tr>
+    <tr><td><code>plan_version</code></td><td>string</td><td>FP&amp;APlan version used for comparison (e.g. "1+11")</td></tr>
+    <tr><td><code>plan_target</code></td><td>float</td><td>FP&amp;APlan target for this metric + period</td></tr>
+    <tr><td><code>board_plan_target</code></td><td>float</td><td>Board plan target for external benchmark comparison</td></tr>
+    <tr><td><code>prior_period_value</code></td><td>float</td><td>Prior period actuals from MetricsCalcLog history. NULL on first run.</td></tr>
+    <tr><td><code>pct_of_plan</code></td><td>float</td><td>metric_value ÷ plan_target × 100. Derived field.</td></tr>
+    <tr><td><code>data_gap</code></td><td>boolean</td><td>TRUE if upstream data unavailable for this metric this period. Does not block other metrics.</td></tr>
+    <tr><td><code>data_gap_reason</code></td><td>string</td><td>Nullable. Reason if data_gap = TRUE.</td></tr>
+  </table>
+
+  <div class="subsection-title" style="margin-top:16px">FP&amp;APlan extension (v21)</div>
+  <table>
+    <tr><th>Field added</th><th>Type</th><th>Notes</th></tr>
+    <tr><td><code>plan_version</code></td><td>string</td><td>"0+12" at year start. Updates to "1+11", "2+10", etc. as actuals close each month.</td></tr>
+    <tr><td><code>reforecast_as_of_date</code></td><td>date</td><td>Date this version was produced. Enables version history.</td></tr>
+    <tr><td><code>is_board_plan</code></td><td>boolean</td><td>TRUE for the board-approved version. Only one row per year should have this = TRUE.</td></tr>
+  </table>
+</div>
+
+<!-- ── DEPENDENCY MODEL ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Upstream dependency model</div>
+  <table>
+    <tr><th>Table</th><th>Dependency type</th><th>If unavailable</th></tr>
+    <tr><td><code>Revenue</code></td><td>Hard</td><td>Agent does not run. Magic Number, NRR, GRR, CAC all blocked.</td></tr>
+    <tr><td><code>FP&amp;APlan</code></td><td>Hard</td><td>Agent does not run. Plan comparisons are core output.</td></tr>
+    <tr><td><code>PayoutHistory</code></td><td>Hard</td><td>S&amp;M spend incomplete. Magic Number and CAC Payback cannot compute.</td></tr>
+    <tr><td><code>SpendByQuarter</code></td><td>Soft</td><td>R40 margin variants flagged as data_gap. Other metrics unaffected.</td></tr>
+    <tr><td><code>ChurnRiskLog</code> (AGT-502)</td><td>Soft</td><td>NRR trajectory (weekly) unavailable. Monthly NRR actuals computed from Revenue directly.</td></tr>
+    <tr><td><code>ExpansionLog</code> (AGT-503)</td><td>Soft</td><td>Expansion component of NRR read from Revenue directly. ExpansionLog provides enriched context only.</td></tr>
+    <tr><td><code>VoCSynthesisLog</code> (AGT-604)</td><td>Soft</td><td>Customer sentiment trend excluded from snapshot. Not a metric input — contextual only, surfaced via AGT-704.</td></tr>
+    <tr><td>AGT-804 revenue recognition</td><td>Soft</td><td>Non-blocking. If L8 not live, Revenue table used directly. AGT-804 provides cleaner recognized revenue vs billed.</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  AGT-702 GTM Health Monitor · Layer 7 · Schema v21<br>
+  New tables: MetricsCalcLog<br>
+  FP&amp;APlan extended: plan_version, reforecast_as_of_date, is_board_plan fields<br>
+  Reads from: Revenue, SpendByQuarter, PayoutHistory, CapacityPlan, MarketingHC, FP&amp;APlan, Opportunities, ChurnRiskLog (AGT-502), ExpansionLog (AGT-503), VoCSynthesisLog (AGT-604), AGT-804 revenue recognition (when live)<br>
+  Feeds: AGT-704 (WBR/MBR/exec QBR), AGT-703 (historical metric comparisons), RevOps (snapshot alerts)
+</div>
+
+</body>
+</html>

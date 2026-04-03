@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-ABM Spec</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:860px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.bq{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.card-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.card-body{font-size:12px;color:#555;line-height:1.65}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.db{background:#185FA5}.dt{background:#0F6E56}.da{background:#854F0B}.dp{background:#534AB7}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.seg-grid{display:grid;grid-template-columns:100px 1fr 1fr 1fr;gap:0;font-size:11px}
+.sg-hdr{font-weight:600;color:#666;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+.sg-cell{padding:6px 10px;border-bottom:1px solid #eee;vertical-align:top;color:#1a1a1a;font-size:11px}
+.sg-muted{color:#666;font-size:11px}
+.tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tier-card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px}
+.tier-title{font-size:13px;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:8px}
+.tier-body{font-size:12px;color:#555;line-height:1.65}
+.t1-badge{font-size:10px;padding:2px 8px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC;font-weight:600}
+.tfew-badge{font-size:10px;padding:2px 8px;border-radius:8px;background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB;font-weight:600}
+.flow{display:flex;align-items:stretch;gap:0;margin:6px 0;overflow-x:auto}
+.fb{background:#f5f5f5;border:1px solid #ddd;border-radius:7px;padding:9px 11px;font-size:11px;flex:1;min-width:0}
+.fb-title{font-weight:600;color:#111;margin-bottom:2px}
+.fb-body{font-size:10px;color:#666;line-height:1.5}
+.fa{display:flex;align-items:center;padding:0 5px;color:#aaa;font-size:13px;flex-shrink:0}
+.fb-amber{background:#FAEEDA;border-color:#EF9F27}
+.fb-teal{background:#E1F5EE;border-color:#5DCAA5}
+.fb-purple{background:#EEEDFE;border-color:#AFA9EC}
+.fb-blue{background:#E6F1FB;border-color:#85B7EB}
+.impact-row{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #eee;font-size:12px}
+.impact-row:last-child{border-bottom:none}
+.impact-agent{min-width:110px;font-weight:600;color:#111}
+.impact-change{font-size:11px;padding:2px 8px;border-radius:8px;font-weight:600;white-space:nowrap}
+.ic-lock{background:#FCEBEB;color:#791F1F;border:1px solid #F09595}
+.ic-seq{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.ic-supp{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.impact-desc{font-size:11px;color:#666}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tag-new{font-size:10px;padding:1px 6px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC;white-space:nowrap}
+.tag-hook{font-size:10px;padding:1px 6px;border-radius:8px;background:#FAEEDA;color:#633806;border:1px solid #EF9F27;white-space:nowrap}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee;font-size:12px}
+.dep-row:last-child{border-bottom:none}
+.da2{min-width:160px;font-weight:600;color:#111}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-ABM — Account-based marketing</h1>
+<div class="hsub">Layer 2 · ICP & lead management · Quarterly + event-triggered · Target account selection</div>
+<div class="badges">
+  <span class="badge bv">v1.0 specced</span>
+  <span class="badge bl">Layer 2</span>
+  <span class="badge bq">Quarterly TAL review</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Target account selection only.</strong> AGT-ABM identifies and tiers T1 accounts for ABM treatment. It does not own outreach execution — that lives in AGT-003. It does not own engagement analytics — that lives downstream. Scope is deliberately narrow.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>T1 accounts only — high-touch overlay.</strong> ABM is not a mass-market motion. Only ICP T1 accounts (score ≥80) are eligible. Enterprise gets full treatment. Mid-Market gets a lighter version. SMB enters only via SLM nomination.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Agent proposes, humans tier and confirm.</strong> Agent scores and ranks candidates. Rep confirms 1:1 assignments. FLM confirms 1:few cluster groupings. Neither goes live without human sign-off.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>ABM status has three concrete downstream effects.</strong> Named account lock in AGT-002 (no segment manager fallback), bespoke sequence trigger in AGT-003, and marketing suppression in AGT-006. ABM status does not change SLA or routing priority.</div></div>
+    <div class="phi"><div class="dot db"></div><div class="pt"><strong>Intent data enrichment hook specced, not yet wired.</strong> Schema includes intent signal fields as placeholders. Third-party API (Bombora, G2) integration is a future enhancement. Fields present but nullable in v1.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Segment-differentiated ABM treatment</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="seg-grid">
+      <div class="sg-hdr">Segment</div>
+      <div class="sg-hdr">Entry criteria</div>
+      <div class="sg-hdr">Available tiers</div>
+      <div class="sg-hdr">Approval</div>
+      <div class="sg-cell"><strong>Enterprise</strong></div>
+      <div class="sg-cell sg-muted">ICP T1 (≥80) + firmographic signal. Agent auto-proposes.</div>
+      <div class="sg-cell sg-muted">1:1 and 1:few</div>
+      <div class="sg-cell sg-muted">Rep confirms 1:1. FLM confirms 1:few.</div>
+      <div class="sg-cell"><strong>Mid-Market</strong></div>
+      <div class="sg-cell sg-muted">ICP T1 (≥80) + strong firmographic signal (funding or leadership change). Higher bar than Enterprise.</div>
+      <div class="sg-cell sg-muted">1:few only</div>
+      <div class="sg-cell sg-muted">FLM confirms cluster.</div>
+      <div class="sg-cell" style="border-bottom:none"><strong>SMB</strong></div>
+      <div class="sg-cell sg-muted" style="border-bottom:none">SLM nomination only. Agent does not auto-propose SMB accounts.</div>
+      <div class="sg-cell sg-muted" style="border-bottom:none">1:few only</div>
+      <div class="sg-cell sg-muted" style="border-bottom:none">SMB SLM nominates + FLM confirms.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">ABM tier model</div>
+  <div class="tier-grid">
+    <div class="tier-card">
+      <div class="tier-title"><span class="t1-badge">1:1 — bespoke</span></div>
+      <div class="tier-body">Single named account. Fully bespoke play — custom content, personalized outreach sequence, direct AE + marketing alignment. Enterprise only. Agent proposes based on ICP score + ACV potential + firmographic signal strength. Rep must confirm before account is activated.</div>
+    </div>
+    <div class="tier-card">
+      <div class="tier-title"><span class="tfew-badge">1:few — cluster</span></div>
+      <div class="tier-body">3–8 accounts grouped by shared industry or pain point. Same core content with light account-level personalization. Enterprise and Mid-Market eligible. SMB via SLM nomination only. Agent proposes clusters based on vertical + signal similarity. FLM confirms cluster composition before activation.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Selection signal model</div>
+  <div class="card">
+    <div class="card-title">Agent scoring — T1 candidates ranked by composite signal</div>
+    <div class="card-body">
+      <strong>ICP score (AGT-001)</strong> — Primary filter. Must be ≥80 (T1) to enter candidate pool. Score above 80 used as a continuous ranking signal — 95 ranks above 82.<br><br>
+      <strong>Firmographic signals</strong> — Secondary scoring layer. Funding round in last 90 days (+weight). Headcount growth ≥20% YoY (+weight). Leadership change (new CRO, CTO, CMO) in last 60 days (+weight). These are the triggers that indicate a buying window has opened.<br><br>
+      <strong>Rep/FLM input</strong> — Human override layer. Reps can nominate accounts not in the agent's top list. Reps can remove accounts the agent proposed. All nominations and removals logged with reason in TAL.<br><br>
+      <strong>Intent data hook (v1 placeholder)</strong> — Fields present but nullable. When third-party intent API is connected, intent score becomes a third scoring dimension weighted alongside ICP score and firmographic signals.
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">TAL governance — quarterly + event-triggered</div>
+  <div class="flow">
+    <div class="fb fb-blue">
+      <div class="fb-title">Agent proposes</div>
+      <div class="fb-body">Scores all T1 accounts. Ranks by composite signal. Generates proposed 1:1 list and 1:few cluster groupings by segment.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-amber">
+      <div class="fb-title">Rep/FLM review</div>
+      <div class="fb-body">Rep confirms or removes 1:1 accounts. FLM confirms or adjusts 1:few clusters. Adds nominations. 10-business-day review window.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-purple">
+      <div class="fb-title">SLM sign-off</div>
+      <div class="fb-body">SLM reviews final TAL before activation. Enterprise SLM for Enterprise + MM accounts. SMB SLM for any SMB nominations.</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-teal">
+      <div class="fb-title">TAL activated</div>
+      <div class="fb-body">TargetAccountList rows set to active. ABM flags set on Accounts. AGT-002 lock, AGT-003 sequence, AGT-006 suppression all take effect.</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:6px">Event-triggered mid-quarter refresh: major firmographic signal change (funding round, C-suite hire) on a non-TAL T1 account → agent flags for expedited review outside quarterly cycle. Rep has 5 business days to confirm or pass.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Downstream impact on other agents</div>
+  <div class="card">
+    <div class="impact-row">
+      <span class="impact-agent">AGT-002 Lead Router</span>
+      <span class="impact-change ic-lock">named account lock</span>
+      <span class="impact-desc">ABM accounts cannot route to segment manager fallback. If named rep is routing_eligible = FALSE, account is held — not redirected. Preserves relationship ownership.</span>
+    </div>
+    <div class="impact-row">
+      <span class="impact-agent">AGT-003 Outreach</span>
+      <span class="impact-change ic-seq">ABM sequence type</span>
+      <span class="impact-desc">ABM flag on account triggers a bespoke (1:1) or cluster-personalized (1:few) sequence instead of standard cold outreach. ABM playbook type passed as input to AGT-003.</span>
+    </div>
+    <div class="impact-row" style="border-bottom:none">
+      <span class="impact-agent">AGT-006 Nurture</span>
+      <span class="impact-change ic-supp">marketing suppression</span>
+      <span class="impact-desc">ABM accounts are excluded from generic nurture campaigns. No automated marketing touches while ABM play is active. Prevents channel conflict with the bespoke ABM play.</span>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema — 3 new tables</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Status</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>TargetAccountList</strong></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">tal_id, account_id, account_name, segment, abm_tier (1:1 / 1:few), cluster_id (FK for 1:few groupings), icp_score_at_selection, firmographic_signal_score, intent_score (nullable — v1 hook), rep_confirmed_by, rep_confirmed_date, flm_confirmed_by, flm_confirmed_date, slm_approved_by, slm_approved_date, status (proposed/active/paused/exited), activation_date, quarterly_review_date, exit_reason, notes</td>
+        </tr>
+        <tr>
+          <td><strong>ABMPlaybook</strong></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">playbook_id, abm_tier (1:1 / 1:few), segment, play_name, play_description, sequence_type (passed to AGT-003), content_theme, personalization_level (full / light), marketing_channels, sales_motion, duration_weeks, success_metric, version, effective_date</td>
+        </tr>
+        <tr style="border-bottom:none">
+          <td><strong>ABMEngagementLog</strong></td>
+          <td><span class="tag-new">new</span></td>
+          <td class="mono">engagement_id, tal_id, account_id, touch_type (email / call / event / ad / content), touch_date, channel (sales / marketing), rep_or_campaign, engagement_signal (opened / clicked / attended / replied), intent_score_delta (nullable), notes</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:5px">Intent signal fields (intent_score, intent_score_delta) are present as nullable placeholders. Third-party API integration populates them in a future version. Accounts table extended with abm_active (bool) and abm_tier fields — AGT-002 and AGT-006 read these flags directly.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da2">AGT-001 ICP Scorer</span><span class="dd reads">reads</span><span class="dd2">icp_score, icp_tier — primary filter and ranking signal. T1 gate is non-negotiable.</span></div>
+    <div class="dep-row"><span class="da2">Accounts</span><span class="dd reads">reads</span><span class="dd2">Firmographic signals (funding, headcount growth, leadership changes). Writes abm_active + abm_tier flags post-activation.</span></div>
+    <div class="dep-row"><span class="da2">TerritoryDefinitions</span><span class="dd reads">reads</span><span class="dd2">Confirms named account ownership before proposing 1:1 assignment — agent won't propose an account with no named rep.</span></div>
+    <div class="dep-row"><span class="da2">TargetAccountList</span><span class="dd writes">writes</span><span class="dd2">Primary output. All TAL proposals, confirmations, activations, and exits.</span></div>
+    <div class="dep-row"><span class="da2">ABMPlaybook</span><span class="dd writes">writes</span><span class="dd2">Play definitions per tier. Maintained by marketing leadership, versioned by agent.</span></div>
+    <div class="dep-row"><span class="da2">ABMEngagementLog</span><span class="dd writes">writes</span><span class="dd2">All sales and marketing touches on ABM accounts logged here.</span></div>
+    <div class="dep-row"><span class="da2">AGT-002 Lead Router</span><span class="dd trig">triggers</span><span class="dd2">Named account lock activates when TAL status → active. ABM accounts cannot fall back to segment manager.</span></div>
+    <div class="dep-row"><span class="da2">AGT-003 Outreach</span><span class="dd trig">triggers</span><span class="dd2">ABM sequence type passed on lead routing. Different sequence from standard cold outreach.</span></div>
+    <div class="dep-row"><span class="da2">AGT-006 Nurture</span><span class="dd trig">triggers</span><span class="dd2">Suppression flag set on TAL activation. ABM accounts excluded from generic nurture.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-ABM, the Account-Based Marketing agent for a B2B SaaS GTM OS.
+
+ROLE: Identify and tier T1 accounts for ABM treatment. Produce quarterly TAL proposals
+and manage event-triggered mid-cycle additions. You do not own outreach execution.
+
+SCOPE: Target account selection only. T1 accounts (ICP score ≥80) only.
+Segment treatment: Enterprise = 1:1 and 1:few eligible.
+  Mid-Market = 1:few only (higher firmographic signal bar).
+  SMB = SLM nomination only — agent does not auto-propose.
+
+QUARTERLY TAL PROCESS:
+1. Pull all T1 accounts (Accounts.icp_tier = 'T1') not currently on active TAL.
+2. Score each by: icp_score (primary) + firmographic_signal_score (secondary)
+     + intent_score IF available (tertiary, nullable).
+3. Firmographic scoring: funding_round_90d (+0.15 weight),
+     headcount_growth_yoy ≥20% (+0.10), leadership_change_60d (+0.12).
+4. Rank candidates by composite score per segment.
+5. Propose top N accounts as 1:1 (Enterprise only, ACV ≥ segment median).
+6. Propose cluster groupings as 1:few (3–8 accounts per cluster, shared vertical + signal).
+     Verify named rep exists in TerritoryDefinitions before proposing any account.
+7. Write TargetAccountList rows with status = 'proposed'.
+8. Open 10-business-day review window for rep/FLM confirmation.
+9. SLM sign-off required before status → active.
+
+APPROVAL CHAIN:
+  1:1 proposals → rep confirms (or removes with reason) → SLM approves.
+  1:few proposals → FLM confirms cluster composition → SLM approves.
+  SMB accounts → SLM nominates → FLM confirms → activate.
+
+EVENT-TRIGGERED MID-CYCLE:
+  Monitor Accounts for firmographic signal changes on T1 non-TAL accounts.
+  Triggers: new funding round, C-suite hire (CRO/CTO/CMO), headcount spike ≥30%.
+  On trigger: flag for expedited review. Rep has 5 business days to confirm or pass.
+
+TAL ACTIVATION (on final approval):
+  Set TargetAccountList.status = 'active'.
+  Write Accounts.abm_active = TRUE, Accounts.abm_tier = [1:1 or 1:few].
+  Notify AGT-002 (named account lock), AGT-003 (sequence type), AGT-006 (suppress).
+
+TAL EXIT:
+  Account exits TAL when: ICP score drops below T1 threshold, deal closes (won or lost),
+    or rep/SLM removes at quarterly review. Set status = 'exited', log exit_reason.
+  Clear Accounts.abm_active = FALSE on exit.
+
+OUTPUT: TargetAccountList proposals (JSON) + quarterly TAL review summary.
+  Summary: proposed adds, proposed exits, current TAL composition by segment and tier.</pre>
+</div>
+
+</body>
+</html>

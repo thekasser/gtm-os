@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-601 — Onboarding Orchestrator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f9fa;color:#1a1a1a;padding:2rem;font-size:13px}
+.wrap{max-width:1020px;margin:0 auto}
+.doc-title{font-size:22px;font-weight:700;color:#111;margin-bottom:4px}
+.doc-sub{font-size:12px;color:#6b7280;margin-bottom:6px;line-height:1.6}
+.doc-note{font-size:11px;color:#888;padding:8px 12px;background:#f5f5f5;border-radius:8px;margin-bottom:28px;border-left:3px solid #ddd;line-height:1.6}
+.agent-block{margin-bottom:44px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff}
+.hdr-601{background:linear-gradient(135deg,#faf5ff 0%,#ede9fe 100%)}
+.hdr-602{background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%)}
+.hdr-603{background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)}
+.hdr-604{background:linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%)}
+.agent-hdr{padding:18px 20px 14px;border-bottom:1px solid #f0f0f0}
+.agent-id{font-family:monospace;font-size:11px;font-weight:700;letter-spacing:.04em;margin-bottom:5px}
+.id-601{color:#6d28d9}.id-602{color:#0369a1}.id-603{color:#166534}.id-604{color:#c2410c}
+.agent-name{font-size:20px;font-weight:700;color:#111;margin-bottom:4px}
+.agent-purpose{font-size:13px;color:#4b5563;line-height:1.6;max-width:820px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.badge{font-size:10px;font-weight:600;padding:2px 9px;border-radius:6px}
+.b-new{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.b-schema{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd}
+.b-ripple{background:#faece7;color:#712B13;border:1px solid #F0997B}
+.b-comp{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5}
+.b-l4{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.body-pad{padding:20px}
+.section{margin-bottom:22px}
+.section-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:10px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.card-title{font-size:12px;font-weight:600;color:#111;margin-bottom:5px}
+.card-body{font-size:12px;color:#4b5563;line-height:1.7}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#f9fafb;text-align:left;padding:7px 10px;font-weight:600;color:#374151;border-bottom:1px solid #e5e7eb;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f3f4f6;color:#4b5563;vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:none}
+.schema-pill{display:inline-block;font-family:monospace;font-size:10px;background:#f0f0f0;padding:1px 6px;border-radius:4px;color:#444;border:1px solid #e0e0e0}
+.new-pill{font-size:9px;font-weight:700;background:#dcfce7;color:#166534;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #86efac;display:inline-block}
+.upd-pill{font-size:9px;font-weight:700;background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #7dd3fc;display:inline-block}
+.l0-pill{font-size:9px;font-weight:700;background:#ede9fe;color:#5b21b6;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #c4b5fd;display:inline-block}
+.comp-note{background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;padding:8px 12px;font-size:11px;color:#b91c1c;line-height:1.6;margin-bottom:12px}
+.ripple-note{background:#faece7;border:1px solid #F0997B;border-radius:6px;padding:8px 12px;font-size:11px;color:#712B13;line-height:1.6;margin-bottom:12px}
+.info-note{background:#f0f9ff;border:1px solid #7dd3fc;border-radius:6px;padding:8px 12px;font-size:11px;color:#0369a1;line-height:1.6;margin-bottom:12px}
+.step-list{display:flex;flex-direction:column}
+.step-row{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #f3f4f6}
+.step-row:last-child{border-bottom:none}
+.step-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.sn-601{background:#ede9fe;color:#5b21b6}
+.sn-602{background:#e0f2fe;color:#0369a1}
+.sn-603{background:#dcfce7;color:#166534}
+.sn-604{background:#ffedd5;color:#c2410c}
+.step-title{font-size:12px;font-weight:600;color:#111;margin-bottom:3px}
+.step-body{font-size:12px;color:#4b5563;line-height:1.6}
+.trigger-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.trigger-card{border-radius:8px;padding:12px 14px;border:1px solid}
+.tc-auto{background:#fef9c3;border-color:#fde047}
+.tc-manual{background:#f0fdf4;border-color:#86efac}
+.tc-close{background:#f0f9ff;border-color:#7dd3fc}
+.trigger-type{font-size:12px;font-weight:700;margin-bottom:5px}
+.tc-auto .trigger-type{color:#854d0e}
+.tc-manual .trigger-type{color:#166534}
+.tc-close .trigger-type{color:#0369a1}
+.milestone-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ms-card{border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;background:#f9fafb}
+.ms-num{font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:3px}
+.ms-name{font-size:12px;font-weight:600;color:#111;margin-bottom:3px}
+.ms-detail{font-size:11px;color:#4b5563;line-height:1.5}
+.comp-gate{background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:14px;margin-bottom:8px}
+.comp-gate-title{font-size:12px;font-weight:700;color:#b91c1c;margin-bottom:8px}
+.comp-row{font-size:12px;color:#4b5563;padding:5px 0;border-bottom:1px solid #fee2e2;line-height:1.5}
+.comp-row:last-child{border-bottom:none}
+.map-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.map-card{border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px}
+.map-card-title{font-size:11px;font-weight:700;color:#374151;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.map-detail{font-size:11px;color:#4b5563;line-height:1.6}
+.onb-health-flow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.ohf-card{border-radius:8px;padding:10px 12px;border:1px solid}
+.ohf-onb{background:#faf5ff;border-color:#c4b5fd}
+.ohf-trans{background:#f9fafb;border-color:#e5e7eb;text-align:center;display:flex;align-items:center;justify-content:center}
+.ohf-health{background:#f0fdf4;border-color:#86efac}
+.ohf-title{font-size:11px;font-weight:700;margin-bottom:4px}
+.ohf-onb .ohf-title{color:#5b21b6}
+.ohf-health .ohf-title{color:#166534}
+.ohf-body{font-size:11px;color:#4b5563;line-height:1.5}
+.section-card{border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:8px}
+.sc-row{display:grid;grid-template-columns:28px 160px 1fr 80px;gap:0;border-bottom:1px solid #f3f4f6;align-items:start}
+.sc-row:last-child{border-bottom:none}
+.sc-hdr{background:#f9fafb;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase}
+.sc-cell{padding:8px 10px;font-size:12px;color:#4b5563;border-right:1px solid #f3f4f6;line-height:1.5}
+.sc-cell:last-child{border-right:none}
+.sc-num{font-weight:700;color:#374151;text-align:center}
+.sc-name{font-weight:600;color:#111}
+.sc-owner{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;text-align:center}
+.own-am{background:#E6F1FB;color:#0C447C}
+.own-csm{background:#E1F5EE;color:#085041}
+.own-both{background:#EEEDFE;color:#3C3489}
+.voc-consumer-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.voc-card{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px}
+.voc-consumer{font-size:11px;font-weight:700;color:#374151;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.voc-gets{font-size:12px;color:#4b5563;line-height:1.6;margin-bottom:5px}
+.voc-feeds{font-size:11px;color:#9ca3af;font-style:italic}
+.schema-section{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.schema-card{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px;margin-bottom:10px}
+.schema-card-title{font-size:12px;font-weight:600;color:#111;margin-bottom:8px}
+.field-row{display:flex;gap:6px;padding:3px 0;border-bottom:1px solid #f3f4f6;font-size:11px;align-items:baseline}
+.field-row:last-child{border-bottom:none}
+.field-name{font-family:monospace;color:#444;flex-shrink:0;min-width:210px}
+.field-type{color:#9ca3af;font-size:10px;min-width:50px}
+.field-desc{color:#4b5563;line-height:1.5}
+.io-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.io-card{border:1px solid #e5e7eb;border-radius:8px;padding:11px 13px}
+.io-title{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.io-row{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:12px;align-items:baseline}
+.io-row:last-child{border-bottom:none}
+.io-source{font-family:monospace;font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:3px;color:#555;flex-shrink:0}
+.io-desc{color:#4b5563;line-height:1.5}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="doc-title">AGT-601 — Onboarding Orchestrator</div>
+<div class="doc-sub">Layer 6 · Customer Lifecycle · Schema v20</div>
+<div class="agent-block">
+  <div class="agent-hdr hdr-601">
+    <div class="agent-id id-601">AGT-601 · Layer 6 · Customer Lifecycle</div>
+    <div class="agent-name">Onboarding Orchestrator</div>
+    <div class="agent-purpose">Manages the full customer onboarding journey from pre-close preparation through steady-state handoff. Serves as the PM layer for the CSM: milestone sequencing, stakeholder engagement tracking, TTV measurement, and escalation flags. Starts pre-close for eligible deals. Continuously writes OnboardingLog so AGT-501 can score customer health during the onboarding window — no NULL scores for newly closed customers.</div>
+    <div class="badges">
+      <span class="badge b-new">New agent</span>
+      <span class="badge b-schema">New tables: MutualActionPlan, OnboardingLog, OnboardingMilestoneConfig, ProductValueEvents</span>
+      <span class="badge b-comp">L1 ripple: MAP sign-off gates ACV + usage comp</span>
+      <span class="badge b-l4">L4 ripple: reads ConvIntelligence + QuoteLog for technical win ingestion</span>
+    </div>
+  </div>
+
+  <div class="body-pad">
+
+    <div class="comp-note">
+      <strong>Compensation gate (L1 ripple):</strong> If post-sales rejects the deal handoff or MAP sign-off is not obtained within a configurable window post-close, AGT-601 writes a hold record to <span class="schema-pill">ExceptionLog</span> with <span class="schema-pill">exception_type = 'map_signoff_hold'</span>. AGT-104 Comp Governance picks this up on its next daily run and places the rep's ACV commission AND usage realization payout on hold. Hold lifts automatically when MAP sign-off is recorded. SLM notified immediately on hold activation.
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Trigger model — two paths</div>
+      <div class="trigger-grid">
+        <div class="trigger-card tc-auto">
+          <div class="trigger-type">Pre-close trigger (eligible deals)</div>
+          <div class="card-body">Auto-fires when: deal health score ≥ configurable threshold (default: 70) AND stage ≥ Proposal. Eligibility gate checked first — any one of: Segment = Enterprise, ACV ≥ configurable threshold, implementation services line item on quote, SAM value ≥ configurable threshold. AM or CSM can also manually initiate pre-boarding from the opportunity regardless of eligibility gate. Output: onboarding plan draft + kickoff brief + resource flag. No customer contact at this stage — internal only.</div>
+        </div>
+        <div class="trigger-card tc-close">
+          <div class="trigger-type">Post-close trigger (all customers)</div>
+          <div class="card-body">Fires for all segments on deal close (AGT-801 order execution signal). For ineligible pre-boarding deals: AGT-601 starts fresh at close. For pre-boarded deals: AGT-601 transitions from draft plan to active onboarding — pre-close work carries forward. Segment determines milestone set and TTV defaults: SMB 30 days, MM 60 days, Enterprise 90 days (configurable, CSM can adjust at kickoff with inheriting team sign-off).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Pre-close outputs (eligible deals only)</div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Onboarding plan draft</div>
+          <div class="card-body">Milestone schedule with target dates based on deal complexity (segment, products purchased, implementation services flag). Reads <span class="schema-pill">OnboardingMilestoneConfig</span> for segment + product defaults. Draft — CSM confirms or adjusts at kickoff; inheriting team must sign off.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Internal kickoff brief</div>
+          <div class="card-body">AM + CSM prep document: account context, stakeholder map from Contacts, risk flags from AGT-401 deal health, technical objections from ConvIntelligence and DiscoveryBriefLog/OpportunityBriefLog, and what was demoed/promised from QuoteLog. This is the institutional memory transfer from selling team to post-sales.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Resource requirement flag</div>
+          <div class="card-body">If deal complexity signals implementation services are needed (Enterprise, API/consumption SKU, complex integration) but no implementation services line item exists on quote: flag to AM with specific ask to add services to quote before close. Written to <span class="schema-pill">ExceptionLog</span> for visibility.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Post-sales risk alert</div>
+          <div class="card-body">Surfaces technical objections, unresolved deal risks, and rep commitments to post-sales team before close. Post-sales can formally reject the deal (reject = hold on MAP sign-off, triggers comp hold gate above) or accept with documented risk notes. Human-in-the-loop: escalation requires SLM sign-off to proceed with a rejected deal.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Mutual Action Plan (MAP) — shared L4/L6 artifact</div>
+      <div class="info-note">The MAP is created by the selling team during the deal (L4) and inherited by the post-sales team at close (L6). It is the contractual handoff between layers. Both AGT-601 and AGT-602 read and write to it. Post-sales sign-off on the MAP is the comp gate trigger.</div>
+      <div class="map-grid">
+        <div class="map-card">
+          <div class="map-card-title">Value events + TTV targets</div>
+          <div class="map-detail">Selling team selects from RevOps-defined <span class="schema-pill">ProductValueEvents</span> (first meaningful usage events per product). Target achievement dates set at deal stage. Inheriting team must sign off on selected events and dates — or escalate if targets are unrealistic. TTV clock starts at contract start date.</div>
+        </div>
+        <div class="map-card">
+          <div class="map-card-title">Technical win details</div>
+          <div class="map-detail">What was demoed, what was technically validated, unresolved technical objections. Read from ConvIntelligence (competitor mentions, objections), OpportunityBriefLog (deal-stage meeting notes), and QuoteLog (product configuration). Written to MAP by selling team before close.</div>
+        </div>
+        <div class="map-card">
+          <div class="map-card-title">Selling team commitments</div>
+          <div class="map-detail">What the rep and SE promised the customer during the deal cycle. Sourced from ConvIntelligence next_steps and rep-logged notes. Post-sales team must be aware of all commitments before taking ownership.</div>
+        </div>
+        <div class="map-card">
+          <div class="map-card-title">Customer stakeholder map</div>
+          <div class="map-detail">Customer contacts mapped to onboarding milestones — who owns technical setup, who owns training, who is the executive sponsor. Read from Contacts table and enriched during onboarding.</div>
+        </div>
+        <div class="map-card">
+          <div class="map-card-title">Implementation resources</div>
+          <div class="map-detail">Hours, roles, and timeline when implementation services are purchased. Reads from <span class="schema-pill">ImplementationSOW</span> (new L0 table). If SOW exists: AGT-602 is activated alongside AGT-601.</div>
+        </div>
+        <div class="map-card">
+          <div class="map-card-title">Post-sales sign-off</div>
+          <div class="map-detail">Sign-off status (pending / accepted / rejected), who signed off, timestamp, and rejection reason if applicable. Accepted sign-off lifts comp hold. Rejected sign-off escalates to SLM — deal can proceed only with SLM override.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Onboarding milestones — 7 standard milestones (configurable per segment + product)</div>
+      <div class="milestone-grid">
+        <div class="ms-card"><div class="ms-num">M1</div><div class="ms-name">Technical setup / integration complete</div><div class="ms-detail">Environment provisioned, integrations connected, admin access confirmed. Owned by Implementation Engineer (AGT-602 active) or CSM (AGT-602 not active).</div></div>
+        <div class="ms-card"><div class="ms-num">M2</div><div class="ms-name">Admin training delivered</div><div class="ms-detail">System administrators trained on configuration, user management, and reporting. CSM-owned.</div></div>
+        <div class="ms-card"><div class="ms-num">M3</div><div class="ms-name">End-user training delivered</div><div class="ms-detail">Core user cohort trained on primary use cases. CSM-owned. Completion confirmed by attendance log or assessment.</div></div>
+        <div class="ms-card"><div class="ms-num">M4</div><div class="ms-name">First value event achieved</div><div class="ms-detail">Customer achieves first meaningful product usage event as defined in MAP value events. Auto-detected from AGT-804 usage feed where possible; CSM confirms where manual.</div></div>
+        <div class="ms-card"><div class="ms-num">M5</div><div class="ms-name">Executive sponsor briefed post-go-live</div><div class="ms-detail">Executive sponsor engaged after go-live with status update. Signals executive buy-in at the most critical early stage. AGT-601 flags if not completed by 50% of TTV window.</div></div>
+        <div class="ms-card"><div class="ms-num">M6</div><div class="ms-name">Adoption threshold reached</div><div class="ms-detail">Seat utilization or consumption usage hits configurable threshold (default: 60% of contracted volume). Read from AGT-804 feed or Accounts. Leading TTV indicator.</div></div>
+        <div class="ms-card"><div class="ms-num">M7</div><div class="ms-name">Formal onboarding close</div><div class="ms-detail">CSM manually closes onboarding. Manual gate always required — automation cannot close onboarding without CSM confirmation. Triggers AGT-501 to exit onboarding mode.</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">TTV measurement model</div>
+      <div class="card">
+        <div class="card-body">
+          <strong>Definition:</strong> TTV = first value event date minus contract start date (in days). Composite: both first value event (M4) AND adoption threshold (M6) must be achieved before TTV is marked complete — one alone is insufficient.<br><br>
+          <strong>RevOps role:</strong> <span class="schema-pill">ProductValueEvents</span> table defines eligible first value events per product (e.g., "first API call returning data", "first report exported with live data", "first workflow automation triggered"). RevOps owns this table.<br><br>
+          <strong>Selling team role:</strong> Selects specific value events from the ProductValueEvents menu and sets target dates in the MAP during the deal cycle. Not all value events are selected for every deal — selection is deal-specific.<br><br>
+          <strong>Inheriting team role:</strong> Must sign off on selected value events and target dates at handoff. If targets are unrealistic, the inheriting team escalates to SLM before MAP sign-off. Sign-off locks the TTV target — post-sign-off changes require SLM approval.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">AGT-501 integration — continuous health during onboarding</div>
+      <div class="onb-health-flow">
+        <div class="ohf-card ohf-onb">
+          <div class="ohf-title">AGT-601 writes continuously</div>
+          <div class="ohf-body">Every milestone completion, CSM activity, exec sponsor touchpoint, and escalation flag writes a record to <span class="schema-pill">OnboardingLog</span>. Not a closing summary — a running log from day one.</div>
+        </div>
+        <div class="ohf-card ohf-trans">
+          <div style="font-size:20px;color:#9ca3af">→</div>
+        </div>
+        <div class="ohf-card ohf-health">
+          <div class="ohf-title">AGT-501 reads OnboardingLog daily</div>
+          <div class="ohf-body">For accounts where <span class="schema-pill">onboarding_status = 'active'</span>: AGT-501 substitutes OnboardingLog signals for dimensions where live data doesn't exist yet. Health records flagged <span class="schema-pill">in_onboarding = TRUE</span> so consumers read them in context.</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:4px">
+        <div class="card-title">Dimension substitution during onboarding</div>
+        <table>
+          <tr><th>AGT-501 dimension</th><th>Normal source</th><th>Onboarding substitute (from OnboardingLog)</th></tr>
+          <tr><td>Exec sponsor engagement</td><td>Contacts engagement recency</td><td>Exec sponsor briefed milestone (M5) status + CSM engagement log</td></tr>
+          <tr><td>QBR / engagement recency</td><td>RepActivity logs</td><td>CSM milestone activity timestamps from OnboardingLog</td></tr>
+          <tr><td>Product usage trend</td><td>AGT-804 usage feed</td><td>Technical setup milestone (M1) + first value event (M4) progress as proxy</td></tr>
+          <tr><td>Seat utilization</td><td>AGT-804 usage feed</td><td>Adoption threshold milestone (M6) progress</td></tr>
+          <tr><td>NPS / CSAT</td><td>Survey data</td><td>No proxy — stays data_gap during onboarding. This is honest.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Escalation triggers</div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Customer unresponsive</div>
+          <div class="card-body">2+ consecutive CSM outreach attempts with no customer reply logged. Immediate alert to CSM + AM. If unresolved after a third attempt: escalate to SLM. Logged to OnboardingLog as <span class="schema-pill">escalation_type = 'unresponsive'</span>.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">TTV trajectory miss</div>
+          <div class="card-body">Agent projects TTV completion based on milestone velocity. If current pace will miss the agreed TTV target: flag immediately to CSM + AM with projected miss date and which milestones are blocking. Escalate to SLM if within 14 days of TTV deadline with no recovery plan logged.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-lbl">Schema additions (v20)</div>
+      <div class="schema-section">
+        <div class="schema-card">
+          <div class="schema-card-title">MutualActionPlan <span class="new-pill">new</span></div>
+          <div class="field-row"><span class="field-name">map_id</span><span class="field-type">PK</span><span class="field-desc">Unique MAP record</span></div>
+          <div class="field-row"><span class="field-name">opportunity_id</span><span class="field-type">FK</span><span class="field-desc">Reference to Opportunities</span></div>
+          <div class="field-row"><span class="field-name">account_id</span><span class="field-type">FK</span><span class="field-desc">Reference to Accounts</span></div>
+          <div class="field-row"><span class="field-name">selected_value_events</span><span class="field-type">JSON</span><span class="field-desc">Array of value event IDs + target dates from ProductValueEvents</span></div>
+          <div class="field-row"><span class="field-name">technical_win_details</span><span class="field-type">text</span><span class="field-desc">What was demoed, validated, unresolved objections</span></div>
+          <div class="field-row"><span class="field-name">selling_team_commitments</span><span class="field-type">text</span><span class="field-desc">Rep/SE commitments made during deal cycle</span></div>
+          <div class="field-row"><span class="field-name">customer_stakeholder_map</span><span class="field-type">JSON</span><span class="field-desc">Contact IDs mapped to milestone ownership roles</span></div>
+          <div class="field-row"><span class="field-name">implementation_sow_ref</span><span class="field-type">FK</span><span class="field-desc">Nullable — FK to ImplementationSOW if services purchased</span></div>
+          <div class="field-row"><span class="field-name">postsales_signoff_status</span><span class="field-type">enum</span><span class="field-desc">pending / accepted / rejected</span></div>
+          <div class="field-row"><span class="field-name">signoff_by</span><span class="field-type">FK</span><span class="field-desc">Nullable — employee who signed off</span></div>
+          <div class="field-row"><span class="field-name">signoff_timestamp</span><span class="field-type">datetime</span><span class="field-desc">Nullable</span></div>
+          <div class="field-row"><span class="field-name">rejection_reason</span><span class="field-type">text</span><span class="field-desc">Nullable — required if status = rejected</span></div>
+          <div class="field-row"><span class="field-name">slm_override</span><span class="field-type">bool</span><span class="field-desc">TRUE if SLM approved proceeding despite rejection</span></div>
+          <div class="field-row"><span class="field-name">comp_hold_active</span><span class="field-type">bool</span><span class="field-desc">TRUE when ExceptionLog hold record is active</span></div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-card-title">OnboardingLog <span class="new-pill">new</span></div>
+          <div class="field-row"><span class="field-name">log_id</span><span class="field-type">PK</span><span class="field-desc">Unique log entry</span></div>
+          <div class="field-row"><span class="field-name">account_id</span><span class="field-type">FK</span><span class="field-desc">Reference to Accounts</span></div>
+          <div class="field-row"><span class="field-name">log_date</span><span class="field-type">date</span><span class="field-desc">Date of entry</span></div>
+          <div class="field-row"><span class="field-name">entry_type</span><span class="field-type">enum</span><span class="field-desc">milestone_complete / csm_activity / exec_touchpoint / escalation / close</span></div>
+          <div class="field-row"><span class="field-name">milestone_id</span><span class="field-type">varchar</span><span class="field-desc">Nullable — M1 through M7 if entry_type = milestone_complete</span></div>
+          <div class="field-row"><span class="field-name">escalation_type</span><span class="field-type">varchar</span><span class="field-desc">Nullable — unresponsive / ttv_miss / other</span></div>
+          <div class="field-row"><span class="field-name">onboarding_status</span><span class="field-type">enum</span><span class="field-desc">active / complete</span></div>
+          <div class="field-row"><span class="field-name">ttv_days_elapsed</span><span class="field-type">int</span><span class="field-desc">Days since contract start at time of entry</span></div>
+          <div class="field-row"><span class="field-name">ttv_target_days</span><span class="field-type">int</span><span class="field-desc">Agreed TTV target from MAP</span></div>
+          <div class="field-row"><span class="field-name">milestones_complete</span><span class="field-type">int</span><span class="field-desc">Count of milestones completed at this point</span></div>
+          <div class="field-row"><span class="field-name">milestones_total</span><span class="field-type">int</span><span class="field-desc">Total milestones in plan</span></div>
+          <div class="field-row"><span class="field-name">exec_sponsor_engaged</span><span class="field-type">bool</span><span class="field-desc">Whether exec sponsor has been engaged in last 30 days</span></div>
+          <div class="field-row"><span class="field-name">in_onboarding</span><span class="field-type">bool</span><span class="field-desc">TRUE — read by AGT-501 to flag health records during onboarding window</span></div>
+          <div class="field-row"><span class="field-name">notes</span><span class="field-type">text</span><span class="field-desc">CSM activity note or escalation detail</span></div>
+        </div>
+      </div>
+      <div class="schema-section" style="margin-top:10px">
+        <div class="schema-card">
+          <div class="schema-card-title">ProductValueEvents <span class="new-pill">new</span> <span class="l0-pill">L0 — RevOps owned</span></div>
+          <div class="field-row"><span class="field-name">value_event_id</span><span class="field-type">PK</span><span class="field-desc">Unique value event definition</span></div>
+          <div class="field-row"><span class="field-name">product_sku</span><span class="field-type">FK</span><span class="field-desc">Reference to PricingConfig product</span></div>
+          <div class="field-row"><span class="field-name">event_name</span><span class="field-type">varchar</span><span class="field-desc">Human-readable event description</span></div>
+          <div class="field-row"><span class="field-name">detection_method</span><span class="field-type">enum</span><span class="field-desc">auto_usage_feed / csm_manual / both</span></div>
+          <div class="field-row"><span class="field-name">detection_signal</span><span class="field-type">varchar</span><span class="field-desc">AGT-804 field or threshold that auto-detects this event</span></div>
+          <div class="field-row"><span class="field-name">segment_ttv_default_days</span><span class="field-type">JSON</span><span class="field-desc">Default TTV targets by segment {smb:30, mm:60, ent:90}</span></div>
+          <div class="field-row"><span class="field-name">active</span><span class="field-type">bool</span><span class="field-desc">RevOps can retire value events without deletion</span></div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-card-title">Accounts extensions <span class="upd-pill">extended</span></div>
+          <div class="field-row"><span class="field-name">onboarding_status</span><span class="field-type">enum</span><span class="field-desc">pre_close / active / complete / not_started</span></div>
+          <div class="field-row"><span class="field-name">onboarding_start_date</span><span class="field-type">date</span><span class="field-desc">Contract start date / deal close date</span></div>
+          <div class="field-row"><span class="field-name">onboarding_complete_date</span><span class="field-type">date</span><span class="field-desc">Nullable — date CSM closed onboarding (M7)</span></div>
+          <div class="field-row"><span class="field-name">ttv_achieved_days</span><span class="field-type">int</span><span class="field-desc">Nullable — actual TTV achieved in days</span></div>
+          <div class="field-row"><span class="field-name">ttv_target_days</span><span class="field-type">int</span><span class="field-desc">Agreed TTV target from MAP sign-off</span></div>
+          <div class="field-row"><span class="field-name">map_id</span><span class="field-type">FK</span><span class="field-desc">Reference to MutualActionPlan for this account</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#9ca3af;line-height:1.7">GTM OS · AGT-601 · Onboarding Orchestrator · L6 · Schema v20</div>
+</div>
+</body>
+</html>
