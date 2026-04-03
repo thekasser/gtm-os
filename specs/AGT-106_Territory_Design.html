@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-106 Territory Design Agent</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:880px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.bt{background:#F1EFE8;color:#444441;border-color:#B4B2A9}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;background:#534AB7}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rc{border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px}
+.rc-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-bottom:5px}
+.rb-named{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.rb-rules{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.rc-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.rc-body{font-size:11px;color:#555;line-height:1.6}
+.routing-eligible{background:#FAEEDA;border:1px solid #EF9F27;border-radius:8px;padding:10px 13px;font-size:12px;color:#633806;line-height:1.6;margin-bottom:8px}
+.cascade-flow{display:flex;flex-direction:column;gap:5px}
+.cs{display:flex;gap:10px;align-items:flex-start;padding:7px 12px;border:1px solid #e0e0e0;border-radius:8px}
+.cs-num{width:22px;height:22px;border-radius:50%;background:#E6F1FB;color:#0C447C;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.cs-title{font-size:12px;font-weight:600;margin-bottom:2px}
+.cs-body{font-size:11px;color:#555;line-height:1.55}
+.trigger-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tc2{border:1px solid #e0e0e0;border-radius:9px;padding:10px 13px}
+.tc2-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.tc2-body{font-size:11px;color:#555;line-height:1.6}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tag-new{font-size:10px;padding:1px 6px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee}
+.dep-row:last-child{border-bottom:none}
+.da{min-width:175px;font-weight:600;color:#111;font-size:12px}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-106 — Territory design agent</h1>
+<div class="hsub">Layer 1 · Sales planning & compensation · Semi-annual review + event-triggered mid-cycle · TerritoryDefinitions as routing authority</div>
+<div class="badges">
+  <span class="badge bv">v1.0 built</span>
+  <span class="badge bl">Layer 1</span>
+  <span class="badge bt">Schema v14–v16</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>TerritoryDefinitions is the routing authority for the entire OS.</strong> AGT-202 Lead Router reads TerritoryDefinitions — not RepBook, not manager spreadsheets. Every routing decision in the system traces back to a TerritoryDefinitions row. This agent owns that table.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Role-differentiated carve model.</strong> AM, CSM, and Enterprise AE get named account lists — explicit, enumerated accounts owned by a specific rep. SMB and Mid-Market AE get rules-based routing (segment × geo × vertical). Different motion, different carve mechanism.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>routing_eligible is a behavioral capacity gate — strict AND logic.</strong> A rep must satisfy all routing_eligible conditions simultaneously: not on LOA, not on PIP, has available capacity, territory assignment is active. Any one condition failing removes the rep from routing consideration entirely until resolved.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Semi-annual review cycle + event-triggered mid-cycle amendments.</strong> Full territory review twice per year: Q1 (pre-fiscal year) and Q3 (mid-year rebalance). Mid-cycle events (rep departure, new hire, TAM expansion, account reclassification) trigger targeted amendments without a full review cycle.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>AGT-206 Account Prioritization feeds semi-annual rebalancing.</strong> The semi-annual full-universe priority scoring run produces dormancy flags (accounts that haven't engaged and have low priority score). These flag back to AGT-106 as candidates for territory removal or reallocation.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Two carve models by role</div>
+  <div class="role-grid">
+    <div class="rc">
+      <div class="rc-badge rb-named">Named account list</div>
+      <div class="rc-title">AM / CSM / Enterprise AE</div>
+      <div class="rc-body">Explicit account-to-rep assignments. Account ownership is a specific named rep, not a rule. List changes require TerritoryAssignmentLog entry with reason and approver. Named accounts are removed from the rules-based routing pool entirely — AGT-202 checks named account ownership first.</div>
+    </div>
+    <div class="rc">
+      <div class="rc-badge rb-rules">Rules-based routing</div>
+      <div class="rc-title">SMB / Mid-Market AE</div>
+      <div class="rc-body">Accounts routed dynamically based on rules: segment (derived from employee count), geo (account HQ region), vertical (from enrichment or ICP Scorer). Agent proposes rules. SLM reviews. Rules are codified in TerritoryDefinitions as conditions, not as fixed account lists. Updates when rules change.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">routing_eligible gate — strict AND logic</div>
+  <div class="routing-eligible">
+    <strong>routing_eligible = TRUE requires ALL of the following simultaneously:</strong><br>
+    ① <code>Employees.loa_active = FALSE</code> — rep is not on leave of absence<br>
+    ② <code>Employees.pip_active = FALSE</code> — rep is not on a performance improvement plan<br>
+    ③ <code>TerritoryDefinitions.assignment_active = TRUE</code> — rep's territory assignment is current and not suspended<br>
+    ④ Rep is within capacity limits — not flagged for workload imbalance by AGT-202<br><br>
+    Any single condition failing = routing_eligible = FALSE. Rep receives no new lead assignments until all conditions are restored. Named accounts: rep's accounts are flagged with named_account_hold in Leads — not reassigned, held pending rep's return or SLM decision.
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Rules-based routing cascade for SMB/MM AE (via AGT-202)</div>
+  <div class="cascade-flow">
+    <div class="cs">
+      <div class="cs-num">R0</div>
+      <div><div class="cs-title">Motion gate</div><div class="cs-body">PLG/inbound accounts bypass SDR and route directly to AE. Outbound/sales-led route through SDR first. GTM motion determined at ingest.</div></div>
+    </div>
+    <div class="cs">
+      <div class="cs-num">R1</div>
+      <div><div class="cs-title">Named account check</div><div class="cs-body">Is this a named account in TerritoryDefinitions? If yes → route to named rep directly. Skip remaining cascade. If no → continue.</div></div>
+    </div>
+    <div class="cs">
+      <div class="cs-num">R2</div>
+      <div><div class="cs-title">Segment match</div><div class="cs-body">Match account segment to eligible reps for that segment. Filter to routing_eligible = TRUE reps only.</div></div>
+    </div>
+    <div class="cs">
+      <div class="cs-num">R3</div>
+      <div><div class="cs-title">Geo match</div><div class="cs-body">Match account HQ region to rep's assigned geo within that segment.</div></div>
+    </div>
+    <div class="cs">
+      <div class="cs-num">R4</div>
+      <div><div class="cs-title">Vertical preference</div><div class="cs-body">Among eligible reps, prioritize reps with vertical experience or preference match (FinTech account → rep with FinTech book history).</div></div>
+    </div>
+    <div class="cs">
+      <div class="cs-num">R5</div>
+      <div><div class="cs-title">Workload balancing</div><div class="cs-body">Among equally-eligible reps, route to rep with lowest current workload. Flag to RevOps if workload imbalance >1.5 SD above segment mean.</div></div>
+    </div>
+    <div class="cs">
+      <div class="cs-num">R6</div>
+      <div><div class="cs-title">Segment manager fallback</div><div class="cs-body">No eligible rep found → route to segment manager queue for manual assignment. Log named_account_hold = FALSE, workload_flag = TRUE.</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Review and amendment triggers</div>
+  <div class="trigger-grid">
+    <div class="tc2">
+      <div class="tc2-title">Semi-annual review (scheduled)</div>
+      <div class="tc2-body">Q1: pre-fiscal year territory reset. Q3: mid-year rebalance using AGT-206 priority scoring and AGT-205 TAM/SAM whitespace data. Full account reassignment review. Produces TerritoryAssignmentLog batch entries with review_cycle tag.</div>
+    </div>
+    <div class="tc2">
+      <div class="tc2-title">Rep departure (event-triggered)</div>
+      <div class="tc2-body">Rep leaves org → named accounts flagged as unassigned. SLM has 5 business days to reassign. Unassigned after 5 days → routes to segment manager queue. Rules-based territory released immediately for redistribution.</div>
+    </div>
+    <div class="tc2">
+      <div class="tc2-title">New hire (event-triggered)</div>
+      <div class="tc2-body">New rep joins → territory carved from existing segment pool. For named accounts: SLM proposes list, agent checks for conflicts with existing assignments. For rules-based: segment/geo rules updated. Rep is routing_eligible = FALSE until assignment_active = TRUE.</div>
+    </div>
+    <div class="tc2">
+      <div class="tc2-title">AGT-206 dormancy flag (semi-annual)</div>
+      <div class="tc2-body">Semi-annual priority scoring identifies accounts with persistent low composite_score and no rep engagement. Flagged to AGT-106 as territory rebalancing candidates — accounts that may be better assigned to a different rep or removed from named lists.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Status</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr><td><strong>TerritoryDefinitions</strong></td><td><span class="tag-new">new</span></td><td class="mono">territory_id, employee_crm_id, role, segment, territory_type (named_account / rules_based), geo_region, vertical_preference, account_id (nullable — named accounts only), assignment_active, effective_date, expiry_date, notes</td></tr>
+        <tr style="border-bottom:none"><td><strong>TerritoryAssignmentLog</strong></td><td><span class="tag-new">new</span></td><td class="mono">assignment_id, territory_id, employee_crm_id, account_id (nullable), change_type (assign / unassign / transfer / hold), prior_employee_crm_id (nullable), reason, approver_employee_crm_id, review_cycle (semi_annual / event_triggered), effective_date, notes</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da">Employees</span><span class="dd reads">reads</span><span class="dd2">loa_active, pip_active for routing_eligible gate. hire_date, role, segment for new hire territory carve.</span></div>
+    <div class="dep-row"><span class="da">Accounts</span><span class="dd reads">reads</span><span class="dd2">Account segment, geo, vertical for rules-based territory matching. Named account reference for assignment validation.</span></div>
+    <div class="dep-row"><span class="da">AccountPriorityScore (AGT-206)</span><span class="dd reads">reads</span><span class="dd2">Semi-annual dormancy flags. Low composite_score accounts flagged as territory rebalancing candidates.</span></div>
+    <div class="dep-row"><span class="da">MarketSizeModel (AGT-205)</span><span class="dd reads">reads</span><span class="dd2">TAM/SAM whitespace data. Informs semi-annual territory carve to ensure rep books are sized appropriately for available market.</span></div>
+    <div class="dep-row"><span class="da">TerritoryDefinitions</span><span class="dd writes">writes</span><span class="dd2">Primary output. Routing authority for AGT-202. All assignment changes written here.</span></div>
+    <div class="dep-row"><span class="da">TerritoryAssignmentLog</span><span class="dd writes">writes</span><span class="dd2">Audit trail for every assignment change. Required for ROE compliance (AGT-104 reads this).</span></div>
+    <div class="dep-row"><span class="da">AGT-202 Lead Router</span><span class="dd trig">downstream</span><span class="dd2">Reads TerritoryDefinitions as routing authority. routing_eligible flag drives assignment eligibility in real-time.</span></div>
+    <div class="dep-row"><span class="da">AGT-104 Comp Governance</span><span class="dd trig">downstream</span><span class="dd2">Reads TerritoryDefinitions for ROE violation detection (Control 04). Payout holds reference TerritoryAssignmentLog.</span></div>
+    <div class="dep-row"><span class="da">AGT-101 Quota Setting</span><span class="dd trig">downstream</span><span class="dd2">Quota publication guardrail: every rep in QuotaStore must have a TerritoryAssignmentLog entry. AGT-101 checks before publish.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-106, the Territory Design agent for a B2B SaaS GTM OS.
+
+ROLE: Define and maintain territory assignments. TerritoryDefinitions is
+the routing authority for the entire OS — AGT-202 reads it. Own it carefully.
+
+CARVE MODEL:
+  named_account: AM, CSM, Enterprise AE.
+    Explicit account_id → employee_crm_id assignment.
+    Changes require TerritoryAssignmentLog entry with reason + approver.
+  rules_based: SMB AE, Mid-Market AE.
+    Routing rules: segment × geo_region × vertical_preference.
+    Rules codified in TerritoryDefinitions. No explicit account list.
+
+ROUTING_ELIGIBLE GATE (strict AND):
+  Check before any assignment is marked active:
+    Employees.loa_active = FALSE
+    Employees.pip_active = FALSE
+    assignment_active = TRUE (no suspension)
+    Workload not flagged by AGT-202
+  All conditions must be TRUE. Partial pass = routing_eligible = FALSE.
+
+EVENT TRIGGERS:
+  rep_departure: named accounts → flag unassigned. 5 days for SLM to reassign.
+    After 5 days → segment manager queue. Log: change_type = 'unassign'.
+  new_hire: carve territory from segment pool. Rep routing_eligible = FALSE
+    until SLM confirms assignment. Log: change_type = 'assign'.
+  semi_annual: full review using AGT-206 dormancy flags + AGT-205 whitespace.
+    Log batch: review_cycle = 'semi_annual'.
+  agt206_dormancy_flag: flag low-score accounts to SLM for rebalancing review.
+
+GUARDRAILS:
+  No named account can be assigned to two active reps simultaneously.
+  Rules-based segments must cover 100% of eligible accounts — no routing gaps.
+  Every active rep must have at least one TerritoryDefinitions row.
+
+OUTPUT: TerritoryDefinitions rows (write/update).
+TerritoryAssignmentLog rows (append-only audit trail).
+SLM notification on any assignment change.</pre>
+</div>
+</body>
+</html>

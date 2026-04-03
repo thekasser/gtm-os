@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-102 Comp Plan Design Agent</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:880px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.bt{background:#F1EFE8;color:#444441;border-color:#B4B2A9}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;background:#534AB7}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.curve-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.cc{border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px}
+.cc-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-bottom:5px}
+.cb-std{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.cb-quad{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.cc-title{font-size:12px;font-weight:600;margin-bottom:4px}
+.cc-body{font-size:11px;color:#555;line-height:1.6}
+.formula{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;padding:6px 10px;margin:5px 0;color:#333}
+.role-table{width:100%;border-collapse:collapse;font-size:11px}
+.role-table th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+.role-table td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a}
+.kicker-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kc{border:1px solid #e0e0e0;border-radius:10px;padding:11px 13px}
+.kc-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.kc-body{font-size:11px;color:#555;line-height:1.6}
+.approval-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 0}
+.af-box{border-radius:7px;padding:6px 11px;font-size:11px;border:1px solid}
+.af-pend{background:#FAEEDA;color:#633806;border-color:#EF9F27;font-weight:600}
+.af-done{background:#E1F5EE;color:#085041;border-color:#5DCAA5;font-weight:600}
+.af-ext{background:#F1EFE8;color:#444441;border-color:#B4B2A9}
+.af-arr{color:#aaa;font-size:13px}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tag-new{font-size:10px;padding:1px 6px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.tag-ext{font-size:10px;padding:1px 6px;border-radius:8px;background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.tag-read{font-size:10px;padding:1px 6px;border-radius:8px;background:#F1EFE8;color:#444441;border:1px solid #B4B2A9}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee}
+.dep-row:last-child{border-bottom:none}
+.da{min-width:175px;font-weight:600;color:#111;font-size:12px}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+.ti-note{background:#FAEEDA;border:1px solid #EF9F27;border-radius:8px;padding:9px 12px;font-size:12px;color:#633806;line-height:1.6;margin-bottom:8px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-102 — Comp plan design agent</h1>
+<div class="hsub">Layer 1 · Sales planning & compensation · Triggered by AGT-101 outputs + policy changes · Soft approval gate</div>
+<div class="badges">
+  <span class="badge bv">v1.0 built</span>
+  <span class="badge bl">Layer 1</span>
+  <span class="badge bt">Schema v12–v16</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Translates AGT-101 quota outputs into legally-deployable plan structures.</strong> Never sets quota — always reads it. Quota is the upstream input; comp plan is the downstream output. AGT-102 cannot modify QuotaStore.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Full role coverage.</strong> AE, SDR, CSM, AM, SE, Sales Manager, SLM — each with independent plan_id per segment. SDR carries a single flat plan with no segment differentiation.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Two distinct payout curve architectures on a single plan.</strong> Standard gate/multiplier curve applies to quota-based measures. Quadratic payout curve (realization²) applies to usage/consumption measures. A single AE plan can carry both — curve type is a per-measure field, not a per-plan field.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Usage payout gated on agt004_reconciled = TRUE.</strong> AGT-102 never outputs a payout-eligible row on unvalidated usage data. Billing errors cannot create overpayments. Mid-window flag fires at day ~45 if realization &lt;50% — behavioral design baked into the plan structure.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Soft approval gate — agent owns state, not workflow.</strong> All plan outputs marked pending_approval. External workflow (email/Slack/HRIS) handles routing and sign-off. Plan activates only when approved_by + approved_date are logged back. Agent never self-activates a plan.</div></div>
+  </div>
+</div>
+
+<div class="ti-note">
+  <strong>Terminology lock:</strong> <code>variable_ote_mix_pct</code> = % of OTE that is variable (what many call "TI%"). <code>Target Incentive (TI)</code> = total variable dollars for a rep at 100% attainment (OTE × variable_ote_mix_pct). <code>TI%</code> = what % of the budgeted TI pool is actually being paid out — a reporting metric, not a plan design input. These terms are distinct and must not be conflated in schema or agent logic.
+</div>
+
+<div class="sec">
+  <div class="slabel">Payout curve architecture — two types</div>
+  <div class="curve-grid">
+    <div class="cc">
+      <div class="cc-badge cb-std">Standard curve — quota measures</div>
+      <div class="cc-title">Gate-based floor, continuous multiplier above</div>
+      <div class="formula">Below floor: 0% payout
+Floor → 100%: linear earn-in from floor_rate
+Above 100%: payout_rate × accel_rate multiplier</div>
+      <div class="cc-body">Floor attainment and rate are role-differentiated. SE and CSM have higher floors (60%) reflecting lower risk/reward profiles. New business roles (AE, AM) floor at 50% with steeper upside. No hard cap by default — configurable per plan.</div>
+    </div>
+    <div class="cc">
+      <div class="cc-badge cb-quad">Quadratic curve — usage/consumption measures</div>
+      <div class="cc-title">Overselling penalty without clawback</div>
+      <div class="formula">payout_pct = realization_pct²
+
+60% realization → 36% payout
+80% realization → 64% payout
+100% realization → 100% payout</div>
+      <div class="cc-body">Applied to API Consumption, Storage, Compute measures. Requires agt004_reconciled = TRUE before payout_eligible = TRUE. Mid-window CSM flag fires at day ~45 if realization &lt;50%. TI% by product family (Enterprise AE): API 25%, Storage 15%, Compute 20%.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role parameters — variable_ote_mix_pct and curve settings</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table class="role-table">
+      <thead><tr><th>Role</th><th>Variable mix %</th><th>Accel rate</th><th>Floor attainment</th><th>Floor rate</th><th>Motion</th></tr></thead>
+      <tbody>
+        <tr><td>AE</td><td>50%</td><td>1.50×</td><td>50%</td><td>50%</td><td style="color:#666">New business</td></tr>
+        <tr><td>AM</td><td>45%</td><td>1.50×</td><td>50%</td><td>50%</td><td style="color:#666">Expansion</td></tr>
+        <tr><td>Sales Manager</td><td>40%</td><td>1.40×</td><td>50%</td><td>50%</td><td style="color:#666">Team quota</td></tr>
+        <tr><td>SLM</td><td>35%</td><td>1.40×</td><td>50%</td><td>50%</td><td style="color:#666">Segment quota</td></tr>
+        <tr><td>SDR</td><td>40%</td><td>1.25×</td><td>50%</td><td>50%</td><td style="color:#666">Pipeline gen</td></tr>
+        <tr><td>SE</td><td>25%</td><td>1.25×</td><td>60%</td><td>60%</td><td style="color:#666">Overlay</td></tr>
+        <tr style="border-bottom:none"><td>CSM</td><td>30%</td><td>1.30×</td><td>60%</td><td>60%</td><td style="color:#666">Retention/expansion</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Kickers, SPIFs & draw — all in scope</div>
+  <div class="kicker-grid">
+    <div class="kc">
+      <div class="kc-title">Kickers — 4 types</div>
+      <div class="kc-body">New logo, multi-year, product line, margin-based. Defined in Kickers table with trigger condition, multiplier, eligible roles, eligible segments, effective date range. Require approval_status = approved before activating. Kicker multiplier applied on top of standard curve — not replacing it.</div>
+    </div>
+    <div class="kc">
+      <div class="kc-title">SPIFs — agent-suggested</div>
+      <div class="kc-body">Time-bound, always set auto_expire = TRUE with explicit end_date. suggested_by field: agent or human. Agent can propose SPIFs based on pipeline data signals — all suggestions marked pending_approval. Auto-expire fires on end_date regardless of approval status to prevent zombie SPIFs.</div>
+    </div>
+    <div class="kc">
+      <div class="kc-title">Recoverable draw</div>
+      <div class="kc-body">Tied to AGT-101 ramp tiers via ramp_schedule_id FK. Draw amount derived from ramp schedule — rep in month 1–3 at 25% eRep carries proportionally sized draw. Draws against future variable earnings. Rep owes back on termination before recovery period ends. Tracked in DrawLedger (AGT-103).</div>
+    </div>
+    <div class="kc">
+      <div class="kc-title">Non-recoverable draw</div>
+      <div class="kc-body">Independent policy input. draw_type = non_recoverable on CompPlans. Amount and period set by governance, not ramp schedule. No recovery obligation — functions as guaranteed variable for a defined window. Common for competitive hires or market-specific situations.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Approval flow — soft gate, agent owns state</div>
+  <div class="card">
+    <div class="approval-flow">
+      <div class="af-box af-pend">AGT-102 drafts plan → pending_approval</div>
+      <div class="af-arr">→</div>
+      <div class="af-box af-ext">External workflow<br><span style="font-size:10px">email / Slack / HRIS</span></div>
+      <div class="af-arr">→</div>
+      <div class="af-box af-ext">approved_by + approved_date logged back</div>
+      <div class="af-arr">→</div>
+      <div class="af-box af-done">Plan activates</div>
+    </div>
+    <div style="font-size:11px;color:#666;margin-top:4px">Plan remains inert until both fields are populated. AGT-103 Comp Attainment checks approval_status = approved before processing any payout row. Minor plan changes (SPIF additions, kicker tweaks): CRO only. Full plan resets (OTE, accelerator restructure, draw terms): CRO + CFO.</div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Status</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CompPlans</strong></td><td><span class="tag-ext">extended</span></td><td class="mono">+curve_type (standard/quadratic), floor_pct, floor_rate, accel_rate, variable_ote_mix_pct, kicker_eligible, draw_type, draw_amount, draw_period_months, ramp_schedule_id (FK), approval_status, approved_by, approved_date</td></tr>
+        <tr><td><strong>TIPolicy</strong></td><td><span class="tag-new">new</span></td><td class="mono">policy_id, role, segment, variable_ote_mix_pct, effective_date, set_by — policy table, agent reads not writes</td></tr>
+        <tr><td><strong>TIBudgetModel</strong></td><td><span class="tag-new">new</span></td><td class="mono">budget_id, fiscal_year, segment, role, total_ote_at_risk_usd, budgeted_payout_usd, payout_load_factor, scenario — OTE-at-risk model for board</td></tr>
+        <tr><td><strong>Kickers</strong></td><td><span class="tag-new">new</span></td><td class="mono">kicker_id, kicker_type, trigger_condition, multiplier, eligible_roles, eligible_segments, effective_start, effective_end, approval_status</td></tr>
+        <tr style="border-bottom:none"><td><strong>SPIFs</strong></td><td><span class="tag-new">new</span></td><td class="mono">spif_id, spif_name, measure, target, payout_amount, eligible_roles, eligible_segments, start_date, end_date, auto_expire (always TRUE), suggested_by, approval_status</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da">QuotaStore (AGT-101)</span><span class="dd reads">reads</span><span class="dd2">Primary input. Quota by role × segment × ramp tier. Never writes back to QuotaStore.</span></div>
+    <div class="dep-row"><span class="da">RampSchedules (AGT-101)</span><span class="dd reads">reads</span><span class="dd2">Ramp tier definitions for recoverable draw linkage via ramp_schedule_id FK.</span></div>
+    <div class="dep-row"><span class="da">TIPolicy</span><span class="dd reads">reads</span><span class="dd2">variable_ote_mix_pct per role + segment. Policy input — agent enforces, does not calculate.</span></div>
+    <div class="dep-row"><span class="da">UsageCompPlan</span><span class="dd reads">reads</span><span class="dd2">Quadratic curve params per product family. Exists from UBC module. No structural changes.</span></div>
+    <div class="dep-row"><span class="da">CompPlans</span><span class="dd writes">writes</span><span class="dd2">Extended plan rows. approval_status = pending on all new rows.</span></div>
+    <div class="dep-row"><span class="da">TIBudgetModel</span><span class="dd writes">writes</span><span class="dd2">OTE-at-risk model output. Three scenarios per cycle (base/conservative/stretch).</span></div>
+    <div class="dep-row"><span class="da">Kickers, SPIFs</span><span class="dd writes">writes</span><span class="dd2">New rows on creation. Auto-expire on SPIFs fires on end_date.</span></div>
+    <div class="dep-row"><span class="da">AGT-103 Payout Calc</span><span class="dd trig">downstream</span><span class="dd2">Reads CompPlans — checks approval_status = approved before processing any payout calculation.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-102, the Comp Plan Design agent for a B2B SaaS GTM OS.
+
+ROLE: Translate AGT-101 quota outputs into legally-deployable compensation
+plan structures. Never set quota. Read it from QuotaStore.
+
+COVERAGE: AE, SDR, CSM, AM, SE, Sales Manager, SLM.
+SDR: single flat plan. All other roles: independent plan_id per segment.
+
+CURVE TYPE — assign per measure, not per plan:
+  standard: quota-based measures (New Logo Revenue, Expansion, Pipeline).
+    Floor → 100%: linear earn-in from floor_rate.
+    Above 100%: continuous multiplier at accel_rate.
+  quadratic: usage/consumption measures (API, Storage, Compute).
+    payout_pct = realization_pct². REQUIRES agt004_reconciled = TRUE.
+    Mid-window flag: day >= 45 AND realization_pct < 0.50 → alert CSM.
+
+VARIABLE OTE MIX: Read from TIPolicy per role + segment. Never calculate.
+Flag if proposed plan deviates from TIPolicy — do not override.
+
+KICKERS: Four types: new_logo, multi_year, product_line, margin.
+Write Kickers rows. Set approval_status = pending on all.
+
+SPIFS: Always auto_expire = TRUE. Always populate end_date.
+Set suggested_by = 'agent' when agent-initiated.
+
+DRAW:
+  recoverable: ramp_schedule_id FK from AGT-101. Draw amount derived from
+    variable_ote × deployed_quota_pct for the draw period.
+  non_recoverable: read policy input. No ramp linkage.
+
+APPROVAL GATE: All CompPlans rows → approval_status = 'pending'.
+Never self-activate. Plan activates only when approved_by AND
+approved_date are written back by external workflow.
+
+OUTPUTS:
+  1. CompPlans rows (JSON) — primary feed to AGT-103.
+  2. Plan document (markdown) — HR/legal review.
+  3. TIBudgetModel rows — OTE-at-risk by segment × scenario × role.
+     Scenarios: base, conservative (−15% eRep), stretch (+10% eRep).</pre>
+</div>
+</body>
+</html>

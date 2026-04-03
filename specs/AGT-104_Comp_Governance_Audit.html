@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-104 Comp Governance & Audit Agent</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:880px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.bt{background:#F1EFE8;color:#444441;border-color:#B4B2A9}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;background:#534AB7}
+.dot-auto{background:#791F1F}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.ctrl{border:1px solid #e0e0e0;border-radius:9px;padding:10px 13px}
+.ctrl-num{font-size:10px;font-weight:700;color:#888;margin-bottom:3px}
+.ctrl-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.ctrl-body{font-size:11px;color:#555;line-height:1.55}
+.ctrl-action{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:600;display:inline-block;margin-top:5px}
+.ca-flag{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.ca-block{background:#FCEBEB;color:#791F1F;border:1px solid #F09595}
+.ca-auto{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.autonomous-note{background:#FCEBEB;border:1px solid #F09595;border-radius:8px;padding:10px 13px;font-size:12px;color:#791F1F;line-height:1.6;margin-bottom:8px}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tag-new{font-size:10px;padding:1px 6px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.tag-ext{font-size:10px;padding:1px 6px;border-radius:8px;background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee}
+.dep-row:last-child{border-bottom:none}
+.da{min-width:175px;font-weight:600;color:#111;font-size:12px}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-104 — Comp governance & audit agent</h1>
+<div class="hsub">Layer 1 · Sales planning & compensation · Daily audit scan · 12 controls · One autonomous action</div>
+<div class="badges">
+  <span class="badge bv">v1.0 built</span>
+  <span class="badge bl">Layer 1</span>
+  <span class="badge bt">Schema v14–v16</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Daily audit layer across the entire comp stack.</strong> Runs after AGT-103's daily batch completes. Reviews all payout calculations, plan states, draw balances, and approval chains for the prior 24 hours. Produces a daily CompAuditLog entry summarizing findings.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Twelve controls — eleven advisory, one autonomous.</strong> Eleven controls surface findings to RevOps/CRO as flags requiring human review. One control (territory ROE payout hold) executes autonomously — no human approval required to place the hold, though human approval is required to release it.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Clawback = automatic DrawLedger recovery row.</strong> When a clawback condition is triggered (deal reversal, misclassification, termination within recovery window), AGT-104 writes a draw_type = clawback_recovery row to DrawLedger. AGT-103 then nets this against future variable payouts. No manual entry needed.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>ExceptionLog is the governance paper trail.</strong> Every flagged finding from every control is logged with control_id, severity, finding, rep involved, and recommended action. This is the SOX audit trail — completeness matters more than any individual finding.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Advisory posture — agent surfaces, humans resolve.</strong> Except for the territory ROE payout hold, AGT-104 never takes action that affects payroll. It flags, logs, and escalates. Resolution actions are performed by RevOps or CRO and logged back into ExceptionLog.</div></div>
+  </div>
+</div>
+
+<div class="autonomous-note">
+  <strong>One autonomous action — territory ROE payout hold:</strong> When AGT-104 detects a territory Rules of Engagement violation (deal sourced from outside rep's assigned territory without manager approval), it places an automatic payout hold on that deal's retirement event in QuotaRetirementLedger (payout_eligible = FALSE). The hold is logged in ExceptionLog. Release requires RevOps + manager approval. This is the only action in the entire GTM OS that AGT-104 takes without human pre-approval.
+</div>
+
+<div class="sec">
+  <div class="slabel">Twelve controls</div>
+  <div class="controls-grid">
+    <div class="ctrl">
+      <div class="ctrl-num">Control 01</div>
+      <div class="ctrl-title">Payout accuracy</div>
+      <div class="ctrl-body">Recalculates all PayoutHistory rows from prior 24hr batch against QuotaRetirementLedger. Flags any discrepancy >0.5%.</div>
+      <span class="ctrl-action ca-flag">Flag to RevOps</span>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-num">Control 02</div>
+      <div class="ctrl-title">Draw ledger integrity</div>
+      <div class="ctrl-body">Validates DrawLedger balance per rep = SUM(disbursements) − SUM(recoveries). Flags negative balances and gaps in recovery sequence.</div>
+      <span class="ctrl-action ca-flag">Flag to RevOps</span>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-num">Control 03</div>
+      <div class="ctrl-title">Kicker stacking check</div>
+      <div class="ctrl-body">Detects multiple kickers applied to the same deal event. Flags for policy review — kicker stacking requires explicit plan authorization.</div>
+      <span class="ctrl-action ca-flag">Flag to RevOps</span>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-num">Control 04</div>
+      <div class="ctrl-title">Territory ROE violation</div>
+      <div class="ctrl-body">Deal sourced outside rep's TerritoryDefinitions assignment without approved exception. Places automatic payout hold on retirement event.</div>
+      <span class="ctrl-action ca-auto">Autonomous hold</span>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-num">Control 05</div>
+      <div class="ctrl-title">Quota amendment audit</div>
+      <div class="ctrl-body">QuotaAmendmentLog audit — all mid-cycle quota changes must have rationale, approver, and effective date. Unattributed changes flagged and blocked from activating.</div>
+      <span class="ctrl-action ca-block">Block + flag</span>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-num">Control 06</div>
+      <div class="ctrl-title">TI% variance</div>
+      <div class="ctrl-body">Actual payout vs TIBudgetModel expected payout. Flags when period TI% exceeds budgeted payout_load_factor by >20%. Surfaces to Finance + CRO.</div>
+      <span class="ctrl-action ca-flag">Flag to Finance</span>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-num">Control 07</div>
+      <div class="ctrl-title">Plan approval gate</div>
+      <div class="ctrl-body">Any payout calculated against a CompPlan with approval_status ≠ approved is flagged as a critical violation. AGT-103 should have blocked this — audit is the backstop.</div>
+      <span class="ctrl-action ca-flag">Critical flag</span>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-num">Control 08</div>
+      <div class="ctrl-title">SOX approval chain</div>
+      <div class="ctrl-body">Validates CompPlans.approved_by and approved_date are populated for all active plans. Flags plans missing either field that have processed payouts.</div>
+      <span class="ctrl-action ca-flag">SOX flag</span>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-num">Control 09</div>
+      <div class="ctrl-title">Duplicate detection</div>
+      <div class="ctrl-body">Detects duplicate QuotaRetirementLedger rows for the same opportunity_id + employee_crm_id + period combination. Duplicates would result in double-payout.</div>
+      <span class="ctrl-action ca-block">Block + flag</span>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-num">Control 10</div>
+      <div class="ctrl-title">Clawback trigger</div>
+      <div class="ctrl-body">Detects deal reversals, stage rollbacks on closed-won, and termination events within draw recovery window. Writes clawback_recovery row to DrawLedger automatically.</div>
+      <span class="ctrl-action ca-auto">Auto DrawLedger row</span>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-num">Control 11</div>
+      <div class="ctrl-title">Usage gate audit</div>
+      <div class="ctrl-body">Any usage payout processed without agt004_reconciled = TRUE is a critical violation. Flags the specific ledger rows and suspends further usage payout calculation for that rep until resolved.</div>
+      <span class="ctrl-action ca-block">Suspend + flag</span>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-num">Control 12</div>
+      <div class="ctrl-title">Policy exception log</div>
+      <div class="ctrl-body">Reviews ExceptionLog for unresolved exceptions older than 5 business days. Escalates to CRO if RevOps hasn't resolved within SLA.</div>
+      <span class="ctrl-action ca-flag">Escalate to CRO</span>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Status</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CompAuditLog</strong></td><td><span class="tag-new">new</span></td><td class="mono">audit_id, run_date, controls_run (12), findings_count, critical_count, roe_holds_placed, clawback_rows_written, escalations_sent, audit_status (clean/findings), notes</td></tr>
+        <tr><td><strong>ExceptionLog</strong></td><td><span class="tag-new">new</span></td><td class="mono">exception_id, audit_id, control_id, severity (critical/high/medium), finding_type, employee_crm_id, related_ledger_id, related_plan_id, finding_detail, recommended_action, status (open/resolved), resolved_by, resolved_at, resolution_notes</td></tr>
+        <tr style="border-bottom:none"><td><strong>DrawLedger</strong></td><td><span class="tag-ext">extended</span></td><td class="mono">draw_type extended: adds clawback_recovery value. Clawback rows written by AGT-104 on clawback trigger. Same table as AGT-103 DrawLedger — shared table, two writers.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da">PayoutHistory (AGT-103)</span><span class="dd reads">reads</span><span class="dd2">Prior 24hr payout calculations. Source for accuracy recalculation audit (Control 01).</span></div>
+    <div class="dep-row"><span class="da">QuotaRetirementLedger (AGT-103)</span><span class="dd reads">reads</span><span class="dd2">Transaction records for duplicate detection and ROE violation checks.</span></div>
+    <div class="dep-row"><span class="da">DrawLedger (AGT-103)</span><span class="dd reads">reads</span><span class="dd2">Draw balances for integrity check. Also writes clawback_recovery rows on clawback trigger.</span></div>
+    <div class="dep-row"><span class="da">CompPlans (AGT-102)</span><span class="dd reads">reads</span><span class="dd2">Approval status for plan approval gate check. TI budget model for variance control.</span></div>
+    <div class="dep-row"><span class="da">QuotaAmendmentLog (AGT-101)</span><span class="dd reads">reads</span><span class="dd2">Mid-cycle quota changes for amendment audit control.</span></div>
+    <div class="dep-row"><span class="da">TerritoryDefinitions (AGT-106)</span><span class="dd reads">reads</span><span class="dd2">Territory assignments for ROE violation detection.</span></div>
+    <div class="dep-row"><span class="da">CompAuditLog</span><span class="dd writes">writes</span><span class="dd2">Daily audit summary. One row per run.</span></div>
+    <div class="dep-row"><span class="da">ExceptionLog</span><span class="dd writes">writes</span><span class="dd2">All flagged findings from all 12 controls.</span></div>
+    <div class="dep-row"><span class="da">DrawLedger</span><span class="dd writes">writes</span><span class="dd2">Clawback_recovery rows on Control 10 trigger. Only autonomous write-action in the agent.</span></div>
+    <div class="dep-row"><span class="da">QuotaRetirementLedger</span><span class="dd writes">writes</span><span class="dd2">Sets payout_eligible = FALSE on ROE payout hold (Control 04). Only field write — no row creation.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-104, the Comp Governance & Audit agent for a B2B SaaS GTM OS.
+
+ROLE: Daily audit scan of the comp stack. Runs after AGT-103 batch.
+Advisory posture — flag and log. One autonomous exception.
+Never modify payroll or payout calculations directly.
+
+RUN 12 CONTROLS SEQUENTIALLY:
+
+C01 PAYOUT ACCURACY:
+  Recalculate PayoutHistory rows from last 24hr from QuotaRetirementLedger.
+  Flag any deviation >0.5%. Severity: high.
+
+C02 DRAW LEDGER INTEGRITY:
+  Check DrawLedger balance per rep = SUM(disbursements) − SUM(recoveries).
+  Flag negative balances or gaps. Severity: high.
+
+C03 KICKER STACKING:
+  Flag deals with >1 kicker applied without explicit plan authorization.
+
+C04 TERRITORY ROE VIOLATION (AUTONOMOUS):
+  Detect deals sourced outside TerritoryDefinitions without approved exception.
+  SET QuotaRetirementLedger.payout_eligible = FALSE for violating rows.
+  Log exception. Release requires RevOps + manager approval.
+
+C05 QUOTA AMENDMENT AUDIT:
+  QuotaAmendmentLog: all rows must have rationale, approver, effective_date.
+  Block unattributed rows from activating.
+
+C06 TI% VARIANCE:
+  Compare actual payout to TIBudgetModel.budgeted_payout_usd.
+  Flag if actual > budget × 1.20. Surface to Finance + CRO.
+
+C07 PLAN APPROVAL GATE:
+  Any PayoutHistory row linked to CompPlan WHERE approval_status != 'approved'.
+  Severity: critical.
+
+C08 SOX APPROVAL CHAIN:
+  Active CompPlans with processed payouts must have approved_by AND approved_date.
+  Flag missing fields. Severity: critical.
+
+C09 DUPLICATE DETECTION:
+  QuotaRetirementLedger: flag duplicate (opp_id + employee_crm_id + period).
+  Block duplicate rows from payout_eligible = TRUE.
+
+C10 CLAWBACK TRIGGER (AUTONOMOUS):
+  Detect: closed-won stage rollback, deal reversal, termination within draw window.
+  WRITE DrawLedger row: draw_type = 'clawback_recovery', draw_usd = prior_payout.
+  Flag to RevOps for review.
+
+C11 USAGE GATE AUDIT:
+  Any usage payout with agt004_reconciled = FALSE is critical.
+  Suspend further usage payouts for rep until resolved.
+
+C12 EXCEPTION SLA:
+  ExceptionLog: flag open exceptions older than 5 business days to CRO.
+
+WRITE: CompAuditLog (one row per run). ExceptionLog (one row per finding).
+NEVER write to PayoutHistory or recalculate payouts. Advisory only.</pre>
+</div>
+</body>
+</html>

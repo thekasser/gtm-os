@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-101 Quota Setting Agent</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:880px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.bt{background:#F1EFE8;color:#444441;border-color:#B4B2A9}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;background:#534AB7}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.quota-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;font-size:11px;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden}
+.qg-hdr{font-weight:600;color:#666;padding:7px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0;font-size:11px}
+.qg-cell{padding:7px 10px;border-bottom:1px solid #eee;color:#1a1a1a;font-size:11px}
+.qg-blue{color:#0C447C;font-weight:600}
+.qg-teal{color:#085041;font-weight:600}
+.erep-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:7px}
+.ec{border:1px solid #e0e0e0;border-radius:8px;padding:10px 12px;text-align:center}
+.ec-label{font-size:10px;color:#888;margin-bottom:4px}
+.ec-val{font-size:18px;font-weight:700;color:#534AB7}
+.ec-sub{font-size:10px;color:#666;margin-top:2px}
+.gate-flow{display:flex;align-items:center;gap:0;flex-wrap:nowrap;overflow-x:auto;margin-bottom:6px}
+.gate-box{border-radius:8px;padding:8px 12px;font-size:11px;text-align:center;white-space:nowrap;flex-shrink:0}
+.gate-arr{padding:0 6px;color:#aaa;font-size:13px;flex-shrink:0}
+.g1{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.g2{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.g3{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.g4{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.scenario-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.sc{border:1px solid #e0e0e0;border-radius:10px;padding:11px 13px}
+.sc-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-bottom:5px}
+.sb-base{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.sb-cons{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.sb-str{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.sc-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.sc-body{font-size:11px;color:#555;line-height:1.6}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tag-new{font-size:10px;padding:1px 6px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee}
+.dep-row:last-child{border-bottom:none}
+.da{min-width:160px;font-weight:600;color:#111;font-size:12px}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-101 — Quota setting agent</h1>
+<div class="hsub">Layer 1 · Sales planning & compensation · Annual cycle + event-triggered mid-cycle amendments</div>
+<div class="badges">
+  <span class="badge bv">v1.0 built</span>
+  <span class="badge bl">Layer 1</span>
+  <span class="badge bt">Schema v11–v16</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Bottom-up capacity model — quota is derived, not divided.</strong> Quota is not set top-down from a revenue target and split across heads. It's built up from eRep (effective rep count), which accounts for each rep's ramp stage and LOA status. Org capacity = sum of eRep values × full quota per role per segment.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Segment-differentiated by role and ACV dynamics.</strong> SMB quotas reflect higher volume, shorter cycle, lower ACV. Enterprise quotas reflect longer cycles and larger ACV. Same quota for all segments is never correct and the agent enforces differentiation.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Nine guardrails enforced before approval routing.</strong> Quota must fall within acceptable range of segment benchmarks, eRep capacity must support coverage ratio, ramp-adjusted attainability check, and six additional controls. Any breach blocks approval until resolved.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Four-gate approval chain.</strong> Agent proposes quota. Proposal routes through SLM → RevOps → CRO/FP&A/HR → publish. No gate can be skipped. QuotaAmendmentLog captures every change with rationale.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Board scenario outputs produced at every cycle.</strong> Base (current eRep × full quota), conservative (eRep haircut for attrition/ramp risk), and stretch (aggressive hire/ramp assumption). These feed AGT-105 capacity planning directly.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">eRep model — effective rep count</div>
+  <div class="erep-grid">
+    <div class="ec"><div class="ec-label">Month 1–3</div><div class="ec-val">0.25</div><div class="ec-sub">25% quota deployed</div></div>
+    <div class="ec"><div class="ec-label">Month 4–6</div><div class="ec-val">0.50</div><div class="ec-sub">50% quota deployed</div></div>
+    <div class="ec"><div class="ec-label">Month 7–9</div><div class="ec-val">0.75</div><div class="ec-sub">75% quota deployed</div></div>
+    <div class="ec"><div class="ec-label">Month 10+</div><div class="ec-val">1.00</div><div class="ec-sub">Full quota</div></div>
+    <div class="ec"><div class="ec-label">LOA</div><div class="ec-val" style="color:#791F1F">0.00</div><div class="ec-sub">Regardless of ramp</div></div>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:4px">eRep values stored in RampSchedules table (role × month-in-seat → deployed quota %). LOA override: employee marked loa_active=TRUE forces eRep=0.0 regardless of ramp position. PIP modifier configurable (default 0.6 eRep — identifies rep likely producing below full capacity).</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Segment quota targets by role</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="quota-grid">
+      <div class="qg-hdr">Role</div>
+      <div class="qg-hdr">SMB</div>
+      <div class="qg-hdr">Mid-Market</div>
+      <div class="qg-hdr">Enterprise</div>
+      <div class="qg-cell">AE</div><div class="qg-cell qg-blue">$400K</div><div class="qg-cell qg-blue">$800K</div><div class="qg-cell qg-blue">$1.6M</div>
+      <div class="qg-cell">AM</div><div class="qg-cell">$300K</div><div class="qg-cell">$600K</div><div class="qg-cell">$1.2M</div>
+      <div class="qg-cell">CSM (expansion)</div><div class="qg-cell">$200K</div><div class="qg-cell">$400K</div><div class="qg-cell">$800K</div>
+      <div class="qg-cell">SE (overlay)</div><div class="qg-cell">$800K</div><div class="qg-cell">$1.6M</div><div class="qg-cell">$3.2M</div>
+      <div class="qg-cell">Sales Manager</div><div class="qg-cell">$1.2M</div><div class="qg-cell">$2.4M</div><div class="qg-cell">$4.8M</div>
+      <div class="qg-cell">SLM</div><div class="qg-cell">$2.4M</div><div class="qg-cell">$4.8M</div><div class="qg-cell">$9.6M</div>
+      <div class="qg-cell" style="border-bottom:none">SDR (pipeline)</div><div class="qg-cell" style="border-bottom:none;color:#555" colspan="3">$1.2M — single flat plan, no segment differentiation</div><div class="qg-cell" style="border-bottom:none"></div><div class="qg-cell" style="border-bottom:none"></div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:5px">AE quota multiples (quota/OTE): SMB ~2.9×, MM ~4.0×, Enterprise ~5.7×. Enterprise multiples higher because ACV supports it. SMB lower reflecting shorter cycle and higher volume motion.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Nine guardrails (must all pass before approval routing)</div>
+  <div class="card">
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Attainability check:</strong> ramp-adjusted org capacity must support ≥85% coverage ratio vs revenue target. Below threshold → block and flag RevOps.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Benchmark range:</strong> proposed quota per role must fall within ±25% of segment benchmark. Outliers flagged for CRO review.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>eRep coverage ratio:</strong> total eRep × quota must ≥ FP&APlan revenue target for segment. Capacity gap surfaced before plan is published.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>OTE multiple sanity check:</strong> quota/OTE must fall within role-typical range. AE: 2.5–6.5×. SE/overlay: 6–10×. CSM: 1.5–3×.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Segment consistency:</strong> quota must scale proportionally across SMB → MM → Enterprise. Non-linear scaling flagged.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Ramp cohort distribution:</strong> if >35% of headcount is in ramp tiers 1–2, plan is flagged as capacity risk for current period.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>LOA/PIP exclusion:</strong> all LOA reps must carry eRep=0.0. PIP reps must carry configured modifier. Manual overrides flagged to CompAuditLog.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Amendment audit:</strong> mid-cycle quota changes must carry rationale, approver, and effective date. Unattributed changes blocked.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Territory coverage check:</strong> every rep with a QuotaStore row must have a corresponding TerritoryAssignmentLog entry. Unassigned reps block quota publication.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Four-gate approval chain</div>
+  <div class="gate-flow">
+    <div class="gate-box g1">1. SLM<br><span style="font-size:10px">segment review</span></div>
+    <div class="gate-arr">→</div>
+    <div class="gate-box g2">2. RevOps<br><span style="font-size:10px">capacity + coverage</span></div>
+    <div class="gate-arr">→</div>
+    <div class="gate-box g3">3. CRO / FP&A / HR<br><span style="font-size:10px">financial + legal</span></div>
+    <div class="gate-arr">→</div>
+    <div class="gate-box g4">4. Publish<br><span style="font-size:10px">QuotaStore activated</span></div>
+  </div>
+  <div style="font-size:11px;color:#888">No gate can be skipped. Rejection at any gate returns to agent for recalculation. All changes logged in QuotaAmendmentLog with approver_employee_crm_id and rationale.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Board scenario outputs</div>
+  <div class="scenario-grid">
+    <div class="sc">
+      <div class="sc-badge sb-base">Base case</div>
+      <div class="sc-title">Current eRep × full quota</div>
+      <div class="sc-body">Reflects today's headcount at realistic productivity. Uses actual ramp stage per rep. Primary scenario for FP&APlan.</div>
+    </div>
+    <div class="sc">
+      <div class="sc-badge sb-cons">Conservative</div>
+      <div class="sc-title">eRep haircut applied</div>
+      <div class="sc-body">−15% eRep adjustment for attrition risk and unexpected LOA. Lower coverage ratio assumption. Used for downside scenario in board model.</div>
+    </div>
+    <div class="sc">
+      <div class="sc-badge sb-str">Stretch</div>
+      <div class="sc-title">Aggressive hire/ramp</div>
+      <div class="sc-body">+10% eRep assuming accelerated hiring and above-average ramp performance. Requires HiringPlan confirmation from AGT-105 before presenting to board.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Status</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr><td><strong>QuotaStore</strong></td><td><span class="tag-new">new</span></td><td class="mono">quota_id, employee_crm_id, fiscal_year, quota_period, role, segment, full_quota_usd, deployed_quota_usd, erep_value, ramp_month, loa_active, pip_active, pip_erep_modifier, approval_status, approved_by, approved_date, effective_date, notes — 625 sample rows</td></tr>
+        <tr><td><strong>RampSchedules</strong></td><td><span class="tag-new">new</span></td><td class="mono">schedule_id, role, month_in_seat, deployed_quota_pct, erep_value — reference table, role × month → eRep</td></tr>
+        <tr><td><strong>AccountQuotaTargets</strong></td><td><span class="tag-new">new</span></td><td class="mono">target_id, account_id, employee_crm_id, quota_period, quota_usd — named account quota carve for AM/CSM/Enterprise AE</td></tr>
+        <tr style="border-bottom:none"><td><strong>QuotaAmendmentLog</strong></td><td><span class="tag-new">new</span></td><td class="mono">amendment_id, quota_id, employee_crm_id, prior_quota_usd, new_quota_usd, amendment_reason, approver_employee_crm_id, approved_at, effective_date</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da">Employees</span><span class="dd reads">reads</span><span class="dd2">Hire date, role, segment, ramp_schedule_id, loa_active, pip_active. Source of headcount for eRep model.</span></div>
+    <div class="dep-row"><span class="da">TerritoryDefinitions (AGT-106)</span><span class="dd reads">reads</span><span class="dd2">Territory coverage check — every rep in QuotaStore must have a TerritoryAssignmentLog entry.</span></div>
+    <div class="dep-row"><span class="da">FP&APlan (AGT-105)</span><span class="dd reads">reads</span><span class="dd2">Revenue targets by segment. eRep coverage ratio guardrail checks against FP&APlan.revenue_target_usd.</span></div>
+    <div class="dep-row"><span class="da">QuotaStore</span><span class="dd writes">writes</span><span class="dd2">Primary output table. All quota rows written here. approval_status gates activation.</span></div>
+    <div class="dep-row"><span class="da">QuotaAmendmentLog</span><span class="dd writes">writes</span><span class="dd2">Every change to QuotaStore logged with rationale and approver.</span></div>
+    <div class="dep-row"><span class="da">AGT-102 Comp Plan Design</span><span class="dd trig">downstream</span><span class="dd2">AGT-102 reads QuotaStore as primary input. Quota is upstream to all comp plan construction.</span></div>
+    <div class="dep-row"><span class="da">AGT-105 Capacity Planning</span><span class="dd trig">downstream</span><span class="dd2">eRep values and board scenarios feed AGT-105 productivity projections and hiring plan outputs.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-101, the Quota Setting agent for a B2B SaaS GTM OS.
+
+ROLE: Build bottom-up quota targets from eRep capacity. Never set quota
+top-down by dividing revenue target by headcount. Quota is derived from
+what the team can realistically produce.
+
+EREP CALCULATION:
+  For each rep in Employees:
+    ramp_month = DATEDIFF(today, hire_date, month)
+    erep_value = RampSchedules WHERE role = rep.role AND month_in_seat = ramp_month
+    IF loa_active = TRUE: erep_value = 0.0 (override)
+    IF pip_active = TRUE: erep_value = pip_erep_modifier (default 0.6)
+  org_erep = SUM(erep_value) by segment × role
+
+QUOTA DERIVATION:
+  full_quota_usd from segment × role table (canonical values)
+  deployed_quota_usd = full_quota_usd × erep_value
+  Write QuotaStore rows: approval_status = 'pending'
+
+GUARDRAILS (all must pass):
+  1. Coverage ratio: org_erep × full_quota ≥ FP&APlan.revenue_target × 0.85
+  2. Benchmark range: quota within ±25% of segment benchmark
+  3. OTE multiple: quota/OTE within role-typical range
+  4. Segment scaling: proportional SMB→MM→Ent
+  5. Ramp cohort: <35% of headcount in ramp tiers 1–2
+  6. LOA/PIP: all overrides applied and logged
+  7. Amendment audit: all changes attributed
+  8. Territory coverage: all reps have TerritoryAssignmentLog entry
+  9. eRep coverage ratio passes FP&APlan feasibility check
+
+APPROVAL ROUTING:
+  All guardrails pass → route to SLM for review
+  SLM approval → route to RevOps
+  RevOps approval → route to CRO/FP&A/HR
+  Final approval → set approval_status = 'published', effective_date = now()
+
+BOARD SCENARIOS:
+  base: current eRep × full_quota
+  conservative: erep_value × 0.85 for all reps
+  stretch: erep_value × 1.10 (flag: requires HiringPlan confirmation)
+
+OUTPUT: QuotaStore rows + board scenario summary + coverage ratio report.</pre>
+</div>
+</body>
+</html>

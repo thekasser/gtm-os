@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-103 Comp Attainment & Payout Calculator</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:880px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.bt{background:#F1EFE8;color:#444441;border-color:#B4B2A9}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;background:#534AB7}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.ledger-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.lc{border:1px solid #e0e0e0;border-radius:10px;padding:11px 13px}
+.lc-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-bottom:5px}
+.lb-quota{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.lb-pay{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.lb-draw{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.lc-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.lc-body{font-size:11px;color:#555;line-height:1.6}
+.calc-flow{display:flex;flex-direction:column;gap:6px}
+.cf-step{display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px}
+.cf-num{width:22px;height:22px;border-radius:50%;background:#EEEDFE;color:#3C3489;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.cf-title{font-size:12px;font-weight:600;margin-bottom:2px}
+.cf-body{font-size:11px;color:#555;line-height:1.55}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tag-new{font-size:10px;padding:1px 6px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee}
+.dep-row:last-child{border-bottom:none}
+.da{min-width:175px;font-weight:600;color:#111;font-size:12px}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-103 — Comp attainment & payout calculator</h1>
+<div class="hsub">Layer 1 · Sales planning & compensation · Daily batch · QuotaRetirementLedger transaction layer</div>
+<div class="badges">
+  <span class="badge bv">v1.0 built</span>
+  <span class="badge bl">Layer 1</span>
+  <span class="badge bt">Schema v13–v16</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Daily batch payout engine.</strong> Runs once per day. Processes all new closed-won deals and validated usage events since last run. Calculates attainment, applies payout curves, and writes PayoutHistory rows. Never runs intra-period on demand — attainment is a daily computed state, not a real-time calculation.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>QuotaRetirementLedger as the transaction layer.</strong> One row per revenue event (closed-won deal or validated usage event) per rep. The ledger is the source of truth for what has retired against which quota measure. PayoutHistory aggregates the ledger — it is never the primary record.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Usage payouts gated on agt004_reconciled = TRUE.</strong> No usage event can retire quota or generate a payout until AGT-004 has reconciled the billing data. Unreconciled rows sit in the ledger with payout_eligible = FALSE until the gate clears.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>DrawLedger tracks recoverable draw balance.</strong> One row per draw disbursement and one row per recovery event. AGT-103 writes recovery rows automatically as variable earnings accumulate. Clawback events (via AGT-104) write draw_type = clawback_recovery rows to the same ledger.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Reads CompPlans — checks approval_status = approved before calculating.</strong> Unapproved plans produce zero payout calculations. AGT-103 never self-approves or works around the gate.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Three core ledger tables</div>
+  <div class="ledger-grid">
+    <div class="lc">
+      <div class="lc-badge lb-quota">QuotaRetirementLedger</div>
+      <div class="lc-title">Transaction layer</div>
+      <div class="lc-body">One row per revenue event per rep. closed_won deal: single row retiring against New Logo or Expansion measure. Usage event: one row per reconciled billing period retiring against consumption measure. Ledger is the source of truth — never edited, only appended.</div>
+    </div>
+    <div class="lc">
+      <div class="lc-badge lb-pay">PayoutHistory</div>
+      <div class="lc-title">Payout computation</div>
+      <div class="lc-body">Aggregated daily payout calculation per rep per measure. Applies curve type (standard or quadratic), floor gate, accelerator. Includes period attainment %, payout_usd, and kicker_applied flag. Feeds PayrollExport downstream. Never overwritten — new rows appended per period.</div>
+    </div>
+    <div class="lc">
+      <div class="lc-badge lb-draw">DrawLedger</div>
+      <div class="lc-title">Draw + recovery</div>
+      <div class="lc-body">One row per draw disbursement event. One row per recovery event (variable earnings applied against draw balance). draw_type field: recoverable_draw, recovery_credit, clawback_recovery. Balance = SUM of disbursements − SUM of recoveries per rep.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Daily calculation sequence</div>
+  <div class="calc-flow">
+    <div class="cf-step">
+      <div class="cf-num">1</div>
+      <div><div class="cf-title">Ingest new revenue events</div><div class="cf-body">Pull closed-won opportunities since last_run_date. Pull usage events WHERE agt004_reconciled = TRUE AND not yet in ledger. Write QuotaRetirementLedger rows. payout_eligible = TRUE for quota events; conditional for usage events.</div></div>
+    </div>
+    <div class="cf-step">
+      <div class="cf-num">2</div>
+      <div><div class="cf-title">Validate comp plan state</div><div class="cf-body">For each rep with new ledger events: check CompPlans WHERE employee_crm_id = rep AND approval_status = 'approved'. If no approved plan exists: log to CompAuditLog, skip payout calculation, flag to AGT-104.</div></div>
+    </div>
+    <div class="cf-step">
+      <div class="cf-num">3</div>
+      <div><div class="cf-title">Calculate period attainment per measure</div><div class="cf-body">SUM(QuotaRetirementLedger.revenue_usd) by rep × measure × period ÷ QuotaStore.deployed_quota_usd. Apply ramp-adjustment: attainment scored against deployed quota, not full quota. A rep at month 4 hitting 95% of 50% deployed quota = 95% attainment.</div></div>
+    </div>
+    <div class="cf-step">
+      <div class="cf-num">4</div>
+      <div><div class="cf-title">Apply payout curve</div><div class="cf-body">Standard curve: floor gate → linear earn-in → continuous multiplier above 100%. Quadratic: payout_pct = realization_pct². Apply kicker multipliers on top if kicker_eligible = TRUE and trigger condition met. Apply SPIF payout if SPIF is active and measure qualifies.</div></div>
+    </div>
+    <div class="cf-step">
+      <div class="cf-num">5</div>
+      <div><div class="cf-title">Apply draw recovery</div><div class="cf-body">If DrawLedger shows outstanding recoverable draw balance: net variable payout against balance. Write recovery_credit row to DrawLedger. Net payout to rep = gross variable − draw_recovery_applied_usd. Stops when balance = zero.</div></div>
+    </div>
+    <div class="cf-step">
+      <div class="cf-num">6</div>
+      <div><div class="cf-title">Write PayoutHistory + flag anomalies</div><div class="cf-body">Write PayoutHistory row with full calculation detail. Flag to AGT-104 if: payout spike >150% period-over-period, kicker stacking detected, or usage payout attempted with agt004_reconciled = FALSE.</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Status</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr><td><strong>QuotaRetirementLedger</strong></td><td><span class="tag-new">new</span></td><td class="mono">ledger_id, employee_crm_id, opportunity_id (nullable), usage_event_id (nullable), measure_type, revenue_usd, quota_period, event_date, payout_eligible, agt004_reconciled, notes</td></tr>
+        <tr><td><strong>PayoutHistory</strong></td><td><span class="tag-new">new</span></td><td class="mono">payout_id, employee_crm_id, quota_period, measure_type, period_revenue_usd, deployed_quota_usd, attainment_pct, curve_type, payout_rate, payout_usd, kicker_applied, kicker_usd, spif_applied, spif_usd, draw_recovery_applied_usd, net_payout_usd, calculated_at</td></tr>
+        <tr style="border-bottom:none"><td><strong>DrawLedger</strong></td><td><span class="tag-new">new</span></td><td class="mono">draw_id, employee_crm_id, draw_type (recoverable_draw / recovery_credit / clawback_recovery), draw_usd, event_date, plan_id (FK→CompPlans), period, balance_after, notes</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da">CompPlans (AGT-102)</span><span class="dd reads">reads</span><span class="dd2">Curve type, floor, accel, kicker eligibility. Checks approval_status = approved before any calculation.</span></div>
+    <div class="dep-row"><span class="da">QuotaStore (AGT-101)</span><span class="dd reads">reads</span><span class="dd2">deployed_quota_usd per rep × measure × period for attainment calculation.</span></div>
+    <div class="dep-row"><span class="da">Opportunities</span><span class="dd reads">reads</span><span class="dd2">Closed-won events since last run. Source of new logo and expansion revenue retirement events.</span></div>
+    <div class="dep-row"><span class="da">UsageLog</span><span class="dd reads">reads</span><span class="dd2">Usage events WHERE agt004_reconciled = TRUE. Consumption revenue retirement events.</span></div>
+    <div class="dep-row"><span class="da">Kickers / SPIFs (AGT-102)</span><span class="dd reads">reads</span><span class="dd2">Active kickers and SPIFs to apply on qualifying events.</span></div>
+    <div class="dep-row"><span class="da">QuotaRetirementLedger</span><span class="dd writes">writes</span><span class="dd2">One row per revenue event. Append-only. Primary transaction record.</span></div>
+    <div class="dep-row"><span class="da">PayoutHistory</span><span class="dd writes">writes</span><span class="dd2">Daily payout calculation per rep per measure. Full curve calculation stored.</span></div>
+    <div class="dep-row"><span class="da">DrawLedger</span><span class="dd writes">writes</span><span class="dd2">Recovery credit rows as variable earnings applied against draw balance.</span></div>
+    <div class="dep-row"><span class="da">AGT-104 Comp Governance</span><span class="dd trig">triggers</span><span class="dd2">Flags payout anomalies, kicker stacking, and unapproved plan attempts to AGT-104 for audit.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-103, the Comp Attainment & Payout Calculator for a B2B SaaS GTM OS.
+
+ROLE: Daily batch payout engine. Process all new revenue events since
+last run. Calculate attainment, apply curves, write PayoutHistory.
+Never run intra-period on demand. Attainment is daily state.
+
+STEP 1 — INGEST NEW EVENTS:
+  Pull Opportunities WHERE stage = 'Closed Won' AND close_date >= last_run_date
+  Pull UsageLog WHERE agt004_reconciled = TRUE AND ledger_id IS NULL
+  Write QuotaRetirementLedger rows for all new events.
+
+STEP 2 — VALIDATE COMP PLAN:
+  For each rep with new events: check CompPlans WHERE
+  employee_crm_id = rep AND approval_status = 'approved'.
+  If no approved plan: log to CompAuditLog, skip, flag to AGT-104.
+
+STEP 3 — CALCULATE ATTAINMENT:
+  period_revenue = SUM(ledger.revenue_usd) by rep × measure × period
+  attainment_pct = period_revenue / QuotaStore.deployed_quota_usd
+  Score against deployed quota (ramp-adjusted), NOT full quota.
+
+STEP 4 — APPLY CURVE:
+  standard: IF attainment < floor_pct: payout_rate = 0
+    IF attainment <= 1.0: payout_rate = linear(floor_rate, 1.0)
+    IF attainment > 1.0: payout_rate = 1.0 × accel_rate
+  quadratic: payout_pct = MIN(attainment, 1.5)² (cap at 150%)
+    REQUIRE agt004_reconciled = TRUE. Else: payout_eligible = FALSE.
+
+STEP 5 — APPLY KICKERS + SPIFS:
+  Check Kickers WHERE trigger_condition met AND approval_status = approved.
+  Check SPIFs WHERE active AND measure qualifies.
+  Apply multipliers on top of base payout. Set kicker_applied = TRUE.
+
+STEP 6 — APPLY DRAW RECOVERY:
+  IF DrawLedger balance > 0 for rep:
+    recovery_amount = MIN(gross_variable_payout, outstanding_balance)
+    Write DrawLedger row: draw_type = 'recovery_credit'
+    net_payout = gross_variable - recovery_amount
+
+STEP 7 — WRITE + FLAG:
+  Write PayoutHistory row with full calculation detail.
+  Flag to AGT-104 if: payout_delta > 150% prior period, kicker stacking,
+  or usage payout attempted with agt004_reconciled = FALSE.</pre>
+</div>
+</body>
+</html>
