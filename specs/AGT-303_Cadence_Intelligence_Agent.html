@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-303 Cadence Intelligence Agent</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:880px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;background:#EF9F27}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.mc{border:1px solid #e0e0e0;border-radius:9px;padding:10px 12px}
+.mc-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.mc-body{font-size:11px;color:#555;line-height:1.55}
+.risk-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.rc{border-radius:9px;padding:11px 13px;border:1px solid}
+.rc-low{background:#E1F5EE;border-color:#5DCAA5}
+.rc-med{background:#FAEEDA;border-color:#EF9F27}
+.rc-hi{background:#FCEBEB;border-color:#F09595}
+.rc-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.rc-l-lo{color:#085041}.rc-l-me{color:#633806}.rc-l-hi{color:#791F1F}
+.rc-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.rc-body{font-size:11px;color:#555;line-height:1.55}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee}
+.dep-row:last-child{border-bottom:none}
+.da{min-width:175px;font-weight:600;color:#111;font-size:12px}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-303 — Cadence intelligence agent</h1>
+<div class="hsub">Layer 3 · Outreach & cadence · Daily flags + weekly full analysis · Advisory only · All changes through AGT-302</div>
+<div class="badges">
+  <span class="badge bv">v1.0 specced</span>
+  <span class="badge bl">Layer 3</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Read-only access to cadence state — never writes directly.</strong> All recommendations route through AGT-302 Cadence Coordinator. The Coordinator decides whether to apply changes per the risk/veto protocol. The Intelligence Agent never self-executes changes to any cadence.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Two run modes: daily flags and weekly full analysis.</strong> Daily: lightweight scan for acute performance signals — underperforming steps, compliance failures, outliers. Weekly: full cohort analysis, trend identification, structured recommendation generation with evidence.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Minimum 30-sequence sample before recommending.</strong> No recommendation on a cadence or step with fewer than 30 completed sequences. Small samples produce noise, not signal. Recommendations generated below threshold are logged but not sent to Coordinator.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Risk-classified recommendations with automatic application logic.</strong> Low risk: auto-applied immediately by Coordinator. Medium/high risk: 3-business-day veto window opens. If no veto received by day 4, Coordinator auto-applies. If veto received, change is cancelled and Intelligence Agent is notified.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Six performance metrics analyzed</div>
+  <div class="metric-grid">
+    <div class="mc">
+      <div class="mc-title">Step-level reply rate</div>
+      <div class="mc-body">Which steps generate responses. Measures both positive engagement and any reply (including negative — a reply is a signal). Identifies high-performing and dead steps within a sequence.</div>
+    </div>
+    <div class="mc">
+      <div class="mc-title">Step-level drop-off</div>
+      <div class="mc-body">Where prospects go cold within a sequence. Step N-1 has high engagement, Step N has near-zero — the drop is between those two. The handoff is the problem, not the destination.</div>
+    </div>
+    <div class="mc">
+      <div class="mc-title">Channel performance</div>
+      <div class="mc-body">Email vs call vs LinkedIn effectiveness by cadence type and ICP tier. Some segments respond better on LinkedIn; some industries are call-averse. Channel mix optimization is the highest-leverage cadence variable.</div>
+    </div>
+    <div class="mc">
+      <div class="mc-title">Cadence completion rate by ICP tier</div>
+      <div class="mc-body">What % of prospects reach the last step vs disengage or convert mid-sequence. Segmented by T1/T2 — T1 completion rates should be lower (converting earlier) than T2. If T1 completes at the same rate as T2, sequences are underperforming.</div>
+    </div>
+    <div class="mc">
+      <div class="mc-title">Time-to-meeting by motion and vertical</div>
+      <div class="mc-body">How many touches and how many days from sequence start to meeting booked. Segmented by GTM motion (outbound vs inbound) and vertical. Baseline for identifying sequences running significantly above average time-to-meeting.</div>
+    </div>
+    <div class="mc">
+      <div class="mc-title">Rep compliance rate</div>
+      <div class="mc-body">Grace period usage (what % of auto-send drafts are edited or cancelled), opt-out patterns (which reps are opting prospects out vs letting sequences run). High grace period usage = rep is customizing heavily (good) or pausing everything (bad). Surfaces coaching data to AGT-701.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Recommendation risk classification and application protocol</div>
+  <div class="risk-grid">
+    <div class="rc rc-low">
+      <div class="rc-label rc-l-lo">Low risk</div>
+      <div class="rc-title">Auto-applied immediately</div>
+      <div class="rc-body">Adjust step timing ±1–2 days. Reorder steps within existing cadence. Minor copy tweaks within existing channel. Coordinator applies on receipt, logs change.</div>
+    </div>
+    <div class="rc rc-med">
+      <div class="rc-label rc-l-me">Medium risk</div>
+      <div class="rc-title">3-business-day veto window</div>
+      <div class="rc-body">Add a new step to existing cadence. Remove a step from existing cadence. Significant copy change (>30% rewrite). Coordinator queues with veto window. Auto-applies day 4 if no veto.</div>
+    </div>
+    <div class="rc rc-hi">
+      <div class="rc-label rc-l-hi">High risk</div>
+      <div class="rc-title">3-business-day veto window</div>
+      <div class="rc-body">Create a new cadence type. Change auto-send rules or touch cap. Change the silence=consent window duration. Channel mix restructure. Same veto window — but these are flagged with higher urgency to RevOps.</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#888;margin-top:6px">Veto protocol: Any recommendation in the pending window can be vetoed by RevOps or a Sales Manager. A veto cancels the change and flags the reasoning back to the Intelligence Agent for context. Vetoed recommendations are logged but not re-proposed without new supporting evidence.</div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da">CadenceEventLog (AGT-302)</span><span class="dd reads">reads</span><span class="dd2">All cadence events: touches sent, replies, meetings booked, drop-offs. Primary data source for all 6 metrics.</span></div>
+    <div class="dep-row"><span class="da">Leads (cadence fields)</span><span class="dd reads">reads</span><span class="dd2">Current cadence state per lead. ICP tier for segmented analysis.</span></div>
+    <div class="dep-row"><span class="da">RepActivity</span><span class="dd reads">reads</span><span class="dd2">Grace period usage, manual opt-outs, override patterns for rep compliance metric.</span></div>
+    <div class="dep-row"><span class="da">AGT-302 Cadence Coordinator</span><span class="dd trig">outputs to</span><span class="dd2">All recommendations routed to Coordinator as structured JSON proposals with risk classification and evidence. Never writes directly to cadence state.</span></div>
+    <div class="dep-row"><span class="da">AGT-701 Rep Performance</span><span class="dd trig">feeds</span><span class="dd2">Rep compliance rate data (grace period usage, opt-out patterns) feeds AGT-701 coaching inputs.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-303, the Cadence Intelligence agent for a B2B SaaS GTM OS.
+
+ROLE: Analyze cadence performance. Generate improvement recommendations.
+Advisory only — never write to cadence state. All changes go through AGT-302.
+
+SCHEDULE:
+  Daily: lightweight flag scan. Flag acute signals only:
+    - Step with reply_rate < 2% on last 7 days (minimum 20 touches)
+    - Rep compliance_rate < 40% (grace period usage > 60%)
+    - Cadence completion_rate for T1 > T2 completion rate (should be inverse)
+  Weekly: full analysis across all 6 metrics. Generate recommendations.
+
+MINIMUM SAMPLE: 30 completed sequences per cadence before recommending.
+  Below threshold: log finding, do not send recommendation to Coordinator.
+
+ANALYZE 6 METRICS:
+  1. step_reply_rate: replies / touches per step per cadence
+  2. step_dropoff: % prospects active at step N / step N-1
+  3. channel_performance: meeting_rate by channel × ICP tier × vertical
+  4. completion_rate: % reaching final step, segmented by T1/T2
+  5. time_to_meeting: median touches and days to meeting_booked by motion × vertical
+  6. rep_compliance: grace_period_usage_pct, opt_out_rate by rep
+
+RECOMMENDATION FORMAT (JSON):
+  {
+    "recommendation_id": "...",
+    "cadence_type": "...",
+    "change_type": "...",
+    "risk_level": "low|medium|high",
+    "evidence": "...",
+    "expected_impact": "...",
+    "proposed_change": "..."
+  }
+
+RISK CLASSIFICATION:
+  low: timing adjustments, step reorder → auto-apply
+  medium/high: step add/remove, new cadence, auto-send rule change
+    → 3-business-day veto window, then auto-apply
+
+SEND all recommendations to AGT-302. Log all findings including below-threshold.</pre>
+</div>
+</body>
+</html>

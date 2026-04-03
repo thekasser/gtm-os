@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-304 Marketing Nurture Agent</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:880px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;background:#EF9F27}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.tier-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.tc{border:1px solid #e0e0e0;border-radius:10px;padding:11px 13px}
+.tc-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;display:inline-block;margin-bottom:5px}
+.tb-act{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.tb-cool{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.tb-dorm{background:#F1EFE8;color:#444441;border:1px solid #B4B2A9}
+.tc-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.tc-body{font-size:11px;color:#555;line-height:1.6}
+.abm-note{background:#FCEBEB;border:1px solid #F09595;border-radius:8px;padding:10px 13px;font-size:12px;color:#791F1F;line-height:1.6;margin-bottom:8px}
+.entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ec{border:1px solid #e0e0e0;border-radius:9px;padding:10px 12px}
+.ec-title{font-size:12px;font-weight:600;margin-bottom:3px}
+.ec-body{font-size:11px;color:#555;line-height:1.6}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee}
+.dep-row:last-child{border-bottom:none}
+.da{min-width:175px;font-weight:600;color:#111;font-size:12px}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-304 — Marketing nurture agent</h1>
+<div class="hsub">Layer 3 · Outreach & cadence · Long-horizon engagement · Indefinite track · 3 dormancy tiers · ABM suppression gate</div>
+<div class="badges">
+  <span class="badge bv">v1.0 specced</span>
+  <span class="badge bl">Layer 3</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Long-horizon engagement for T3 leads and exhausted T1/T2.</strong> Prospects who don't respond to active sales sequences aren't dead — they're early. Nurture maintains brand presence and surfaces re-engagement signals without consuming AE/SDR capacity.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Indefinite horizon — prospects stay until they unsubscribe or re-engage.</strong> No automatic removal from nurture based on time. Prospects are removed from the active nurture track when: (1) they unsubscribe, (2) their engagement score crosses the re-entry threshold, or (3) their ICP score drops to near-zero and they're no longer worth marketing investment.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>ABM suppression gate — checked before every nurture enrollment.</strong> If Accounts.abm_active = TRUE: exclude from nurture entirely. Log to NurtureRecommendations with reason = 'ABM active suppression'. ABM accounts have bespoke outreach plays — generic nurture undermines the play quality. Account re-enters nurture eligibility when abm_active resets to FALSE on TAL exit.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>AGT-302 Cadence Coordinator owns re-entry decisions.</strong> The Nurture Agent generates engagement scores and surfaces re-entry signals. The Coordinator decides whether to transition a prospect back to active sales sequence. Nurture Agent never self-triggers re-entry.</div></div>
+  </div>
+</div>
+
+<div class="abm-note">
+  <strong>ABM suppression gate (v17→v18 ripple):</strong> First check before any nurture enrollment: <code>IF Accounts.abm_active = TRUE → exclude from nurture</code>. Log exclusion in NurtureRecommendations with reason = 'ABM active suppression'. This gate was added when AGT-203 ABM Target Selection was introduced in Layer 2. Running generic nurture sequences on accounts with active bespoke ABM plays creates channel conflict and undermines play quality.
+</div>
+
+<div class="sec">
+  <div class="slabel">Three dormancy tiers</div>
+  <div class="tier-grid">
+    <div class="tc">
+      <div class="tc-badge tb-act">Active</div>
+      <div class="tc-title">0–6 months</div>
+      <div class="tc-body">2× per month cadence. Mix of educational content, case studies, product updates, webinar invites. Engagement scored on every interaction — opens, clicks, downloads all contribute. Highest touch frequency reflecting recency of sales interest.</div>
+    </div>
+    <div class="tc">
+      <div class="tc-badge tb-cool">Cooling</div>
+      <div class="tc-title">6–18 months</div>
+      <div class="tc-body">1× per quarter. Newsletter format — lower volume, awareness-focused. No active sales CTAs. Monitors for re-engagement signal. Cadence designed to maintain presence without creating unsubscribe pressure from overcontact.</div>
+    </div>
+    <div class="tc">
+      <div class="tc-badge tb-dorm">Dormant</div>
+      <div class="tc-title">18+ months</div>
+      <div class="tc-body">Annual ping. Single touchpoint. Either re-engagement attempt or clean unsubscribe invitation. If no response to annual ping and no enrichment signal: flag for potential list clean. Long-dormant accounts that respond to annual ping re-enter Active tier immediately.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Engagement scoring and re-entry thresholds</div>
+  <div class="card">
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Engagement score: 0–100, decays −5 per week with no interaction.</strong> Score increases on: email open (+5), link click (+10), content download (+15), webinar registration (+20), webinar attendance (+25), direct reply to nurture (+30). Score compounds — an active prospect accumulates rapidly. Decay prevents stale high scores from triggering false re-entry.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Re-entry thresholds differ by original ICP tier.</strong> T1 re-enters at ≥40 (lower threshold — they were high-fit to begin with, any engagement signal is meaningful). T2 re-enters at ≥60. T3 re-enters at ≥80 AND requires ICP rescore to confirm they still meet the T3 minimum. A T3 account crossing the threshold with a stale ICP score is not automatically re-routed.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Tier transitions within nurture.</strong> Active → Cooling at 6 months with no re-entry signal. Cooling → Dormant at 18 months. Dormant → Active immediately on any engagement. These transitions are executed by AGT-302 Coordinator on the Nurture Agent's recommendation.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Nurture entry triggers</div>
+  <div class="entry-grid">
+    <div class="ec">
+      <div class="ec-title">T3 lead routed by AGT-202</div>
+      <div class="ec-body">Lead Router routes T3 leads to nurture at time of assignment. Never touches active sales queue. Enters Active tier immediately.</div>
+    </div>
+    <div class="ec">
+      <div class="ec-title">Outreach sequence exhausted</div>
+      <div class="ec-body">T1 or T2 lead completes all sequence steps without converting. Coordinator transitions to nurture on sequence completion. T1/T2 enter Active tier.</div>
+    </div>
+    <div class="ec">
+      <div class="ec-title">ICP score upgrade (T3 → T2)</div>
+      <div class="ec-body">Enrichment rescore pushes account from T3 to T2. Nurture Agent surfaces this to Coordinator who may transition to active sales sequence directly, bypassing nurture re-entry.</div>
+    </div>
+    <div class="ec">
+      <div class="ec-title">Rep manual opt-out (non-unsubscribe)</div>
+      <div class="ec-body">Rep removes a prospect from active cadence for a non-compliance reason (e.g. "too early, not ready"). Routes to nurture as a holding pattern rather than lost or dead.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da">Accounts (abm_active)</span><span class="dd reads">reads</span><span class="dd2">ABM suppression check. First gate before any nurture enrollment decision.</span></div>
+    <div class="dep-row"><span class="da">Leads (nurture fields)</span><span class="dd reads">reads</span><span class="dd2">Current nurture state: nurture_entry_date, nurture_touch_count, engagement score.</span></div>
+    <div class="dep-row"><span class="da">ICP Scorer (AGT-201)</span><span class="dd reads">reads</span><span class="dd2">ICP tier for re-entry threshold and rescore requirement on T3 accounts approaching threshold.</span></div>
+    <div class="dep-row"><span class="da">NurtureRecommendations</span><span class="dd writes">writes</span><span class="dd2">Re-entry signals, tier transition recommendations, ABM suppression logs, unsubscribe recommendations.</span></div>
+    <div class="dep-row"><span class="da">Leads (nurture fields)</span><span class="dd writes">writes</span><span class="dd2">engagement_score, dormancy_tier, nurture_touch_count, last_nurture_touch.</span></div>
+    <div class="dep-row"><span class="da">AGT-302 Cadence Coordinator</span><span class="dd trig">outputs to</span><span class="dd2">Re-entry signals trigger Coordinator to transition prospect back to active sales sequence.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-304, the Marketing Nurture agent for a B2B SaaS GTM OS.
+
+ROLE: Long-horizon engagement for T3 leads and exhausted T1/T2.
+Indefinite horizon — prospects stay until unsubscribe or re-entry threshold.
+
+ABM SUPPRESSION (check first, always):
+  IF Accounts.abm_active = TRUE:
+    Exclude from nurture enrollment.
+    Write NurtureRecommendations: reason = 'ABM active suppression'.
+    Re-check when abm_active status changes.
+
+ENTRY TRIGGERS: T3 routing, sequence exhaustion, rep manual opt-out.
+  T1/T2 exhausted → Active tier. T3 routed → Active tier.
+
+DORMANCY TIERS:
+  Active (0-6mo): 2x/month. Educational + engagement content.
+  Cooling (6-18mo): 1x/quarter. Newsletter only. No sales CTAs.
+  Dormant (18+mo): Annual ping. Re-engagement or clean unsubscribe.
+
+ENGAGEMENT SCORING:
+  email_open: +5 | link_click: +10 | content_download: +15
+  webinar_register: +20 | webinar_attend: +25 | direct_reply: +30
+  Decay: -5/week with no interaction. Range 0-100.
+
+RE-ENTRY THRESHOLDS:
+  T1: score >= 40 → surface re-entry signal to AGT-302
+  T2: score >= 60 → surface re-entry signal to AGT-302
+  T3: score >= 80 AND icp_rescore confirms >= T3 minimum → signal AGT-302
+
+TIER TRANSITIONS (recommend to AGT-302, do not self-execute):
+  Active → Cooling: 6 months, no re-entry signal.
+  Cooling → Dormant: 18 months total.
+  Any tier → Active: engagement signal detected, regardless of time.
+
+WRITE: NurtureRecommendations (re-entry signals, tier changes, ABM logs).
+       Leads: engagement_score, dormancy_tier, nurture_touch_count.</pre>
+</div>
+</body>
+</html>

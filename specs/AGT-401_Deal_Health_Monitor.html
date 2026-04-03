@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-401 Deal Health Monitor</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:880px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bt{background:#F1EFE8;color:#444441;border-color:#B4B2A9}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;background:#0F6E56}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.dim-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dc{border:1px solid #e0e0e0;border-radius:10px;padding:11px 13px}
+.dc-pts{font-size:18px;font-weight:700;color:#0F6E56;float:right;margin-top:-2px}
+.dc-title{font-size:12px;font-weight:600;margin-bottom:4px}
+.dc-body{font-size:11px;color:#555;line-height:1.6}
+.dc-gap{background:#F1EFE8;font-size:10px;padding:1px 6px;border-radius:6px;color:#444441;border:1px solid #B4B2A9;margin-left:6px}
+.band-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.bc{border-radius:9px;padding:11px 13px;border:1px solid}
+.bc-g{background:#E1F5EE;border-color:#5DCAA5}
+.bc-a{background:#FAEEDA;border-color:#EF9F27}
+.bc-r{background:#FCEBEB;border-color:#F09595}
+.bc-label{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px}
+.bc-l-g{color:#085041}.bc-l-a{color:#633806}.bc-l-r{color:#791F1F}
+.bc-range{font-size:18px;font-weight:700;margin-bottom:3px}
+.bc-r-g{color:#085041}.bc-r-a{color:#633806}.bc-r-r{color:#791F1F}
+.bc-body{font-size:11px;color:#555;line-height:1.55}
+.ripple-note{background:#EEEDFE;border:1px solid #AFA9EC;border-radius:8px;padding:10px 13px;font-size:12px;color:#3C3489;line-height:1.6;margin-bottom:8px}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee}
+.dep-row:last-child{border-bottom:none}
+.da{min-width:175px;font-weight:600;color:#111;font-size:12px}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-401 — Deal health monitor</h1>
+<div class="hsub">Layer 4 · Deal & forecast management · Daily scan + event-triggered · 9-dimension score · NBA generation · SLM escalation</div>
+<div class="badges">
+  <span class="badge bv">v1.0 specced</span>
+  <span class="badge bl">Layer 4</span>
+  <span class="badge bt">Schema v17→v18</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Score delta matters as much as absolute score.</strong> A deal at 60 declining from 75 last week is more alarming than a deal stable at 55. Both the score and the delta are first-class outputs. The Forecast Adjuster (AGT-402) uses delta as a risk discount signal.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>NBA generation turns score into specific rep action.</strong> "Score dropped" is not a coaching output. "Call your champion today — economic buyer engagement is at zero and close date is in 18 days" is. Every flagged deal produces a specific next best action with a deadline. Generic NBAs are a failure mode.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>SLM escalation rule is precise.</strong> Three conditions must all be true simultaneously: health_band = Red AND score_delta is negative (declining) AND ACV > $150K. Any two of three does not trigger. The three-way AND prevents false escalations on small Red deals or temporarily-Red large deals that are recovering.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Segment × stage thresholds for activity recency.</strong> Activity flags are not ICP-tier-based — they're segment and stage-based. Enterprise deals in Negotiation have longer acceptable silence windows than SMB deals in Demo. Thresholds are stored in StageVelocityBenchmarks and recalibrated after each 50-deal closed cohort.</div></div>
+  </div>
+</div>
+
+<div class="ripple-note">
+  <strong>v17→v18 ripple updates:</strong><br>
+  <strong>1. Contacts table improves multi-threading signal:</strong> stakeholder_engagement_breadth dimension now reads from Contacts (persona coverage: which of the three personas — economic buyer, champion, technical evaluator — are engaged) rather than raw RepActivity contact count. More precise signal.<br>
+  <strong>2. ABM deals raise Green threshold:</strong> When Accounts.abm_active = TRUE, minimum score for Green raises 75 → 80. Economic buyer engagement becomes a required dimension — score 0 on this dimension regardless of other scores if economic buyer is not engaged.
+</div>
+
+<div class="sec">
+  <div class="slabel">Nine scoring dimensions — 100 points total</div>
+  <div class="dim-grid">
+    <div class="dc">
+      <span class="dc-pts">15</span>
+      <div class="dc-title">Deal velocity</div>
+      <div class="dc-body">Days in current stage vs StageVelocityBenchmarks median for this stage × segment. Flagged at 1.5× benchmark median. Significant overage scores near zero. Negotiation deliberately has wider windows — time in negotiation is often a sign the deal is real, not stalling.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">15</span>
+      <div class="dc-title">Activity recency</div>
+      <div class="dc-body">Days since last meaningful touch vs stage × segment threshold from StageVelocityBenchmarks. SMB Demo: 3 days. Enterprise Negotiation: wider window. Rep's last activity type matters — a meeting outweighs an email outweighs a task. Inactivity above threshold → data_gap flag.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">12</span>
+      <div class="dc-title">Stakeholder engagement breadth</div>
+      <div class="dc-body">Persona coverage from Contacts table: how many of the three personas (economic buyer, champion, technical evaluator) are engaged. Single-threaded deals (champion only, no economic buyer) score significantly lower. ABM deals: economic buyer required — 0 score if not engaged regardless of other dimensions.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">12</span>
+      <div class="dc-title">Competitive risk</div>
+      <div class="dc-body">Competitor detected flag from AGT-407 and AGT-403. If competitor detected and displacement plan logged: partial score. If competitor detected and no plan: 0 pts + competitive_risk flag → triggers AGT-403 competitive brief. No competitor detected: full score.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">12</span>
+      <div class="dc-title">Forecast category quality</div>
+      <div class="dc-body">Rep-submitted forecast category plausibility vs deal health indicators. Commit with low health score = forecast inconsistency flag. Best Case with stale activity = slip risk. Pipeline with upcoming close date = likely slip. Inconsistencies flagged to AGT-402 Forecast Adjuster for override consideration.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">12</span>
+      <div class="dc-title">Mutual action plan / next step</div>
+      <div class="dc-body">Is a concrete next step defined with a date? MAP or mutual action plan present and current? No next step defined = significant negative signal at any stage. A deal without a documented next step is a deal that isn't moving — flag surfaces in NBA as highest priority coaching point.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">10</span>
+      <div class="dc-title">Champion identified and engaged</div>
+      <div class="dc-body">Champion contact identified in Contacts and engaged (meeting or meaningful email within 14 days for Enterprise, 7 days for SMB/MM). Champion gone dark is a distinct signal from no champion. Both flag — but champion gone dark after prior engagement is higher risk than champion never identified.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">9</span>
+      <div class="dc-title">Economic buyer engaged</div>
+      <div class="dc-body">Economic buyer contact identified and engaged. Absent economic buyer below Proposal stage: moderate flag. Absent economic buyer at Proposal or later: high risk flag. For ABM deals: required dimension — scores 0 and triggers NBA if not engaged at any stage.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">3</span>
+      <div class="dc-title">Conversation intelligence <span class="dc-gap">requires AGT-407</span></div>
+      <div class="dc-body">Feeds from AGT-407: next_step_committed (+1), positive prospect sentiment (+1), no unaddressed show-stopper objection (+1). 0–3 pts. Data_gap flag scores 0 — doesn't penalize the deal but flags that transcript analysis is unavailable. Full 9-dimension score only achievable when AGT-407 is live.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Health score bands and actions</div>
+  <div class="band-grid">
+    <div class="bc bc-g">
+      <div class="bc-label bc-l-g">Green</div>
+      <div class="bc-range bc-r-g">75–100 pts<br><small style="font-size:12px;font-weight:400">(ABM: 80–100)</small></div>
+      <div class="bc-body">No action required. Score + delta logged. Feeds AGT-402 at full weighted value. No rep notification unless requested.</div>
+    </div>
+    <div class="bc bc-a">
+      <div class="bc-label bc-l-a">Amber</div>
+      <div class="bc-range bc-r-a">55–74 pts</div>
+      <div class="bc-body">Rep notified with specific coaching note and NBA. Manager receives weekly Amber deal digest. AGT-405 meeting prep auto-triggered on next scheduled meeting.</div>
+    </div>
+    <div class="bc bc-r">
+      <div class="bc-label bc-l-r">Red</div>
+      <div class="bc-range bc-r-r">&lt;55 pts</div>
+      <div class="bc-body">Rep notified immediately. Manager notified same day. MetricsCalc at_risk_pipeline flag set. If Red + declining delta + ACV > $150K: SLM escalation triggered automatically.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">NBA generation rules</div>
+  <div class="card">
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>NBA is derived from lowest-scoring dimension.</strong> The worst dimension drives the primary action. If economic buyer engagement is 0, the NBA is about getting an economic buyer meeting — not about the deal velocity flag. One primary action with a specific deadline.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>NBA must be specific and actionable with a deadline.</strong> "Improve stakeholder engagement" is not an NBA. "Schedule meeting with CFO to validate business case — no close path without economic buyer sign-off. Deadline: this week given 18-day close date" is an NBA. The rep must be able to act on it immediately.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>NBA considers stage context.</strong> A Negotiation-stage deal with no next step gets a different NBA than a Discovery-stage deal with no next step. Stage-appropriate actions prevent generic outputs that reps ignore.</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da">Opportunities</span><span class="dd reads">reads</span><span class="dd2">Stage, days_in_stage, forecast_category, ACV, close_date, competitor_detected. Primary input.</span></div>
+    <div class="dep-row"><span class="da">Contacts (AGT-204)</span><span class="dd reads">reads</span><span class="dd2">Persona coverage for multi-threading dimension. Champion and economic buyer engagement status.</span></div>
+    <div class="dep-row"><span class="da">RepActivity</span><span class="dd reads">reads</span><span class="dd2">Activity recency — all activities linked to opp_id. Type-weighted recency calculation.</span></div>
+    <div class="dep-row"><span class="da">ConvIntelligence (AGT-407)</span><span class="dd reads">reads</span><span class="dd2">conv_intelligence_score (0-3) for Dimension 9. data_gap flag when unavailable.</span></div>
+    <div class="dep-row"><span class="da">StageVelocityBenchmarks</span><span class="dd reads">reads</span><span class="dd2">Activity recency thresholds and velocity benchmarks by stage × segment.</span></div>
+    <div class="dep-row"><span class="da">Accounts (abm_active)</span><span class="dd reads">reads</span><span class="dd2">ABM threshold adjustment: Green raises to 80, economic buyer required dimension.</span></div>
+    <div class="dep-row"><span class="da">Opportunities (health fields)</span><span class="dd writes">writes</span><span class="dd2">deal_health_score, deal_health_band, score_delta, health_flags, next_best_action, slip_risk_flag, last_health_check.</span></div>
+    <div class="dep-row"><span class="da">AGT-402 Forecast Adjuster</span><span class="dd trig">feeds</span><span class="dd2">Health score and delta as risk inputs to AI forecast probability calculation.</span></div>
+    <div class="dep-row"><span class="da">AGT-403 Competitive Intel</span><span class="dd trig">triggers</span><span class="dd2">Competitor detected + no displacement plan → trigger competitive brief from AGT-403.</span></div>
+    <div class="dep-row"><span class="da">AGT-405 Meeting Opportunity Prep</span><span class="dd trig">triggers</span><span class="dd2">Health drop ≥15pts or band change to Red triggers recovery brief via AGT-405.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-401, the Deal Health Monitor for a B2B SaaS GTM OS.
+
+ROLE: Score all open opportunities daily across 9 dimensions.
+Generate specific NBAs. Trigger escalations. Feed forecast agents.
+Score delta is as important as absolute score.
+
+INPUTS: Opportunities, Contacts, RepActivity, ConvIntelligence, 
+StageVelocityBenchmarks, Accounts (abm_active flag).
+
+ABM ADJUSTMENT:
+  IF Accounts.abm_active = TRUE:
+    Green threshold: 75 → 80
+    Dimension 8 (economic buyer) = required: score 0 if not engaged
+
+SCORE 9 DIMENSIONS (100 pts total):
+  D1 Deal velocity (15): days_in_stage vs StageVelocityBenchmarks median.
+    Flag at 1.5× median. Negotiation: wider acceptable window.
+  D2 Activity recency (15): last meaningful touch vs stage × segment threshold.
+    Meeting > email > task in recency weight.
+  D3 Stakeholder breadth (12): persona coverage from Contacts.
+    How many of: economic_buyer, champion, technical_evaluator are engaged?
+  D4 Competitive risk (12): competitor_detected flag.
+    Detected + plan: partial. Detected + no plan: 0 + trigger AGT-403.
+  D5 Forecast category quality (12): category vs health indicators plausibility.
+    Commit + low health = inconsistency flag to AGT-402.
+  D6 MAP / next step (12): concrete next step with date defined?
+    No next step = primary NBA trigger regardless of other dimensions.
+  D7 Champion engaged (10): champion contact + engagement within window.
+  D8 Economic buyer engaged (9): required for ABM deals.
+  D9 Conv intelligence (3): from AGT-407.
+    next_step_committed (+1), positive_sentiment (+1), no_showstopper (+1).
+    data_gap = 0 pts (no penalty, but flag).
+
+BANDS:
+  Green: >= 75 pts (ABM: >= 80). Log only.
+  Amber: 55-74. Rep coaching note + NBA. Manager weekly digest.
+  Red: < 55. Rep immediate + manager same-day + MetricsCalc flag.
+  SLM escalation: Red AND declining delta AND ACV > $150K.
+
+NBA RULES:
+  Derive from lowest-scoring dimension.
+  Must include specific action + deadline. Never generic.
+  Stage-appropriate: Negotiation NBA differs from Discovery NBA.
+
+COMPETITIVE TRIGGER: competitor_detected = TRUE AND displacement_plan_logged = FALSE
+  → trigger AGT-403 competitive brief immediately.
+
+WRITE to Opportunities: deal_health_score, deal_health_band, score_delta,
+  health_flags (JSON), next_best_action, slip_risk_flag, last_health_check.</pre>
+</div>
+</body>
+</html>

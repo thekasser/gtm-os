@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-201 ICP Scorer</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;max-width:880px;margin:0 auto;padding:20px;background:#fff}
+h1{font-size:19px;font-weight:600;margin:0 0 3px}
+.hsub{font-size:12px;color:#666;margin-bottom:12px}
+.badges{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.bv{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.bl{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.bt{background:#F1EFE8;color:#444441;border-color:#B4B2A9}
+.sec{margin-bottom:20px}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;margin-bottom:9px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:13px 15px;margin-bottom:7px}
+.phi{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
+.phi:last-child{margin-bottom:0}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;background:#185FA5}
+.pt{font-size:12px;color:#555;line-height:1.65}
+.pt strong{color:#111;font-weight:600}
+.dim-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dc{border:1px solid #e0e0e0;border-radius:10px;padding:11px 13px}
+.dc-pts{font-size:20px;font-weight:700;color:#185FA5;float:right;margin-top:-2px}
+.dc-title{font-size:12px;font-weight:600;margin-bottom:4px}
+.dc-body{font-size:11px;color:#555;line-height:1.6}
+.tier-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.tc{border-radius:10px;padding:12px 14px;border:1px solid}
+.tc-t1{background:#E1F5EE;border-color:#5DCAA5}
+.tc-t2{background:#E6F1FB;border-color:#85B7EB}
+.tc-t3{background:#F1EFE8;border-color:#B4B2A9}
+.tc-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.tc-l1{color:#085041}.tc-l2{color:#0C447C}.tc-l3{color:#444441}
+.tc-range{font-size:20px;font-weight:700;margin-bottom:4px}
+.tc-r1{color:#085041}.tc-r2{color:#0C447C}.tc-r3{color:#444441}
+.tc-body{font-size:11px;color:#555;line-height:1.6}
+.seg-note{background:#FAEEDA;border:1px solid #EF9F27;border-radius:8px;padding:9px 12px;font-size:12px;color:#633806;line-height:1.6;margin-bottom:8px}
+table{width:100%;font-size:11px;border-collapse:collapse}
+th{font-weight:600;color:#666;text-align:left;padding:6px 10px;background:#f5f5f5;border-bottom:1px solid #e0e0e0}
+td{padding:6px 10px;border-bottom:1px solid #eee;color:#1a1a1a;vertical-align:top}
+td.mono{font-family:monospace;font-size:10px;color:#555}
+.tag-ext{font-size:10px;padding:1px 6px;border-radius:8px;background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.dep-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #eee}
+.dep-row:last-child{border-bottom:none}
+.da{min-width:175px;font-weight:600;color:#111;font-size:12px}
+.dd{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.writes{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.reads{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.trig{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.dd2{color:#666;font-size:11px}
+pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;padding:13px 15px;white-space:pre-wrap;line-height:1.7;margin:0}
+</style>
+</head>
+<body>
+<h1>AGT-201 — ICP scorer</h1>
+<div class="hsub">Layer 2 · ICP & lead management · Event-triggered on new lead + re-scores on enrichment update</div>
+<div class="badges">
+  <span class="badge bv">v1.0 built</span>
+  <span class="badge bl">Layer 2</span>
+  <span class="badge bt">Schema v17</span>
+</div>
+
+<div class="sec">
+  <div class="slabel">Role & constraints</div>
+  <div class="card">
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>6-dimension 0–100 score with T1/T2/T3 tier output.</strong> Every account in the system carries an ICP score. Score drives routing priority, outreach depth, and ABM eligibility. Not a binary in/out gate — the score expresses degree of fit.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Segment is a routing input, not a scoring input.</strong> The ICP score measures fit independent of deal size. Segment is determined by employee count and used downstream by AGT-202 Lead Router. Conflating segment fit with ICP fit produces systematically wrong scoring — this is locked.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Auto-recalculates when enrichment updates scored fields.</strong> AGT-204 Lead Enrichment writes to Accounts. When a scored field changes (tech stack, growth signal, intent score), ICP scorer fires automatically. Re-route check: only if first_contact_timestamp = NULL — active leads are not re-routed mid-sequence.</div></div>
+    <div class="phi"><div class="dot"></div><div class="pt"><strong>Vertical taxonomy locked to TerritoryDefinitions 8-vertical standard.</strong> FinTech, HealthTech, SaaS, RetailTech, HR Tech, EdTech, Cybersecurity, Logistics. Consistent taxonomy across ICP scoring, territory routing, and TAM/SAM sizing prevents mapping errors.</div></div>
+  </div>
+</div>
+
+<div class="seg-note">
+  <strong>Segment bands (v17 update):</strong> SMB = 5–200 employees · Mid-Market = 201–2,000 employees · Enterprise = 2,001+ employees. These replaced the original bands to align with territory routing logic. Segment is derived from Accounts.employee_count at routing time — it is not an ICP scoring dimension.
+</div>
+
+<div class="sec">
+  <div class="slabel">Six scoring dimensions — 100 points total</div>
+  <div class="dim-grid">
+    <div class="dc">
+      <span class="dc-pts">20</span>
+      <div class="dc-title">Dimension 1 — Firmographic fit</div>
+      <div class="dc-body">Employee count band match, revenue estimate alignment, HQ geography match to served markets. Employee count feeds segment classification but is also an ICP fit signal (some products fit SMB better, others Enterprise). Highest weight category — a bad firmographic fit rarely recovers.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">20</span>
+      <div class="dc-title">Dimension 2 — Industry/vertical match</div>
+      <div class="dc-body">Account's primary industry matched against 8-vertical taxonomy. Exact match scores max. Adjacent vertical scores partial. Horizontal/generic scores near zero. Informed by AGT-204 enrichment. Vertical is the single most predictive fit dimension for product-market alignment.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">15</span>
+      <div class="dc-title">Dimension 3 — Revenue/budget signal</div>
+      <div class="dc-body">Revenue estimate, funding stage, recent funding round size, and recency. Series B+ = strong budget signal. Bootstrapped or pre-revenue = low. Recently funded accounts (within 6 months) receive a recency bonus — post-funding evaluation windows are real. From AGT-204 firmographic enrichment.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">15</span>
+      <div class="dc-title">Dimension 4 — Tech stack compatibility</div>
+      <div class="dc-body">Technographic enrichment from AGT-204. Cloud provider match, CRM stack, complementary tools present or absent. Compatible stack = higher probability of integration success. Competitor detected in stack = lower score (displacement play, not greenfield). Feeds AGT-403 competitor pre-population at deal open.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">15</span>
+      <div class="dc-title">Dimension 5 — Growth signals</div>
+      <div class="dc-body">Headcount growth trend (LinkedIn employee count change), hiring velocity (open roles in relevant departments), recent news triggers (expansion, new leadership, product launch). Growing accounts have higher adoption potential and larger eventual ACV. From AGT-204 enrichment + news signals.</div>
+    </div>
+    <div class="dc">
+      <span class="dc-pts">15</span>
+      <div class="dc-title">Dimension 6 — Engagement intent</div>
+      <div class="dc-body">Intent signals from Bombora/G2 or similar (intent_score, intent_topics from EnrichmentLog). Web visit signals if available. LinkedIn engagement. Accounts actively researching relevant topics score higher — indicates active buying cycle. Decays if no new signal within 72 hours (same decay formula as AGT-206).</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Three output tiers</div>
+  <div class="tier-grid">
+    <div class="tc tc-t1">
+      <div class="tc-label tc-l1">T1 — High fit</div>
+      <div class="tc-range tc-r1">75–100</div>
+      <div class="tc-body">ABM eligibility unlocked. Priority routing via AGT-202. 2hr SLA for rep contact. Deeper enrichment passes by AGT-204 and AGT-301. Tracked in TargetAccountList for ABM program consideration.</div>
+    </div>
+    <div class="tc tc-t2">
+      <div class="tc-label tc-l2">T2 — Moderate fit</div>
+      <div class="tc-range tc-r2">50–74</div>
+      <div class="tc-body">Standard routing. 24hr SLA. Standard outreach sequences. Eligible for re-tier to T1 if enrichment updates increase score above 75. No ABM eligibility unless SLM nominates (SMB exception).</div>
+    </div>
+    <div class="tc tc-t3">
+      <div class="tc-label tc-l3">T3 — Low fit</div>
+      <div class="tc-range tc-r3">0–49</div>
+      <div class="tc-body">Routes to Marketing Nurture (AGT-304) on exhaustion of standard sequence. No active SDR/AE sequence. Can re-enter sales motion if score improves above 50 on enrichment rescore.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Schema — Accounts extension</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Table</th><th>Status</th><th>Key fields added</th></tr></thead>
+      <tbody>
+        <tr style="border-bottom:none">
+          <td><strong>Accounts</strong></td>
+          <td><span class="tag-ext">extended</span></td>
+          <td class="mono">icp_score (0-100), icp_tier (T1/T2/T3), icp_scored_at, dimension_1_firmographic (0-20), dimension_2_vertical (0-20), dimension_3_revenue (0-15), dimension_4_techstack (0-15), dimension_5_growth (0-15), dimension_6_intent (0-15), icp_score_previous, icp_tier_previous, rescore_trigger (event that caused last rescore)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">Dependencies</div>
+  <div class="card">
+    <div class="dep-row"><span class="da">Accounts</span><span class="dd reads">reads</span><span class="dd2">All firmographic and enriched fields. Source data for all 6 dimensions.</span></div>
+    <div class="dep-row"><span class="da">EnrichmentLog (AGT-204)</span><span class="dd reads">reads</span><span class="dd2">Intent signals, technographic data, growth indicators. Triggers rescore when scored fields update.</span></div>
+    <div class="dep-row"><span class="da">TerritoryDefinitions (AGT-106)</span><span class="dd reads">reads</span><span class="dd2">8-vertical taxonomy for Dimension 2 matching. Must stay in sync with territory carve vertical list.</span></div>
+    <div class="dep-row"><span class="da">Accounts (icp_score/tier fields)</span><span class="dd writes">writes</span><span class="dd2">Score, tier, dimension scores, prior values, rescore trigger.</span></div>
+    <div class="dep-row"><span class="da">AGT-202 Lead Router</span><span class="dd trig">downstream</span><span class="dd2">ICP tier determines routing SLA (T1=2hr, T2=24hr) and ABM check.</span></div>
+    <div class="dep-row"><span class="da">AGT-203 ABM Target Selection</span><span class="dd trig">downstream</span><span class="dd2">T1 accounts are ABM-eligible. Score informs initial 1:1 vs 1:few placement.</span></div>
+    <div class="dep-row"><span class="da">AGT-206 Account Prioritization</span><span class="dd trig">downstream</span><span class="dd2">icp_score feeds fit dimension (40% weight) in priority composite score.</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="slabel">System prompt skeleton</div>
+<pre>You are AGT-201, the ICP Scorer for a B2B SaaS GTM OS.
+
+ROLE: Score accounts 0–100 across 6 dimensions. Assign T1/T2/T3 tier.
+Segment is NOT a scoring input — it is determined by employee count and
+used by routing agents. Never include segment as a scoring factor.
+
+VERTICAL TAXONOMY (Dimension 2 — exact match only):
+  FinTech, HealthTech, SaaS, RetailTech, HR Tech, EdTech,
+  Cybersecurity, Logistics. Adjacent vertical = 50% score. No match = 5%.
+
+SCORE 6 DIMENSIONS (100 pts total):
+  D1 Firmographic fit (20 pts): employee band, revenue estimate, geo match.
+  D2 Industry/vertical match (20 pts): 8-vertical taxonomy match quality.
+  D3 Revenue/budget signal (15 pts): funding stage, amount, recency.
+  D4 Tech stack compatibility (15 pts): cloud provider, CRM, integration fit.
+    Competitor in stack → reduce score, flag for AGT-403.
+  D5 Growth signals (15 pts): headcount growth, hiring velocity, news triggers.
+  D6 Engagement intent (15 pts): intent_score, intent_topics, decay applied.
+    Intent signal >72hrs old → apply e^(-hours/72) decay.
+
+TIER ASSIGNMENT:
+  75-100: T1 — ABM eligible, 2hr SLA routing
+  50-74:  T2 — Standard routing, 24hr SLA
+  0-49:   T3 — Marketing nurture on sequence exhaustion
+
+TRIGGERS:
+  New account ingested → score immediately.
+  AGT-204 updates any scored field → rescore. Set rescore_trigger = field_name.
+  Re-route check: only if first_contact_timestamp IS NULL.
+
+WRITE to Accounts: icp_score, icp_tier, dimension scores, icp_scored_at,
+  icp_score_previous (prior value), rescore_trigger.</pre>
+</div>
+</body>
+</html>
