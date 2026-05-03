@@ -33,8 +33,15 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 
 <div class="meta-row">
   <span class="badge badge-layer">L8 · Agent 02</span>
-  <span class="badge badge-status">Specced · v25</span>
-  <span class="badge badge-schema">Schema adds: InvoiceLog, InvoiceLineItems, CreditMemoLog</span>
+  <span class="badge badge-status">Built · v30</span>
+  <span class="badge badge-schema">Owns: InvoiceLog, InvoiceLineItems, CreditMemoLog</span>
+</div>
+
+<!-- ── v30 PROMOTION BANNER ────────────────────────────────── -->
+<div class="section">
+  <div style="background:#E1F5EE;border:1px solid #5DCAA5;color:#085041;font-size:12px;padding:10px 14px;border-radius:8px;line-height:1.6">
+    <strong>v30 — promoted from Specced to Built.</strong> AGT-802 executes billing against AGT-801's order terms and AGT-804's revenue recognition guarantees. Promotion follows AGT-801 (order source-of-truth) and AGT-804 (recognition source-of-truth) being Built &mdash; AGT-802 doesn't decide what was sold or what's recognized; it executes invoices against those upstream contracts.
+  </div>
 </div>
 
 <!-- ── PURPOSE ─────────────────────────────────────────────── -->
@@ -80,13 +87,47 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
   <div class="note">Customer sign-off is required on the TechnicalMilestoneLog record before AGT-802 invoices. AGT-802 never auto-invoices a milestone on IE completion alone — customer acceptance is the billing gate.</div>
 </div>
 
+<!-- ── PRODUCTION CONTROLS & AUDIT ────────────────────────── -->
+<div class="section">
+  <div class="section-title">Production controls &amp; audit (v30)</div>
+  <p class="prose" style="margin-bottom:12px">AGT-802's outputs (invoices) are externally visible to customers and feed AGT-803 (payment tracking) and AGT-804 (recognition timing). Errors here create customer-facing incidents and audit findings. Controls are mandatory before AGT-802 invoices reach customers.</p>
+  <table>
+    <tr><th>Control</th><th>Mechanism</th><th>Owner</th></tr>
+    <tr><td>Invoice amounts traceable to OrderLog</td><td>Every InvoiceLineItems row carries <code>order_line_item_id</code> back to OrderLog. Audit can reconstruct: which order term produced this invoice line. Trigger enforces FK validity.</td><td>Finance + DataEng</td></tr>
+    <tr><td>Consumption invoices read from MAX(record_version)</td><td>UsageMeteringLog corrections produce new record_version rows; AGT-802 always reads the latest. Trigger enforces. Re-billing on corrected usage produces credit memos, not silent invoice updates.</td><td>DataEng + Finance</td></tr>
+    <tr><td>Customer sign-off required for milestone billing</td><td>SOW milestone invoices held until <code>TechnicalMilestoneLog.customer_sign_off = TRUE</code>. IE-only completion does not unlock invoicing. Trigger enforces.</td><td>Finance + IE</td></tr>
+    <tr><td>Credit memo two-step gate for rep-submitted</td><td>Manager approval → Finance Director approval. Both required; no single-step bypass. <code>CreditMemoLog.requested_by</code> records rep ID for tracking.</td><td>Finance</td></tr>
+    <tr><td>Billing error → Finance Director floor</td><td>Any credit memo or supplemental invoice flagged as billing error requires Finance Director approval regardless of magnitude &mdash; billing errors are audit events.</td><td>Finance</td></tr>
+    <tr><td>Idempotent invoice generation</td><td>Re-running invoice generation for the same (order_id, period) combination is a no-op. Prevents duplicate invoicing during retry/replay scenarios.</td><td>DataEng</td></tr>
+    <tr><td>Payment terms inherited, not overridden</td><td>InvoiceLog.payment_terms_days inherits from OrderLog. Per-invoice override blocked at trigger; payment term changes require AGT-801 amendment.</td><td>Finance</td></tr>
+    <tr><td>External billing system reconciliation</td><td>Daily reconciliation job: AGT-802 InvoiceLog totals vs external billing system (Stripe/Zuora/NetSuite). Tolerance &plusmn;$0.01. Discrepancies hold AGT-803 payment tracking.</td><td>Finance + Platform</td></tr>
+  </table>
+</div>
+
+<!-- ── EDGE CASES & FAILURE MODES ─────────────────────────── -->
+<div class="section">
+  <div class="section-title">Edge cases &amp; failure modes</div>
+  <table>
+    <tr><th>Scenario</th><th>Behavior</th></tr>
+    <tr><td>Customer disputes a consumption invoice claiming unit count is wrong</td><td>UsageMeteringLog.audit_status transitions to <code>disputed</code> for the relevant rows. AGT-802 holds invoice; finance triages. If correction needed: UsageMeteringLog correction inserted (record_version+1), AGT-802 issues credit memo against original + bills against corrected total.</td></tr>
+    <tr><td>SOW milestone partially completed (3 of 5 deliverables done)</td><td>AGT-802 invoices nothing. Customer sign-off required on full milestone, not partial. Finance can manually mark partial-completion-billable in ImplementationSOW if SOW terms permit (rare).</td></tr>
+    <tr><td>Mid-cycle amendment changes commit</td><td>AGT-801 AmendmentLog triggers AGT-802 to issue pro-rated supplemental invoice or credit for the delta from amendment effective date.</td><td></td></tr>
+    <tr><td>Customer pre-pays full annual upfront</td><td>One invoice for full annual amount. AGT-803 tracks payment; AGT-804 recognizes ratably regardless. Cash and recognition decoupled per ASC 606.</td></tr>
+    <tr><td>External billing system offline during scheduled invoice run</td><td>AGT-802 generates internal InvoiceLog records but holds external delivery. Retries every 30 min; external delivery resumes when system recovers. AGT-803 begins payment-tracking only after external delivery confirmed.</td></tr>
+    <tr><td>Reconciliation discrepancy with external billing system</td><td>Daily reconciliation flags. AGT-803 holds payment tracking on affected invoices. Finance triages: usually clock skew or in-flight write race; rarely a real data integrity issue.</td></tr>
+    <tr><td>Refund processed externally without AmendmentLog</td><td>Reconciliation detects (external balance differs from internal). Forces back-fill: Finance must create corresponding AmendmentLog + CreditMemoLog. Blocks AGT-803 status update for the account until reconciled.</td></tr>
+    <tr><td>Customer churns mid-period with prepaid balance</td><td>AGT-801 AmendmentLog records contract termination. AGT-802 issues credit memo for unused prepaid period per termination terms (varies by contract). AGT-804 recognizes or refunds remaining deferred per terms.</td></tr>
+  </table>
+</div>
+
 <div class="footer">
-  AGT-802 Billing &amp; Invoicing · Layer 8 · Finance-owned · Schema v25<br>
-  New tables: InvoiceLog, InvoiceLineItems, CreditMemoLog<br>
+  AGT-802 Billing &amp; Invoicing · Layer 8 · Finance-owned · Built · v30<br>
+  Owned tables: InvoiceLog, InvoiceLineItems, CreditMemoLog. 7-year retention.<br>
   Triggered by: AGT-801 order approval · UsageMeteringLog period close · TechnicalMilestoneLog customer sign-off · AmendmentLog updates<br>
-  Reads from: OrderLog, OrderLineItems (AGT-801), UsageMeteringLog (AGT-804/external), TechnicalMilestoneLog (AGT-602), ImplementationSOW<br>
+  Reads from: OrderLog, OrderLineItems (AGT-801), UsageMeteringLog (ingestion service per L8 production schema), TechnicalMilestoneLog (AGT-602), ImplementationSOW<br>
   Writes to: InvoiceLog, InvoiceLineItems, CreditMemoLog<br>
-  Feeds: AGT-803 (InvoiceLog — payment tracking), AGT-804 (InvoiceLog — revenue recognition input)
+  Feeds: AGT-803 (InvoiceLog — payment tracking), AGT-804 (InvoiceLog — revenue recognition input)<br>
+  Production status: Built spec at v30. Operational go-live gated on external billing system integration (Stripe / Zuora / NetSuite) + daily reconciliation passing &plusmn;$0.01 tolerance.
 </div>
 </body>
 </html>

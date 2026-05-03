@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-003 — Sales Play Composer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>TOOL-003 &mdash; Sales Play Composer</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Composes structured sales play definitions from a hypothesis + Tier 1 brain-ready views &middot; Closes Domain 1's "create plays, not just execute" gap</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v29</span>
+  <span class="badge badge-domain">Domain 1 · Pipeline Generation</span>
+  <span class="badge badge-model">Sonnet</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">Given a hypothesis (e.g., "MM healthcare under-covered, vertical-specific play needed") and the relevant Tier 1 brain-ready views, TOOL-003 composes a fully structured play definition: target_definition, suggested_cadence, success_criteria. Output lands in <code>SalesPlayLibrary</code> with state <code>draft</code>, ready for human pickup into the co-definition workflow. This is the lever that turns a brain proposal from "we should do something here" into "here's the candidate play, refine and approve."</p>
+  <div class="alert-box alert-gold">Closes the Domain 1 gap from v26 eval ("create plays, not just execute"). The Brain Agents identify gaps and frame hypotheses; TOOL-003 turns hypotheses into structured drafts that match SalesPlayLibrary's schema and AGT-302's execution contract.</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "hypothesis": "string",                  // 2-3 sentence thesis from the calling brain
+  "scope": "segment" | "account_specific",
+  "segment": "string",                     // required when scope=segment
+  "account_id": "uuid",                    // required when scope=account_specific
+  "context_views": {                       // brain-ready view snapshots from the caller
+    "icp_profile_summary": "string",       // current ICP profile for the segment
+    "win_loss_pattern": "string",          // trailing pattern from WinLossLog
+    "account_priority_distribution": "string",
+    "current_active_plays": [               // existing plays to avoid duplication
+      { "play_id": "uuid", "name": "string", "hypothesis": "string" }
+    ],
+    "voc_themes": ["string"]                // optional VoC themes if relevant
+  },
+  "constraints": {
+    "must_use_existing_lever_only": true,  // hard: no inventing new agent capabilities
+    "max_touch_count": 10,                 // hard: cadence cannot exceed AGT-302's existing limits
+    "anchor_to_tool_001_output": "uuid"    // optional — chain from a TOOL-001 candidate
+  },
+  "originating_proposal_id": "uuid"        // from calling brain's BrainAnalysisLog
+}</div>
+  <div class="note">The <code>must_use_existing_lever_only = true</code> constraint is non-negotiable. TOOL-003 never proposes a play that requires new agent capabilities, new schema, or new approval flows. Plays must compose from existing AGT-201 / 203 / 301 / 302 / 303 / 305 levers.</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "draft_play": {
+    "name": "string",                      // human-readable play name (under 80 chars)
+    "hypothesis": "string",                // refined from input, may be edited
+    "scope": "segment" | "account_specific",
+    "segment": "string",                   // populated per scope
+    "account_id": "uuid",                  // populated per scope
+    "target_definition": {
+      "icp_signals": ["string"],
+      "lifecycle_stage_fit": "string",
+      "exclusion_criteria": ["string"]     // who's out of scope despite matching primary
+    },
+    "suggested_cadence": {
+      "cadence_type": "abm" | "standard" | "nurture" | "vertical-specific",
+      "channel_mix": ["email","linkedin","phone","event","content"],
+      "touch_count": 0,                    // bounded by max_touch_count
+      "step_outline": [                    // ordered cadence outline
+        { "step": 1, "channel": "string", "trigger": "string", "asset_needed": "string" }
+      ],
+      "agt_302_template_reference": "string" // existing template to extend, if applicable
+    },
+    "success_criteria": {
+      "primary_metric": "string",          // single primary success metric
+      "primary_metric_target": "string",
+      "secondary_metrics": ["string"],
+      "qualifying_signal": "string",       // what tells us early it's working
+      "retire_signal": "string"            // what would cause us to retire it
+    },
+    "originating_proposal_id": "uuid"      // inherited from input
+  },
+  "lever_grounding": [                      // every play element must trace to existing levers
+    { "play_element": "string", "agent_lever": "string", "spec_section": "string" }
+  ],
+  "duplication_check": {
+    "checked_against_count": 0,            // active plays compared
+    "overlap_flagged": false,
+    "overlapping_play_id": "uuid",         // if overlap_flagged
+    "differentiation_rationale": "string"  // if overlap exists, why this is still distinct
+  },
+  "ungrounded_assumptions": ["string"],     // explicit, parallels TOOL-001 and TOOL-002
+  "self_assessed_promotion_likelihood": "high" | "medium" | "low",
+  "tool_metadata": {
+    "model": "claude-sonnet-4-6",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+  <div class="alert-box alert-amber"><strong>Hard rule:</strong> <code>lever_grounding</code> must cover every element of the play. No element of the suggested cadence, target definition, or success criteria can exist without a citation to an existing agent's spec section. If the tool can't ground an element, it omits the element rather than fabricating it.</div>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-901 Pipeline Brain</td><td>Most common caller. Brain identifies a coverage gap or play hypothesis, calls TOOL-003 to compose the structured play definition, draft lands in SalesPlayLibrary inheriting the brain's <code>proposal_id</code>.</td></tr>
+    <tr><td>AGT-902 Account Brain</td><td>For account-specific plays (scope=account_specific). Brain identifies an account-level expansion or retention play, calls TOOL-003 to compose the structured definition.</td></tr>
+    <tr><td>Chained from TOOL-001</td><td>When a brain runs the full chain: TOOL-001 reads API docs and proposes 1-3 candidate plays at outline level &rarr; brain selects the most promising &rarr; calls TOOL-003 with the candidate as <code>anchor_to_tool_001_output</code> to fully compose it.</td></tr>
+    <tr><td>RevOps direct (workspace UI)</td><td>RevOps writes a hypothesis manually, calls TOOL-003 with explicit context views. Used when leadership wants to pressure-test a hypothesis they generated, not the brain.</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Compose, don't invent.</strong> Every cadence step, every target signal, every success metric must exist in the existing service vocabulary. If the play requires a capability AGT-302 doesn't support, the tool either omits that element or returns the play with explicit "requires_new_capability" flag (which causes the calling brain to route to <code>recommend_human_query</code> instead of drafting).</li>
+    <li><strong>Honor the volume cap upstream.</strong> SalesPlayLibrary enforces the volume cap on activation, not draft. TOOL-003 may produce drafts that would exceed the cap if all activated; that's by design &mdash; the workspace lets humans pick the best subset.</li>
+    <li><strong>Refuse over-specification.</strong> The output is a draft for co-definition, not a finished play. The tool intentionally leaves <code>step_outline</code> at outline-level rather than full-asset content; humans add the polish in the workspace.</li>
+    <li><strong>Self-assessed promotion likelihood is honest, not optimistic.</strong> The tool flags drafts as "low" likelihood when the hypothesis is exploratory or the lever grounding is thin. Calibrating the brain to draft fewer-but-better plays is preferable to draft inflation.</li>
+    <li><strong>De-duplicate at draft time.</strong> The <code>current_active_plays</code> input is checked; overlapping drafts are flagged with a differentiation rationale so RevOps can choose to retire the original or take the new one as a replacement.</li>
+  </ol>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>30K tokens (hypothesis + multiple brain-ready view summaries + active plays context)</td></tr>
+    <tr><td>Per-call output budget</td><td>4K tokens (structured play + lever grounding + metadata)</td></tr>
+    <tr><td>Default model</td><td>Sonnet &mdash; composition task with structural constraints; Haiku tested but lever-grounding accuracy below threshold</td></tr>
+    <tr><td>Per-call cost estimate</td><td>~$0.15 per call at Sonnet pricing</td></tr>
+    <tr><td>Monthly cap (default)</td><td>$300/mo &mdash; bounds usage to ~2,000 calls/month</td></tr>
+    <tr><td>Frequency expectation</td><td>Moderate &mdash; brain-driven invocations during planning cycles + ad-hoc draft compositions during operational queries.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Measurement</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>Output validates against SalesPlayLibrary draft schema</td><td>100% (hard)</td></tr>
+    <tr><td>Lever grounding completeness</td><td>% of play elements with valid <code>lever_grounding</code> citation</td><td>100% (hard) &mdash; ungrounded elements should be omitted, not fabricated</td></tr>
+    <tr><td>Citation validity</td><td>% of <code>lever_grounding</code> citations that point to a real agent spec section (manual reviewer check against current spec set)</td><td>&ge; 95%</td></tr>
+    <tr><td>Promotion rate (operational)</td><td>% of TOOL-003-generated drafts that survive co-definition to <code>active</code> in SalesPlayLibrary</td><td>&ge; 30% (matches the AGT-901 eval threshold; TOOL-003 is the mechanism by which AGT-901's threshold gets met)</td></tr>
+    <tr><td>Promotion likelihood calibration</td><td>Drafts the tool self-rated "high" vs "medium" vs "low" should differ in actual promotion rate by &gt; 20pp between tiers</td><td>Calibration check; if ratings don't predict outcomes, ratings are noise</td></tr>
+    <tr><td>Duplication detection</td><td>% of overlapping drafts correctly flagged in <code>duplication_check</code> when active plays cover similar ground</td><td>&ge; 90%</td></tr>
+    <tr><td>P95 latency</td><td>End-to-end tool call</td><td>&le; 6s</td></tr>
+  </table>
+</div>
+
+<!-- ── FAILURE MODES ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Cause</th><th>Action</th></tr>
+    <tr><td>Tool drafts plays that require capabilities AGT-302 doesn't support</td><td>Lever-grounding constraint not enforced strongly enough</td><td>Hard fail in eval. Tighten prompt with explicit list of supported AGT-302 capabilities. Tool should return play with "requires_new_capability" flag rather than fabricate.</td></tr>
+    <tr><td>Drafts uniformly self-rated "high" likelihood, but actual promotion rate is much lower</td><td>Optimism bias in self-assessment</td><td>Recalibrate via eval. Add few-shot examples of plays that the brain rated "high" but failed co-definition, so the tool learns to be more discriminating.</td></tr>
+    <tr><td>High volume of drafts, low promotion rate</td><td>Brain (caller) producing too many hypotheses; tool doing its job by drafting them all</td><td>Issue is upstream, not in TOOL-003. AGT-901 calibration should produce fewer hypotheses; tool will draft fewer plays as a result.</td></tr>
+    <tr><td>Drafts duplicate active plays despite duplication check</td><td>Active play context not being passed in input</td><td>Caller responsibility. Check <code>current_active_plays</code> is populated at invocation; if the field is empty, tool can't deduplicate.</td></tr>
+    <tr><td>Cost spike</td><td>Brain invoking TOOL-003 many times during a single planning session</td><td>Enable prompt caching at workspace level. Per-call cap blocks runaway. Audit BrainAnalysisLog for invocation patterns.</td></tr>
+  </table>
+</div>
+
+<!-- ── INTERACTION WITH SALESPLAYLIBRARY ──────────────────── -->
+<div class="section">
+  <div class="section-title">Interaction with SalesPlayLibrary</div>
+  <p class="prose">TOOL-003 output is mapped into the SalesPlayLibrary schema by the calling brain. The brain writes the draft row with state=<code>draft</code>; the brain does not write directly through TOOL-003. This preserves the architectural invariant that the tool is stateless. The brain owns the write because the brain owns the BrainAnalysisLog row that lineage-anchors the draft.</p>
+  <p class="prose" style="margin-top:8px">Promotion gate is unchanged: <code>draft</code> &rarr; <code>under_review</code> requires human pickup, <code>under_review</code> &rarr; <code>active</code> requires SLM + RevOps joint approval, hard volume cap enforced at activation. TOOL-003 has zero role in promotion &mdash; it only produces the initial draft.</p>
+</div>
+
+<div class="footer">
+  TOOL-003 Sales Play Composer &middot; Tier 3 Specialist Tool &middot; Schema v29<br>
+  Stateless. No table writes &mdash; calling brain writes draft to SalesPlayLibrary.<br>
+  Default model: Sonnet. Per-call budget: 30K input + 4K output. Monthly cap: $300/mo.<br>
+  Closes: Domain 1 gap ("create plays, not just execute") from the v26 architecture evaluation.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="../schema/SalesPlayLibrary_Schema.html">SalesPlayLibrary Schema</a> &middot; <a href="TOOL-001_API_Doc_Play_Translator.html">TOOL-001</a> (often chains in)
+</div>
+</body>
+</html>

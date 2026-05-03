@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BrainAnalysisLog — Production Schema</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-schema{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.req{color:#712B13;font-weight:700;font-size:10px}
+.opt{color:#888;font-weight:600;font-size:10px}
+</style>
+</head>
+<body>
+
+<h1>BrainAnalysisLog &mdash; Production Schema</h1>
+<div class="subtitle">Layer 9: Reasoning &middot; Canonical log of every Tier 2 Brain Agent query &middot; Source-trace metadata for audit-grade reasoning &middot; Single-writer per row: the Brain Agent that produced it</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L9 &middot; Schema</span>
+  <span class="badge badge-status">Production &middot; v27</span>
+  <span class="badge badge-schema">Owns: BrainAnalysisLog</span>
+  <span class="badge badge-owner">RevOps + Data Engineering</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">BrainAnalysisLog is the canonical record of every Brain Agent query. It is how the L9 reasoning layer earns audit-grade reasoning out of a non-deterministic substrate: every numerical claim a brain makes ties back to a Tier 1 source row read at a specific timestamp, every proposed action carries a <code>proposal_id</code> that downstream actions inherit, and every output is reproducible with the same source data.</p>
+  <div class="alert-box alert-blue">Single-writer per row. Each row is written by exactly one Brain Agent (AGT-901 or AGT-902 today; future brains add their own writer identity). No agent ever updates another agent's BrainAnalysisLog row. Append-only.</div>
+</div>
+
+<!-- ── WHY IT MATTERS ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Why this table is load-bearing</div>
+  <p class="prose">The architectural commitment in the v26 evaluation: <em>brains never write canonical data, but every brain output must be traceable.</em> BrainAnalysisLog is the mechanism. Three things it enables:</p>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px;margin-top:8px">
+    <li><strong>Audit reproducibility.</strong> Given a row, the auditor can re-fetch the cited Tier 1 sources at the cited timestamps and re-evaluate whether the brain's claims were defensible at the time. The brain's output is non-deterministic; the source-trace is not.</li>
+    <li><strong>Cohort retrospective.</strong> The v26 plan replaces per-deal rollback with cohort-level pattern analysis. The <code>proposal_id</code> lineage on every brain output enables exactly this: at quarter end, identify which downstream actions traced to brain proposals, and compare cohort outcomes to control.</li>
+    <li><strong>Eval ground truth.</strong> The 30-question retrospective harness reads BrainAnalysisLog. Same brain, same sources, same prompt &rarr; same expected output (modulo model nondeterminism). Eval drift over time is measurable.</li>
+  </ol>
+</div>
+
+<!-- ── SCHEMA DEFINITION ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema definition</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+    <tr><td><code>analysis_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>Primary key. Generated at write.</td></tr>
+    <tr><td><code>proposal_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>Stable identifier shared by every downstream action that traces to this analysis. Action records (in Tier 1 systems) carry this ID for retrospective cohorting.</td></tr>
+    <tr><td><code>writer_agent_id</code></td><td>VARCHAR(16)</td><td><span class="req">REQ</span></td><td>Which Brain Agent wrote this row. Today: <code>AGT-901</code> or <code>AGT-902</code>. CHECK constraint enforces enum.</td></tr>
+    <tr><td><code>invocation_path</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td><code>operator_query</code> / <code>narrative_job</code> / <code>play_refresh_batch</code> / <code>handoff_briefing</code> / <code>renewal_prep_batch</code> / <code>anomaly_explanation</code></td></tr>
+    <tr><td><code>operator_user_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>The human who initiated the query (NULL for AGT-704/AGT-603-invoked narrative jobs).</td></tr>
+    <tr><td><code>account_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Populated for AGT-902 outputs (per-account scope). NULL for AGT-901 cross-account outputs.</td></tr>
+    <tr><td><code>question</code></td><td>TEXT</td><td><span class="req">REQ</span></td><td>The operator query verbatim, or the narrative-job prompt verbatim. Audit input.</td></tr>
+    <tr><td><code>system_prompt_hash</code></td><td>VARCHAR(64)</td><td><span class="req">REQ</span></td><td>SHA-256 of the system prompt used. Enables eval comparison across prompt versions.</td></tr>
+    <tr><td><code>sources_read</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Array of {table_name, view_name, last_refresh_timestamp, row_count_consumed, source_index}. <code>source_index</code> is the citation key used in narrative_output (e.g., <code>[src:1]</code>).</td></tr>
+    <tr><td><code>narrative_output</code></td><td>TEXT</td><td><span class="req">REQ</span></td><td>The brain's prose response, with inline citations matching <code>sources_read.source_index</code> values.</td></tr>
+    <tr><td><code>proposed_actions</code></td><td>JSONB</td><td><span class="opt">opt</span></td><td>Array of {action_type, target, lever, justification, confidence, proposal_id_chain}. Empty array if no actions proposed. <code>action_type</code> is from the proposed-action enum (see AGT-901/902 specs).</td></tr>
+    <tr><td><code>confidence_flags</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Array of {claim_index, level, supporting_source_indices}. Levels: <code>high_confidence</code> / <code>multi_source</code> / <code>inference</code> / <code>speculation</code>.</td></tr>
+    <tr><td><code>data_staleness_acknowledged</code></td><td>BOOL</td><td><span class="req">REQ</span></td><td>TRUE if any source was stale at read time. Surfaced in narrative when TRUE. Hard CHECK: if TRUE, narrative_output must contain a staleness disclosure phrase.</td></tr>
+    <tr><td><code>stale_sources</code></td><td>JSONB</td><td><span class="opt">opt</span></td><td>Array of source_index values that were stale. NULL when data_staleness_acknowledged = FALSE.</td></tr>
+    <tr><td><code>model_used</code></td><td>VARCHAR(64)</td><td><span class="req">REQ</span></td><td>Specific model identifier (e.g., <code>claude-sonnet-4-6</code>). Captured for cost tracking and eval reproducibility.</td></tr>
+    <tr><td><code>input_tokens</code></td><td>INTEGER</td><td><span class="req">REQ</span></td><td>Tokens passed to the model.</td></tr>
+    <tr><td><code>output_tokens</code></td><td>INTEGER</td><td><span class="req">REQ</span></td><td>Tokens generated by the model.</td></tr>
+    <tr><td><code>cached_tokens</code></td><td>INTEGER</td><td><span class="req">REQ</span></td><td>DEFAULT 0. Tokens served from prompt cache. Used to attribute cost and validate caching strategy.</td></tr>
+    <tr><td><code>cost_usd_estimate</code></td><td>NUMERIC(10,4)</td><td><span class="req">REQ</span></td><td>Computed at write time using model + token counts. Audit-stable; pricing changes do not retroactively alter historical cost records.</td></tr>
+    <tr><td><code>account_synthesis_signature</code></td><td>VARCHAR(64)</td><td><span class="opt">opt</span></td><td>AGT-902 only: hash of (account_id, source_freshness_timestamps). Enables cache hit on repeat queries within freshness window.</td></tr>
+    <tr><td><code>cache_hit</code></td><td>BOOL</td><td><span class="req">REQ</span></td><td>DEFAULT FALSE. TRUE when output was returned from synthesis-signature cache without a fresh model call.</td></tr>
+    <tr><td><code>response_time_ms</code></td><td>INTEGER</td><td><span class="req">REQ</span></td><td>Wall-clock latency from invocation to row write.</td></tr>
+    <tr><td><code>budget_exceeded</code></td><td>BOOL</td><td><span class="req">REQ</span></td><td>DEFAULT FALSE. TRUE when query was truncated due to per-query budget cap. narrative_output explains the truncation.</td></tr>
+    <tr><td><code>created_at</code></td><td>TIMESTAMPTZ</td><td><span class="req">REQ</span></td><td>DEFAULT NOW().</td></tr>
+  </table>
+</div>
+
+<!-- ── KEYS & CONSTRAINTS ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Keys, constraints, indexes</div>
+  <table>
+    <tr><th>Element</th><th>Definition</th><th>Why</th></tr>
+    <tr><td>Primary key</td><td><code>analysis_id</code></td><td>Surrogate.</td></tr>
+    <tr><td>Index 1</td><td><code>(proposal_id)</code></td><td>Cohort retrospective queries: find all analyses + downstream actions sharing a proposal_id.</td></tr>
+    <tr><td>Index 2</td><td><code>(writer_agent_id, created_at DESC)</code></td><td>Per-brain operational queries (cost dashboard, eval batches).</td></tr>
+    <tr><td>Index 3</td><td><code>(account_id, created_at DESC)</code> WHERE account_id IS NOT NULL</td><td>Per-account analysis history for AGT-902 caching.</td></tr>
+    <tr><td>Index 4</td><td><code>(operator_user_id, created_at DESC)</code> WHERE operator_user_id IS NOT NULL</td><td>"Show me my recent brain queries."</td></tr>
+    <tr><td>Index 5</td><td><code>(account_synthesis_signature)</code> WHERE account_synthesis_signature IS NOT NULL</td><td>Synthesis-signature cache lookup for AGT-902.</td></tr>
+    <tr><td>Index 6</td><td><code>(data_staleness_acknowledged, created_at)</code> WHERE data_staleness_acknowledged = TRUE</td><td>Operations alert: how often are brains operating on stale data?</td></tr>
+    <tr><td>CHECK: writer_agent_id</td><td><code>writer_agent_id IN ('AGT-901','AGT-902')</code> (extensible as new brains added)</td><td>Enforces the single-writer-identity contract.</td></tr>
+    <tr><td>CHECK: staleness disclosure</td><td>If <code>data_staleness_acknowledged = TRUE</code>, <code>narrative_output</code> must contain at least one occurrence of any staleness phrase from a configured list (e.g., 'stale', 'last refreshed', 'data may be out of date'). Enforced via trigger.</td><td>Hard rule: stale data without disclosure is a sev-2 incident. Trigger catches at write.</td></tr>
+    <tr><td>CHECK: source citations</td><td>Every <code>[src:N]</code> citation in <code>narrative_output</code> must reference a valid <code>source_index</code> in <code>sources_read</code>. Enforced via trigger.</td><td>Audit integrity.</td></tr>
+    <tr><td>CHECK: action enum</td><td>Each <code>proposed_actions[].action_type</code> must be in the action taxonomy enum (per AGT-902 spec). Enforced via JSON schema.</td><td>Brain cannot invent action types.</td></tr>
+    <tr><td>Append-only</td><td>UPDATE and DELETE blocked at row level via row-level security (RLS). Only INSERT permitted.</td><td>Audit integrity.</td></tr>
+  </table>
+</div>
+
+<!-- ── PROPOSAL_ID LINEAGE ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">proposal_id lineage &mdash; how cohort retrospective works</div>
+  <p class="prose" style="margin-bottom:10px">When a brain's proposed action is accepted by a human and routed to a Tier 1 service for execution, the resulting Tier 1 record carries the <code>proposal_id</code> in a designated lineage column. This is the single mechanism that enables cohort-level brain attribution.</p>
+  <table>
+    <tr><th>Tier 1 service</th><th>Lineage field</th><th>Populated when</th></tr>
+    <tr><td>AGT-203 ABM Target Selection</td><td><code>ABMPlaybook.originating_proposal_id</code></td><td>A play promoted from SalesPlayLibrary &rarr; ABMPlaybook carries the brain's proposal_id from the draft</td></tr>
+    <tr><td>AGT-302 Cadence Coordinator</td><td><code>CadenceEventLog.originating_proposal_id</code></td><td>Sequences executing under a brain-co-designed play carry the proposal_id</td></tr>
+    <tr><td>AGT-503 Expansion Trigger</td><td><code>ExpansionLog.originating_proposal_id</code></td><td>Expansion plays initiated via brain proposal carry the proposal_id (alongside the existing 5-signal scoring)</td></tr>
+    <tr><td>AGT-603 QBR Prep</td><td><code>QBRLog.originating_proposal_id</code></td><td>QBR pull-forwards triggered by a brain proposal carry the proposal_id</td></tr>
+    <tr><td>AGT-405 Meeting Opportunity Prep</td><td><code>OpportunityBriefLog.originating_proposal_id</code></td><td>Briefs generated for brain-recommended meetings carry the proposal_id</td></tr>
+    <tr><td>AGT-504 Customer Communications</td><td><code>CommBriefLog.originating_proposal_id</code></td><td>Comms approved after brain recommendation carry the proposal_id</td></tr>
+  </table>
+  <div class="alert-box alert-gold"><strong>This is a v27 ripple change to Tier 1 services.</strong> Each of the listed services adds an <code>originating_proposal_id</code> column. Always nullable &mdash; actions taken without brain involvement carry NULL. Cohort retrospective queries filter on <code>WHERE originating_proposal_id IS NOT NULL</code> for the brain-influenced cohort.</div>
+</div>
+
+<!-- ── CONFIDENCE FLAGS ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Confidence flag taxonomy</div>
+  <p class="prose" style="margin-bottom:10px">Every claim in <code>narrative_output</code> carries a confidence level. The brain's job is honest calibration &mdash; the human reading the output must be able to tell what the brain knows from what the brain is guessing.</p>
+  <table>
+    <tr><th>Level</th><th>Meaning</th><th>Eval threshold</th></tr>
+    <tr><td><code>high_confidence</code></td><td>Direct citation of a Tier 1 source value. Single source supports the claim.</td><td>Should be &ge; 60% of claims in a typical output.</td></tr>
+    <tr><td><code>multi_source</code></td><td>Multiple Tier 1 sources corroborate the claim.</td><td>Common in synthesis outputs &mdash; "usage up AND seat util up AND positive sentiment trajectory" pattern.</td></tr>
+    <tr><td><code>inference</code></td><td>Reasoning beyond direct source. The brain combined inputs to draw a conclusion not literally present in any single source.</td><td>Should be &le; 25% of claims. Watch for drift &mdash; inference-heavy outputs may signal sources are insufficient and brain is filling gaps.</td></tr>
+    <tr><td><code>speculation</code></td><td>The brain explicitly marks where it's guessing. Used for forward-looking statements without telemetry support, or for hypotheses about external factors (competitive moves, customer org dynamics) not in any Tier 1 system.</td><td>Should be &le; 10% of claims. Brain is honest about what it doesn't know.</td></tr>
+  </table>
+  <div class="note">Eval suite checks the distribution. An output with 40% speculation is calibrated honestly but may not be useful; an output with 100% high_confidence and a wrong answer is dishonest calibration. Both are flags.</div>
+</div>
+
+<!-- ── RETENTION ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Retention &amp; access</div>
+  <table>
+    <tr><th>Tier</th><th>Window</th><th>Access</th></tr>
+    <tr><td>Hot</td><td>0 to 90 days</td><td>Operational reads (brain caching, dashboards, eval batches)</td></tr>
+    <tr><td>Warm</td><td>90 days to 18 months</td><td>Quarterly retrospectives, cohort analysis</td></tr>
+    <tr><td>Cold</td><td>18 months to 7 years</td><td>Audit only. Required for any audit period covering brain-influenced actions.</td></tr>
+    <tr><td>Purge</td><td>&gt; 7 years</td><td>Hard delete subject to legal hold check.</td></tr>
+  </table>
+  <div class="note">7-year retention parallels UsageMeteringLog and RevenueRecognitionLog. Brain outputs that influenced revenue-recognition adjacent actions (expansion, churn intervention, renewal) need the same retention floor.</div>
+</div>
+
+<!-- ── ACCESS CONTROL ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Access control</div>
+  <table>
+    <tr><th>Role</th><th>Read access</th><th>Write access</th></tr>
+    <tr><td>Brain Agents (AGT-901, AGT-902)</td><td>Own writes only (for caching lookups via account_synthesis_signature)</td><td>Own rows only. Append-only. Each brain authenticates with its writer identity.</td></tr>
+    <tr><td>RevOps</td><td>Full read</td><td>None &mdash; cannot insert or modify rows. Read-only for cohort retrospective + ops dashboards.</td></tr>
+    <tr><td>Auditors (internal/external)</td><td>Full read on audit windows</td><td>None.</td></tr>
+    <tr><td>AM/CSM/AE</td><td>Read on rows where <code>operator_user_id = self</code> OR <code>account_id IN (assigned_accounts)</code></td><td>None.</td></tr>
+    <tr><td>Other Tier 1 services</td><td>None &mdash; Tier 1 services do not read brain outputs</td><td>None.</td></tr>
+  </table>
+  <div class="alert-box alert-amber">Tier 1 services intentionally have no read access. The contract is one-way: brains read services; services do not read brains. This preserves the auditability invariant that canonical metrics never depend on brain outputs.</div>
+</div>
+
+<div class="footer">
+  BrainAnalysisLog &middot; Production Schema &middot; Layer 9 &middot; Schema v27<br>
+  Owners: RevOps + Data Engineering. Single-writer per row: AGT-901 or AGT-902 (or future Brain Agents).<br>
+  Append-only. Source-trace integrity enforced via triggers. 7-year retention.<br>
+  Read by: RevOps (ops dashboards + cohort retrospective) · auditors (audit windows) · AM/CSM/AE (own queries + assigned accounts) · Brain Agents (own caching only).<br>
+  Related: <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902 Account Brain</a> &middot; <a href="SalesPlayLibrary_Schema.html">SalesPlayLibrary Schema</a>
+</div>
+</body>
+</html>

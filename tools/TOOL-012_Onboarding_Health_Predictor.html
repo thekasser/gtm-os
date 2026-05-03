@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-012 — Onboarding Health Predictor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>TOOL-012 &mdash; Onboarding Health Predictor</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Predicts which onboarding accounts will hit sustained adoption vs. stall, from early activity signals &middot; Predictive complement to TOOL-008 (descriptive) and TOOL-009 (timing analysis)</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v32</span>
+  <span class="badge badge-domain">Post-sales · Onboarding</span>
+  <span class="badge badge-model">Haiku</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">From the first 30&ndash;60 days of telemetry on a newly-onboarded account, predicts whether the account will hit sustained adoption (renewable, expandable) or stall (likely to surface_only or churn). Output is a probability classification + early warning indicators + intervention recommendations sized to onboarding stage. Distinct from TOOL-008 (which describes <em>current</em> adoption pattern) and TOOL-009 (which measures <em>timing</em> against milestones) &mdash; TOOL-012 is <em>predictive</em>, projecting forward from early signals to outcome at month 6&ndash;12.</p>
+  <div class="alert-box alert-gold">Closes the predictive gap in the post-sales activation toolkit. AGT-601 onboarding orchestrator coordinates milestones; TOOL-008/009 describe and time current state; TOOL-012 forecasts where this account is heading. The intervention window during onboarding is the highest-leverage moment in the customer lifecycle &mdash; getting prediction right early matters more than getting any other post-sales signal right.</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "account_id": "uuid",
+  "contract_start_date": "ISO 8601",
+  "days_since_contract_start": 0,          // typically 14-90 for invocation
+  "early_activity_signals": {
+    "first_value_event_at": "ISO 8601 | null",  // first meaningful product action
+    "active_users_trailing_7d": 0,
+    "active_users_trailing_30d": 0,
+    "feature_breadth_trailing_30d": 0,
+    "integration_setup_status": "not_started" | "in_progress" | "complete",
+    "kickoff_call_attended": true | false,
+    "kickoff_attendance_quality": "full_team" | "partial" | "minimal" | null
+  },
+  "onboarding_state": {                    // from AGT-601 OnboardingLog
+    "current_milestone": "string",
+    "milestones_completed_count": 0,
+    "milestones_overdue_count": 0,
+    "csm_engagement_count_trailing_30d": 0,
+    "ie_engagement_count_trailing_30d": 0,  // implementation engineer
+    "map_status": "active" | "stalled" | "abandoned" | null
+  },
+  "comparison_cohort": {                   // similar accounts, similar onboarding age
+    "cohort_definition": "string",
+    "cohort_size": 0,
+    "cohort_outcome_distribution": {       // retrospective outcomes for the cohort
+      "sustained_adoption_pct": 0.0,
+      "surface_only_pct": 0.0,
+      "early_churn_pct": 0.0
+    },
+    "cohort_typical_first_value_days": 0,
+    "cohort_typical_30d_active_users_pct": 0.0
+  }
+}</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "trajectory_classification": "strong_activation" | "on_track_activation" |
+                               "concerning_trajectory" | "early_stall_risk" |
+                               "active_stall",
+  "projected_6_month_outcome": {
+    "sustained_adoption_probability": 0.0,
+    "surface_only_probability": 0.0,
+    "churn_probability": 0.0,
+    "projection_confidence": "high" | "medium" | "low"
+  },
+  "early_warning_indicators": [
+    {
+      "indicator_type": "no_first_value_event" |
+                        "active_users_below_threshold" |
+                        "kickoff_attendance_weak" |
+                        "integration_stalled" |
+                        "milestone_overdue" |
+                        "champion_disengaged" |
+                        "csm_engagement_imbalance",
+      "severity": "low" | "medium" | "high" | "critical",
+      "evidence": "string",
+      "cohort_comparison": "string"
+    }
+  ],
+  "intervention_recommendations": [
+    {
+      "intervention_type": "exec_sponsor_intro" |
+                           "ie_intensification" |
+                           "csm_check_in" |
+                           "champion_re_engagement" |
+                           "kickoff_redo" |
+                           "milestone_reset" |
+                           "executive_business_review_pull_in" |
+                           "no_action_needed",
+      "urgency": "high" | "medium" | "low",
+      "intervention_window_remaining_days": 0,
+      "rationale": "string"
+    }
+  ],
+  "key_observations": [
+    {
+      "observation": "string",
+      "supporting_metric": "string"
+    }
+  ],
+  "ungrounded_assumptions": ["string"],
+  "data_completeness": "high" | "medium" | "low",
+  "tool_metadata": {
+    "model": "claude-haiku-4-5",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+</div>
+
+<!-- ── TRAJECTORY TAXONOMY ───────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Trajectory taxonomy</div>
+  <table>
+    <tr><th>Trajectory</th><th>Indicators</th><th>Implication</th></tr>
+    <tr><td><code>strong_activation</code></td><td>First-value event &lt; cohort p25 days + active users &gt; cohort typical + kickoff full team + milestones on track + CSM/IE engagement balanced</td><td>High probability sustained adoption. Standard onboarding cadence sufficient. Document for cohort baselining.</td></tr>
+    <tr><td><code>on_track_activation</code></td><td>Cohort-typical signals across early indicators. Some weak signals balanced by strong ones.</td><td>Standard onboarding cadence sufficient. Monitor; no special intervention.</td></tr>
+    <tr><td><code>concerning_trajectory</code></td><td>One or two indicators below cohort p25 (e.g., kickoff attendance weak OR first-value delayed) but other signals normal.</td><td>Targeted intervention warranted on the specific weak dimension. Often single-conversation fix &mdash; CSM check-in, integration unblock.</td></tr>
+    <tr><td><code>early_stall_risk</code></td><td>Multiple weak indicators clustered. First-value not yet hit by day 30+ AND active users low AND/or champion disengaged.</td><td>Multi-pronged intervention. Exec sponsor outreach + IE intensification + champion re-engagement. Highest-leverage moment to bend the curve.</td></tr>
+    <tr><td><code>active_stall</code></td><td>Onboarding effectively stopped: no activity, no engagement, no milestone progress for 21+ days.</td><td>Escalate to SLM. Diagnose: champion left, scope mismatch, internal customer crisis. May require contract-level intervention (scope reduction, term reset, or qualified-out).</td></tr>
+  </table>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-601 Onboarding Orchestrator</td><td>Weekly batch on accounts within their first 90 days. Most common caller. Output drives intervention queueing for CSM and IE.</td></tr>
+    <tr><td>AGT-501 Customer Health Monitor</td><td>For accounts in onboarding window, prediction augments early health-score with a forward-looking signal distinct from current behavioral score.</td></tr>
+    <tr><td>AGT-902 Account Brain</td><td>For "is this onboarding going well?" queries during executive business reviews or when escalation is being considered.</td></tr>
+    <tr><td>AGT-704 Business Review Orchestrator</td><td>Aggregate cohort-level onboarding-trajectory summary for retention health section of MBR/QBR.</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Predictive, not descriptive.</strong> Trajectory classification projects forward to month 6+ outcome. Distinct from TOOL-008 (current state) and TOOL-009 (timing). All three can be called for the same account; they answer different questions.</li>
+    <li><strong>Cohort-anchored prediction.</strong> Probabilities should reflect actual cohort outcome distribution, not abstract priors. Tool consumes <code>cohort_outcome_distribution</code> input and adjusts based on this account's deviation from cohort signals. Without cohort baseline, projection_confidence drops to medium or low.</li>
+    <li><strong>Intervention-window-aware.</strong> The same weak signal at day 14 vs. day 60 has different intervention implications. Tool factors <code>days_since_contract_start</code> &mdash; very early stall signals get a longer intervention window flag than late-onboarding stall signals.</li>
+    <li><strong>Numerical work in code, prediction characterization in LLM.</strong> Same hybrid pattern as TOOL-004/008/009. Probability estimation uses cohort comparison + signal weighting in code; LLM produces the trajectory label, observations, and intervention rationale.</li>
+    <li><strong>Honest about projection uncertainty.</strong> Predicting 6-month outcome from 30-day signal is noisy. Tool reports projection_confidence honestly; AGT-601 weights interventions by confidence so low-confidence predictions don't trigger heavy interventions.</li>
+  </ol>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>10K tokens</td></tr>
+    <tr><td>Per-call output budget</td><td>2K tokens</td></tr>
+    <tr><td>Default model</td><td>Haiku</td></tr>
+    <tr><td>Per-call cost</td><td>~$0.015</td></tr>
+    <tr><td>Monthly cap</td><td>$200/mo (~13,000 calls)</td></tr>
+    <tr><td>Frequency</td><td>Weekly batch from AGT-601 across active onboarding cohort. Bounded by accounts in onboarding window (typically &lt; 10% of total customers at any time).</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>100% (hard)</td></tr>
+    <tr><td>Trajectory classification accuracy</td><td>20 historical accounts with known 6-month outcomes; &ge; 70% match between TOOL-012 prediction at day 30&ndash;60 and retrospective outcome.</td></tr>
+    <tr><td>Probability calibration</td><td>For accounts predicted with sustained_adoption_probability bands of 0.7&ndash;0.9: actual sustained-adoption rate falls within &plusmn;10pp of midpoint. Calibration check across 30+ predictions.</td></tr>
+    <tr><td>Early-stall detection lead time</td><td>For accounts that retrospectively stalled by month 4: % where TOOL-012 flagged early_stall_risk or active_stall by day 60. &ge; 65%.</td></tr>
+    <tr><td>False positive rate on strong onboardings</td><td>For accounts that retrospectively achieved sustained adoption: &le; 15% incorrectly flagged as concerning_trajectory or worse at day 60.</td></tr>
+    <tr><td>Cohort-baseline degradation</td><td>For 5 cases without cohort baseline: tool returns projection_confidence = low; does not produce inflated probability point estimates. 100% (hard).</td></tr>
+    <tr><td>Intervention window honesty</td><td>For 5 cases at day 80+ of onboarding: intervention_window_remaining_days reflects shrinking window, not unbounded optimism. 100% (hard).</td></tr>
+    <tr><td>P95 latency</td><td>&le; 2s</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  TOOL-012 Onboarding Health Predictor &middot; Tier 3 Specialist Tool &middot; Schema v32<br>
+  Stateless. Predictive complement to TOOL-008 (descriptive) and TOOL-009 (timing). Default Haiku.<br>
+  Per-call: 10K input + 2K output. Monthly cap: $200/mo (~13,000 calls).<br>
+  Closes the predictive gap in the post-sales activation toolkit. Onboarding intervention window is the highest-leverage moment in the customer lifecycle.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-601_Onboarding_Orchestrator.html">AGT-601</a> &middot; <a href="../specs/AGT-501_Customer_Health_Monitor.html">AGT-501</a> &middot; <a href="TOOL-008_Product_Adoption_Pattern_Recognizer.html">TOOL-008</a> &middot; <a href="TOOL-009_Activation_Time_To_Value_Analyzer.html">TOOL-009</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-007 — Competitive Narrative Writer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>TOOL-007 &mdash; Competitive Narrative Writer</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Composes deal-specific competitive narratives from CompetitiveKnowledgeBase + deal context &middot; Augments AGT-403 reactive briefs &middot; Domain 2 win-rate augment</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v31</span>
+  <span class="badge badge-domain">Domain 2 · Win-rate augment</span>
+  <span class="badge badge-model">Sonnet</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-403 Competitive Intelligence maintains the canonical CompetitiveKnowledgeBase and produces reactive competitive briefs when a competitor is detected. TOOL-007 augments this: given a specific deal context (stage, MEDDPICC state, ICP fit, prior conversation patterns) plus the relevant competitor's KB entry, composes a deal-specific narrative the rep can actually use in conversation &mdash; not generic positioning, but tailored to where this deal sits.</p>
+  <div class="alert-box alert-gold">Domain 2 augment, not gap-closer. AGT-403 already covers competitive intelligence at 80%+. TOOL-007 lifts the quality of the deal-specific framing &mdash; the difference between "here's our competitive positioning vs. X" and "for this prospect at this stage with these specific concerns, here's how to frame the X comparison."</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "opportunity_id": "uuid",
+  "competitor_id": "string",                // matches CompetitiveKnowledgeBase.competitor_id
+  "deal_context": {
+    "current_stage": "string",
+    "deal_health_score": 0,
+    "icp_tier": "T1" | "T2" | "T3",
+    "vertical": "string",
+    "estimated_acv_usd": 0,
+    "meddpicc_state": { ... },             // per AGT-401 deal health input
+    "primary_use_case_documented": "string | null"
+  },
+  "competitor_kb_entry": { ... },           // from CompetitiveKnowledgeBase
+                                            // (positioning, strengths, weaknesses,
+                                            // typical objections, displacement scenarios)
+  "deal_specific_signals": {
+    "competitor_explicitly_mentioned": true | false,
+    "objections_raised_so_far": ["string"],
+    "buyer_quotes_relevant_to_competitor": ["string"],
+    "stakeholder_personas_engaged": ["string"]
+  },
+  "narrative_target": "rep_talking_points" | "deal_brief_section" |
+                      "follow_up_email" | "competitor_battlecard_excerpt"
+}</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "narrative": {
+    "format": "string",                    // matches narrative_target
+    "headline": "string",                  // 1-sentence positioning summary
+    "talking_points": [                    // 3-5 deal-specific points
+      {
+        "point": "string",
+        "evidence_in_kb": "string",        // citation to competitor_kb_entry section
+        "why_relevant_to_this_deal": "string"
+      }
+    ],
+    "objection_responses": [               // for objections_raised_so_far
+      { "objection": "string", "response": "string", "kb_citation": "string" }
+    ],
+    "do_not_say": [                        // anti-patterns specific to this competitor
+      { "phrase_to_avoid": "string", "reason": "string" }
+    ]
+  },
+  "ungrounded_assumptions": ["string"],
+  "kb_freshness": {
+    "competitor_kb_last_updated": "ISO 8601",
+    "is_stale": true | false,              // KB updated > 90 days ago = stale
+    "staleness_caveat": "string | null"
+  },
+  "tool_metadata": {
+    "model": "claude-sonnet-4-6",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+  <div class="alert-box alert-amber"><strong>Hard rule:</strong> Every talking point must cite a specific section of the competitor KB entry. The tool cannot invent competitive positioning; it can only re-frame what's already in the KB for the specific deal context. KB updates are AGT-403's responsibility, not TOOL-007's.</div>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-403 Competitive Intelligence</td><td>Augments the reactive brief generation. AGT-403 detects competitor mention via AGT-407, fetches KB entry, calls TOOL-007 to compose deal-specific narrative for the brief.</td></tr>
+    <tr><td>AGT-405 Meeting Opportunity Prep</td><td>For deal-active meeting briefs where competitive context is relevant. AGT-405 calls TOOL-007 to include competitive talking points in the opportunity brief.</td></tr>
+    <tr><td>AGT-902 Account Brain</td><td>For per-account "what's the play on Acme HR given the competitive dynamic?" queries.</td></tr>
+    <tr><td>RevOps direct (workspace UI)</td><td>Battlecard refresh — RevOps generates competitor-specific narratives for top-of-funnel enablement assets.</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>KB is the source of truth.</strong> Tool composes; AGT-403 maintains. Tool cannot extend or correct the KB &mdash; only re-frame it.</li>
+    <li><strong>Deal-specific, not generic.</strong> The output must read differently for a $50K SMB deal vs. a $2M enterprise deal. Generic positioning fails the eval.</li>
+    <li><strong>Anti-patterns explicit.</strong> The <code>do_not_say</code> field captures phrases that backfire with this specific competitor (e.g., positioning that the KB notes the competitor handles well). Equally important as the talking points.</li>
+    <li><strong>Stale KB surfaces caveats.</strong> If the competitor KB entry hasn't been updated in &gt; 90 days, the <code>kb_freshness</code> field flags it and the narrative includes a caveat. Stale competitive intel is worse than no competitive intel.</li>
+    <li><strong>Format-aware.</strong> Talking points read differently from email copy from a battlecard excerpt. Tool adapts tone + structure to the <code>narrative_target</code>.</li>
+  </ol>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>15K tokens (KB entry + deal context)</td></tr>
+    <tr><td>Per-call output budget</td><td>2K tokens</td></tr>
+    <tr><td>Default model</td><td>Sonnet (composition + tone matching)</td></tr>
+    <tr><td>Per-call cost estimate</td><td>~$0.06</td></tr>
+    <tr><td>Monthly cap (default)</td><td>$200/mo (~3,000 calls)</td></tr>
+    <tr><td>Frequency</td><td>Moderate &mdash; called when AGT-403 fires (competitor detection event) + AGT-405 brief generation + AGT-902 invocations.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>100% (hard)</td></tr>
+    <tr><td>KB grounding</td><td>100% &mdash; every talking point cites a real KB section (hard)</td></tr>
+    <tr><td>Hallucinated competitor claims</td><td>0% &mdash; tool never makes claims about a competitor that aren't in the KB (hard)</td></tr>
+    <tr><td>Deal-specificity</td><td>10 retrospective deals where competitive narrative was used; reviewer rates whether narrative is actually deal-specific (vs. generic). &ge; 70% rated specific.</td></tr>
+    <tr><td>Adoption rate by reps</td><td>% of generated narratives that reps mark as used in actual conversations &mdash; calibration signal &ge; 35%.</td></tr>
+    <tr><td>Stale KB recognition</td><td>100% on KB entries &gt; 90d old (hard) &mdash; staleness must surface as caveat</td></tr>
+    <tr><td>P95 latency</td><td>&le; 4s</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  TOOL-007 Competitive Narrative Writer &middot; Tier 3 Specialist Tool &middot; Schema v31<br>
+  Stateless. Composes; AGT-403 maintains the KB. Default Sonnet.<br>
+  Per-call: 15K input + 2K output. Monthly cap: $200/mo.<br>
+  Augments: Domain 2 win-rate (deal-specific competitive framing). Not a gap-closer; quality lift.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-403_Competitive_Intelligence.html">AGT-403</a> &middot; <a href="../specs/AGT-405_Meeting_Opp_Prep.html">AGT-405</a>
+</div>
+</body>
+</html>

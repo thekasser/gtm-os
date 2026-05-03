@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BrainEvalLog — Production Schema</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-schema{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.req{color:#712B13;font-weight:700;font-size:10px}
+.opt{color:#888;font-weight:600;font-size:10px}
+</style>
+</head>
+<body>
+
+<h1>BrainEvalLog &mdash; Production Schema</h1>
+<div class="subtitle">Layer 9: Reasoning &middot; Canonical record of every Brain Eval Harness run &middot; Append-only &middot; 7-year retention &middot; The CFO defense, written down</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L9 &middot; Schema</span>
+  <span class="badge badge-status">Production &middot; v28</span>
+  <span class="badge badge-schema">Owns: BrainEvalLog, BrainEvalQuestionScore</span>
+  <span class="badge badge-owner">RevOps + Data Engineering</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">BrainEvalLog is the canonical record of every Brain Eval Harness run. Every pre-launch run, every quarterly cadence run, every on-demand run lands here. The schema captures: which brain config was tested (model + system prompt hash + brain-ready view contracts), per-question scores across all 7 dimensions, aggregated pass/fail decision, reviewer identity, run timestamp, and full audit trail.</p>
+  <div class="alert-box alert-blue">This is the table the CFO eventually asks about. "How do you know the brain layer is working?" &rarr; "BrainEvalLog row from last quarter, here's the trend." Same auditability discipline as RevenueRecognitionLog and BrainAnalysisLog.</div>
+</div>
+
+<!-- ── WHY TWO TABLES ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Why two tables &mdash; BrainEvalLog and BrainEvalQuestionScore</div>
+  <p class="prose">A single eval run scores 30 questions across 7 dimensions. Storing this as a flat structure either loses detail (one summary row per run) or duplicates metadata (30 rows per run with run-level fields repeated). Two tables &mdash; one row per run, many rows per question scored within that run &mdash; is the right shape.</p>
+  <table>
+    <tr><th>Table</th><th>Granularity</th><th>Used for</th></tr>
+    <tr><td><code>BrainEvalLog</code></td><td>One row per harness run</td><td>Aggregated pass/fail, dimension averages, run metadata, trend dashboards</td></tr>
+    <tr><td><code>BrainEvalQuestionScore</code></td><td>One row per (run, question)</td><td>Per-question scores, reviewer comments, drill-down for failures</td></tr>
+  </table>
+</div>
+
+<!-- ── BRAINEVALLOG SCHEMA ───────────────────────────────── -->
+<div class="section">
+  <div class="section-title">BrainEvalLog &mdash; one row per run</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+    <tr><td><code>eval_run_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>Primary key.</td></tr>
+    <tr><td><code>run_trigger</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td><code>pre_launch</code> / <code>quarterly</code> / <code>prompt_change</code> / <code>model_promotion</code> / <code>on_demand</code></td></tr>
+    <tr><td><code>brain_under_test</code></td><td>VARCHAR(16)</td><td><span class="req">REQ</span></td><td><code>AGT-901</code> or <code>AGT-902</code>. CHECK enforces enum.</td></tr>
+    <tr><td><code>model_id</code></td><td>VARCHAR(64)</td><td><span class="req">REQ</span></td><td>Specific model used (e.g., <code>claude-sonnet-4-6</code>).</td></tr>
+    <tr><td><code>system_prompt_hash</code></td><td>VARCHAR(64)</td><td><span class="req">REQ</span></td><td>SHA-256 of system prompt. Same value as BrainAnalysisLog.system_prompt_hash for cross-table joining.</td></tr>
+    <tr><td><code>system_prompt_version_label</code></td><td>VARCHAR(64)</td><td><span class="opt">opt</span></td><td>Human-readable label if RevOps maintains versioned prompts (e.g., <code>pipeline_brain_v3</code>).</td></tr>
+    <tr><td><code>brain_view_contracts_hash</code></td><td>VARCHAR(64)</td><td><span class="req">REQ</span></td><td>SHA-256 of the brain-ready view definitions in effect at run time. Detects if view contracts changed between runs.</td></tr>
+    <tr><td><code>question_catalog_version</code></td><td>VARCHAR(32)</td><td><span class="req">REQ</span></td><td>Version label of the question catalog used (e.g., <code>v28-2026Q2</code>). Catalog evolves quarterly.</td></tr>
+    <tr><td><code>question_count</code></td><td>INTEGER</td><td><span class="req">REQ</span></td><td>Number of questions in this run. Typically 30 for full harness; lower for partial / on-demand.</td></tr>
+    <tr><td><code>started_at</code></td><td>TIMESTAMPTZ</td><td><span class="req">REQ</span></td><td>Run start.</td></tr>
+    <tr><td><code>completed_at</code></td><td>TIMESTAMPTZ</td><td><span class="opt">opt</span></td><td>Run end. NULL while in-progress.</td></tr>
+    <tr><td><code>reviewer_user_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>Human reviewer for dimensions 2, 4, 7. Independence required (cannot equal the prompt-tuner identity).</td></tr>
+    <tr><td><code>reviewer_independence_verified</code></td><td>BOOL</td><td><span class="req">REQ</span></td><td>TRUE only if reviewer is verified independent of brain prompt tuning. Trigger checks against an access-controlled prompt-tuner registry.</td></tr>
+    <tr><td><code>aggregated_scores</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Object with per-dimension scores: {citation_rate, hallucination_rate, staleness_recognition_rate, diagnosis_accuracy_mean, lever_mapping_correctness, confidence_calibration_in_band, narrative_coherence_mean}</td></tr>
+    <tr><td><code>hard_criteria_passed</code></td><td>BOOL</td><td><span class="req">REQ</span></td><td>TRUE if hallucination &le; 2%, staleness recognition = 100%, lever mapping = 100% (AGT-902 only).</td></tr>
+    <tr><td><code>soft_criteria_passed_count</code></td><td>INTEGER</td><td><span class="req">REQ</span></td><td>Count of soft criteria within threshold.</td></tr>
+    <tr><td><code>decision</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td><code>pass</code> / <code>pass_with_notes</code> / <code>conditional</code> / <code>fail</code>. Computed via the rubric pass/fail logic at write time.</td></tr>
+    <tr><td><code>decision_rationale</code></td><td>TEXT</td><td><span class="req">REQ</span></td><td>Human-readable explanation generated from the dimension scores. E.g., "Pass with notes: confidence calibration 12pp below band; all hard criteria passed."</td></tr>
+    <tr><td><code>calibration_notes</code></td><td>JSONB</td><td><span class="opt">opt</span></td><td>Free-form reviewer notes per dimension &mdash; what to fix in the next iteration.</td></tr>
+    <tr><td><code>token_cost_usd</code></td><td>NUMERIC(10,4)</td><td><span class="req">REQ</span></td><td>Total token cost across all 30 brain calls. Audit-stable.</td></tr>
+    <tr><td><code>reviewer_hours_spent</code></td><td>NUMERIC(5,2)</td><td><span class="opt">opt</span></td><td>Self-reported by reviewer. Tracks process efficiency.</td></tr>
+    <tr><td><code>created_at</code></td><td>TIMESTAMPTZ</td><td><span class="req">REQ</span></td><td>DEFAULT NOW().</td></tr>
+  </table>
+</div>
+
+<!-- ── BRAINEVALQUESTIONSCORE SCHEMA ────────────────────── -->
+<div class="section">
+  <div class="section-title">BrainEvalQuestionScore &mdash; one row per (run, question)</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+    <tr><td><code>question_score_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>Primary key.</td></tr>
+    <tr><td><code>eval_run_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>FK to BrainEvalLog.</td></tr>
+    <tr><td><code>question_id</code></td><td>VARCHAR(16)</td><td><span class="req">REQ</span></td><td>From the catalog (e.g., <code>EVAL-Q01</code>).</td></tr>
+    <tr><td><code>brain_analysis_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>FK to the BrainAnalysisLog row produced for this question. Enables drill-down: which sources did the brain read, what did it output, how did the eval reviewer score it.</td></tr>
+    <tr><td><code>question_type</code></td><td>VARCHAR(32)</td><td><span class="req">REQ</span></td><td>From the catalog: <code>plan_diagnosis</code> / <code>coverage_gap</code> / <code>play_retrospective</code> / <code>forecast_bias</code> / <code>churn_diagnosis</code> / <code>expansion_qualification</code> / <code>handoff_briefing</code> / <code>qbr_narrative</code></td></tr>
+    <tr><td><code>uses_stale_fixture</code></td><td>BOOL</td><td><span class="req">REQ</span></td><td>TRUE if this question deliberately uses stale source data to test recognition.</td></tr>
+    <tr><td><code>citation_rate</code></td><td>NUMERIC(5,4)</td><td><span class="req">REQ</span></td><td>0&ndash;1. % of numerical claims with valid citation. Auto-scored.</td></tr>
+    <tr><td><code>hallucinations_detected</code></td><td>INTEGER</td><td><span class="req">REQ</span></td><td>Count of unsupported claims (human-reviewed).</td></tr>
+    <tr><td><code>total_claims</code></td><td>INTEGER</td><td><span class="req">REQ</span></td><td>Total numerical/factual claims in the narrative (human-reviewed).</td></tr>
+    <tr><td><code>staleness_correctly_recognized</code></td><td>BOOL</td><td><span class="opt">opt</span></td><td>NULL if question is not stale-fixture. TRUE/FALSE only on stale-fixture questions.</td></tr>
+    <tr><td><code>diagnosis_accuracy_score</code></td><td>NUMERIC(3,2)</td><td><span class="opt">opt</span></td><td>0.0 / 0.5 / 1.0. NULL for question types where this dimension doesn't apply.</td></tr>
+    <tr><td><code>lever_mapping_violations</code></td><td>INTEGER</td><td><span class="opt">opt</span></td><td>AGT-902 only. Count of proposed_actions[].action_type values not in the enum. 0 = pass.</td></tr>
+    <tr><td><code>confidence_distribution</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>{high_confidence_pct, multi_source_pct, inference_pct, speculation_pct} for this question's output.</td></tr>
+    <tr><td><code>narrative_coherence_rating</code></td><td>INTEGER</td><td><span class="opt">opt</span></td><td>1&ndash;5 reviewer rating.</td></tr>
+    <tr><td><code>reviewer_comments</code></td><td>TEXT</td><td><span class="opt">opt</span></td><td>Free-form per-question notes &mdash; what was right, what was wrong, what's worth iterating on.</td></tr>
+    <tr><td><code>question_passed</code></td><td>BOOL</td><td><span class="req">REQ</span></td><td>Did this question pass its specific pass criteria from the catalog. Computed at write time.</td></tr>
+    <tr><td><code>created_at</code></td><td>TIMESTAMPTZ</td><td><span class="req">REQ</span></td><td>DEFAULT NOW().</td></tr>
+  </table>
+</div>
+
+<!-- ── KEYS, CONSTRAINTS, INDEXES ──────────────────────────── -->
+<div class="section">
+  <div class="section-title">Keys, constraints, indexes</div>
+  <table>
+    <tr><th>Element</th><th>Definition</th><th>Why</th></tr>
+    <tr><td>BrainEvalLog PK</td><td><code>eval_run_id</code></td><td>Surrogate.</td></tr>
+    <tr><td>BrainEvalQuestionScore PK</td><td><code>question_score_id</code></td><td>Surrogate.</td></tr>
+    <tr><td>BrainEvalQuestionScore FK</td><td><code>eval_run_id</code> &rarr; BrainEvalLog (CASCADE not allowed; runs are append-only)</td><td>Lineage.</td></tr>
+    <tr><td>BrainEvalQuestionScore FK</td><td><code>brain_analysis_id</code> &rarr; BrainAnalysisLog</td><td>Drill-down to the actual brain output and its sources.</td></tr>
+    <tr><td>Index 1 (BrainEvalLog)</td><td><code>(brain_under_test, started_at DESC)</code></td><td>Per-brain trend dashboard.</td></tr>
+    <tr><td>Index 2 (BrainEvalLog)</td><td><code>(decision, started_at DESC)</code></td><td>"Show me all failed runs in trailing 12mo."</td></tr>
+    <tr><td>Index 3 (BrainEvalLog)</td><td><code>(system_prompt_hash)</code></td><td>"How has this prompt performed across runs?" Joins to BrainAnalysisLog by hash for production-vs-eval comparison.</td></tr>
+    <tr><td>Index 4 (BrainEvalQuestionScore)</td><td><code>(question_id, created_at DESC)</code></td><td>"How has question X scored over time?" Drift detection.</td></tr>
+    <tr><td>Index 5 (BrainEvalQuestionScore)</td><td><code>(eval_run_id)</code></td><td>Run drill-down: all 30 question scores for a single run.</td></tr>
+    <tr><td>Index 6 (BrainEvalQuestionScore)</td><td><code>(uses_stale_fixture, staleness_correctly_recognized)</code></td><td>Stale-fixture pass rate audit.</td></tr>
+    <tr><td>CHECK: brain_under_test</td><td><code>brain_under_test IN ('AGT-901','AGT-902')</code> (extensible)</td><td>Identity discipline.</td></tr>
+    <tr><td>CHECK: independence verified</td><td>Trigger validates <code>reviewer_user_id</code> is not in the prompt-tuner registry for the brain under test.</td><td>Reviewer independence is a methodology requirement.</td></tr>
+    <tr><td>CHECK: decision logic</td><td>Trigger computes <code>decision</code> from aggregated_scores at write time. Manual override blocked.</td><td>Pass/fail rubric is policy, not negotiation.</td></tr>
+    <tr><td>Append-only</td><td>UPDATE blocked except for the single <code>completed_at</code> field set on run completion. DELETE blocked.</td><td>Audit integrity.</td></tr>
+  </table>
+</div>
+
+<!-- ── DASHBOARD QUERIES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Dashboard queries that depend on this table</div>
+  <table>
+    <tr><th>Dashboard panel</th><th>Query</th></tr>
+    <tr><td>Per-brain quarterly trend</td><td>For each brain, plot per-dimension scores across the last 8 quarterly runs. Detects drift on any dimension.</td></tr>
+    <tr><td>Most-failing questions</td><td>Across runs, rank questions by % of runs they failed in. Surfaces catalog questions that may be too hard, ambiguous, or misaligned.</td></tr>
+    <tr><td>Stale-fixture pass rate</td><td>Per-run: did all 5 stale-fixture questions pass staleness recognition? Hard requirement &mdash; any miss is a sev-2 incident.</td></tr>
+    <tr><td>Reviewer calibration</td><td>Per-reviewer: how do their narrative-coherence ratings distribute? Drift in reviewer scoring distribution may indicate calibration drift.</td></tr>
+    <tr><td>Cost per run trend</td><td>token_cost_usd + reviewer_hours_spent over time. Watch for process bloat.</td></tr>
+    <tr><td>Production-vs-eval prompt comparison</td><td>Join BrainEvalLog.system_prompt_hash to BrainAnalysisLog.system_prompt_hash. "Production runs are using prompt X; eval pass was on prompt Y." Drift detection.</td></tr>
+  </table>
+</div>
+
+<!-- ── ACCESS CONTROL ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Access control</div>
+  <table>
+    <tr><th>Role</th><th>Read</th><th>Write</th></tr>
+    <tr><td>Eval harness runner (system service)</td><td>Yes</td><td>BrainEvalLog INSERT + completed_at UPDATE; BrainEvalQuestionScore INSERT</td></tr>
+    <tr><td>Reviewer (during run)</td><td>Yes &mdash; own run + question rows</td><td>BrainEvalQuestionScore: reviewer-scored fields only, before run completion</td></tr>
+    <tr><td>RevOps</td><td>Full read</td><td>None</td></tr>
+    <tr><td>Auditors (internal/external)</td><td>Full read on audit windows</td><td>None</td></tr>
+    <tr><td>Brain Agents</td><td>None</td><td>None</td></tr>
+    <tr><td>Production users (AM/CSM/AE)</td><td>None &mdash; eval data is internal</td><td>None</td></tr>
+  </table>
+  <div class="alert-box alert-amber">Brain Agents have no access to BrainEvalLog or BrainEvalQuestionScore. This is deliberate &mdash; we don't want the brain to learn what the eval expects. The eval is a measurement of the brain's general capability, not a target the brain should optimize for.</div>
+</div>
+
+<!-- ── RETENTION ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Retention</div>
+  <table>
+    <tr><th>Tier</th><th>Window</th><th>Access</th></tr>
+    <tr><td>Hot</td><td>0 to 24 months</td><td>Operational reads &mdash; dashboards, drift detection, cohort comparison</td></tr>
+    <tr><td>Cold</td><td>24 months to 7 years</td><td>Audit only.</td></tr>
+    <tr><td>Purge</td><td>&gt; 7 years</td><td>Hard delete subject to legal hold.</td></tr>
+  </table>
+  <div class="note">7-year retention parallels BrainAnalysisLog. Eval results that informed brain-influenced decisions need the same retention floor as the underlying decisions.</div>
+</div>
+
+<div class="footer">
+  BrainEvalLog + BrainEvalQuestionScore &middot; Production Schema &middot; Layer 9 &middot; Schema v28<br>
+  Owners: RevOps + Data Engineering. Single-writer per row: the eval harness runner service.<br>
+  Append-only. Decision logic computed via trigger from aggregated scores. Reviewer independence enforced at write.<br>
+  Companion documents: <a href="../eval/Brain_Eval_Harness.html">Brain Eval Harness methodology</a> &middot; <a href="../eval/Brain_Eval_Question_Catalog.html">Brain Eval Question Catalog</a> &middot; <a href="BrainAnalysisLog_Schema.html">BrainAnalysisLog Schema</a><br>
+  This is the table that proves the brain layer is or isn't working. Maintain it accordingly.
+</div>
+</body>
+</html>

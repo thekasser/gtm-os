@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tier 3 Specialist Tools — Index</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.intro-banner{background:linear-gradient(135deg,#FAEEDA 0%,#FCF5E5 100%);border:1px solid #D4A84C;color:#7A4A0E;font-size:12px;padding:14px 16px;border-radius:10px;line-height:1.7;margin-bottom:24px}
+.tool-card{border:1px solid #e4e4e4;border-radius:10px;padding:14px 16px;margin-bottom:12px;background:#fafafa}
+.tool-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.tool-id{font-family:monospace;font-size:12px;font-weight:700;color:#7A4A0E;background:#FAEEDA;padding:3px 9px;border-radius:6px;border:1px solid #D4A84C}
+.tool-domain{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.tool-model{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.tool-status{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px}
+.tool-status-prototyped{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.tool-status-specced{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.tool-name{font-size:14px;font-weight:600;color:#111;margin-bottom:6px}
+.tool-purpose{font-size:12px;color:#444;line-height:1.6;margin-bottom:8px}
+.tool-meta{font-size:11px;color:#666;line-height:1.6}
+.tool-meta strong{color:#333}
+.spec-link{font-size:11px;color:#7A4A0E;text-decoration:underline;margin-top:6px;display:inline-block}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>Tier 3 Specialist Tools &mdash; Index</h1>
+<div class="subtitle">Stateless, narrow, callable LLM functions &middot; Called by L9 Brain Agents (or by L1&ndash;L8 services for one-shot augmentation) &middot; Not "agents" in the cadence/state sense &mdash; functions an agent can call &middot; Index of the Tier 3 category</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">Tier 3 &middot; Tools</span>
+  <span class="badge badge-status">v33 &middot; 2 prototyped, 10 specced</span>
+  <span class="badge badge-tier">12 tools across 3 waves</span>
+  <span class="badge badge-owner">RevOps · technical owners per tool</span>
+</div>
+
+<div class="intro-banner">
+  <strong>What Tier 3 is.</strong> Tier 3 is a category, not a layer. Tools live alongside the layered services and agents but follow different rules: stateless, no schema ownership, no cadence, no invocation paths beyond "another component called me." A Brain Agent (Tier 2) or occasionally a service (Tier 1) calls a Tool, the Tool runs once, returns a structured result, and is done. Logged for audit but not authoritative. Tools fill the cognition gaps that don't justify a full agent &mdash; the surgical instruments of the OS.
+</div>
+
+<!-- ── WHY TIER 3 IS A CATEGORY ───────────────────────────── -->
+<div class="section">
+  <div class="section-title">Why Tier 3 is a separate category</div>
+  <p class="prose">In the v26 architecture eval the recommendation was three tiers: Tier 1 deterministic services, Tier 2 LLM-native brain agents, Tier 3 specialist tools. The first two get layers (L1&ndash;L8 and L9 respectively). Tier 3 doesn't &mdash; tools are not part of the layered DAG because:</p>
+  <ul style="font-size:12px;color:#333;line-height:1.8;padding-left:20px;margin-top:8px">
+    <li><strong>No state to coordinate.</strong> Tools are pure functions. Same input → same output (modulo model nondeterminism, which the eval bounds).</li>
+    <li><strong>No table ownership.</strong> Single-writer-per-table doesn't apply &mdash; tools don't write tables. They optionally log calls for audit, but the audit log is itself a Tier 2 or Tier 1 concern.</li>
+    <li><strong>No cadence.</strong> Tools never run on a schedule. They run when called, return, and are done. This is what makes them safe to add and remove without architectural ripple.</li>
+    <li><strong>Different governance.</strong> Tools have model selection, prompt management, and eval &mdash; but no approval gates, no schema migrations, no cadence policy. Lighter-weight artifact.</li>
+  </ul>
+  <div class="alert-box alert-blue">Tools are <em>functions an agent can call</em>. Treating them as layered components creates the wrong governance overhead. Treating them as opaque LLM calls creates the wrong audit posture. The Tier 3 framing splits the difference: callable contracts with eval discipline, but no layer-level integration burden.</div>
+</div>
+
+<!-- ── TOOL CONTRACT ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">The Tier 3 tool contract</div>
+  <p class="prose">Every Tier 3 tool spec must define:</p>
+  <table>
+    <tr><th>Element</th><th>What it captures</th></tr>
+    <tr><td>Purpose</td><td>What the tool does in one sentence. If the tool needs more than one sentence to describe, it should probably be split.</td></tr>
+    <tr><td>Input schema</td><td>Strict JSON-shaped input. Validated by the calling agent before invocation; tool rejects malformed input.</td></tr>
+    <tr><td>Output schema</td><td>Strict JSON-shaped output. Calling agent depends on the contract; schema changes are breaking changes that require coordinated deployment with callers.</td></tr>
+    <tr><td>Model tier</td><td>Haiku (narrow scope, fast) / Sonnet (synthesis-heavy) / Opus (rare, only when measurably necessary). Default is Haiku unless the tool's nature demands otherwise.</td></tr>
+    <tr><td>Called by</td><td>Explicit list of which Tier 1 services and Tier 2 brains may call the tool. Out-of-list callers should be a code-review concern.</td></tr>
+    <tr><td>Cost ceiling</td><td>Per-call token budget + monthly invocation budget. Hard limits.</td></tr>
+    <tr><td>Eval criteria</td><td>Tool-specific eval; runs alongside the brain harness or independently. Tools have lower bar than brains because their scope is narrower.</td></tr>
+    <tr><td>Failure mode</td><td>What happens when the tool returns a bad result. Calling agent's responsibility to handle, but the tool spec must declare its known failure modes.</td></tr>
+  </table>
+</div>
+
+<!-- ── INDEX ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Index of specced tools (v32 — 12 tools)</div>
+  <p class="prose" style="margin-bottom:14px">First wave (v29, 4 tools): closed the biggest cognition gaps &mdash; Domain 3 (API/dev-led GTM) twice, Domain 1 ("create plays, not just execute") once, UBB consumption forecasting once. Second wave (v31, 4 tools): closed Domain 4 (outbound deliverability), Domain 2 (in-call guidance + competitive narrative), and the post-sales feature-level adoption gap. Third wave (v32, 4 tools): TTV/timing analysis, champion movement detection, pricing sensitivity, onboarding health prediction. Twelve tools total &mdash; the Tier 3 catalogue is now broadly complete; further additions are case-by-case based on observed gaps.</p>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-001</span>
+      <span class="tool-domain">Domain 3 · API/Dev GTM</span>
+      <span class="tool-model">Sonnet</span>
+    </div>
+    <div class="tool-name">API-doc → Sales-play Translator</div>
+    <div class="tool-purpose">Reads a product's API documentation and produces 1&ndash;3 candidate sales play definitions for technical buyer personas. Output goes to SalesPlayLibrary as <code>draft</code>; humans co-define from there.</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-901 Pipeline Brain, AGT-902 Account Brain · <strong>Use case:</strong> new product launch, API surface change, identifying buyer-relevant capabilities · <strong>Closes:</strong> Domain 3 gap from v26 eval (the largest single gap in the system).</div>
+    <a href="TOOL-001_API_Doc_Play_Translator.html" class="spec-link">View spec →</a>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-002</span>
+      <span class="tool-domain">Domain 3 · API/Dev GTM</span>
+      <span class="tool-model">Haiku</span>
+    </div>
+    <div class="tool-name">Dev-Persona ICP Enricher</div>
+    <div class="tool-purpose">Takes an account record + observed technical signals (job postings, GitHub activity, technographic data) and produces a developer-persona enrichment to augment AGT-201's ICP scoring. Captures dev-buyer signal that AGT-201's 6-dimension model under-weights.</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-201 (as enrichment), AGT-901 Pipeline Brain · <strong>Use case:</strong> developer-led GTM motion, API-product accounts where the buying signal is technical not commercial · <strong>Closes:</strong> Domain 3 gap (the dev-persona side).</div>
+    <a href="TOOL-002_Dev_Persona_ICP_Enricher.html" class="spec-link">View spec →</a>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-003</span>
+      <span class="tool-domain">Domain 1 · Pipeline Generation</span>
+      <span class="tool-model">Sonnet</span>
+    </div>
+    <div class="tool-name">Sales Play Composer</div>
+    <div class="tool-purpose">Given a hypothesis (e.g., "MM healthcare under-covered, vertical-specific play needed") + relevant Tier 1 brain-ready views, composes a structured play definition (target, hypothesis, suggested cadence, success criteria) that lands in SalesPlayLibrary as <code>draft</code>.</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-901 Pipeline Brain primarily, AGT-902 for account-specific plays · <strong>Use case:</strong> the "create plays, not just execute" gap from Domain 1 of the v26 eval · <strong>Closes:</strong> the lever that lets a brain proposal become a candidate play.</div>
+    <a href="TOOL-003_Sales_Play_Composer.html" class="spec-link">View spec →</a>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-004</span>
+      <span class="tool-domain">UBB · Post-sales</span>
+      <span class="tool-model">Haiku</span>
+      <span class="tool-status tool-status-prototyped">prototyped</span>
+    </div>
+    <div class="tool-name">Consumption Forecasting / Runway Predictor</div>
+    <div class="tool-purpose">Reads UsageMeteringLog trailing 90&ndash;180 day pattern for one account+SKU and produces a forecast: predicted overage date (or "no overage in next 60 days"), confidence interval, trend characterization (linear / exponential / seasonal / cliff).</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-902 Account Brain (for "is this real expansion" questions), AGT-503 Expansion Trigger (as augment), AGT-402 Forecast Adjuster (for expansion ACV probability weighting) · <strong>Use case:</strong> distinguishing trend from spike, predicting when overage will hit, sizing the next expansion conversation timing · <strong>Closes:</strong> UBB-specific gap from v26 eval.</div>
+    <a href="TOOL-004_Consumption_Forecasting.html" class="spec-link">View spec →</a>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-005</span>
+      <span class="tool-domain">Domain 4 · AI-native outbound</span>
+      <span class="tool-model">Haiku</span>
+    </div>
+    <div class="tool-name">Outbound Deliverability Monitor</div>
+    <div class="tool-purpose">Reads outbound sequence performance + reputation signals (bounce rates, spam complaints, ESP reputation scores, blacklist status) and produces a deliverability health characterization with specific risk flags + recommended actions (throttle, pause, warm-up, manual review).</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-302 (daily batch, drives auto-throttle decisions), AGT-303 (weekly batch, feeds risk-classified recommendations), AGT-901 (for "is outbound quality the bottleneck?" diagnostic), RevOps direct &middot; <strong>Closes:</strong> Domain 4 gap from v26 eval.</div>
+    <a href="TOOL-005_Outbound_Deliverability_Monitor.html" class="spec-link">View spec →</a>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-006</span>
+      <span class="tool-domain">Domain 2 · Win-rate</span>
+      <span class="tool-model">Sonnet</span>
+    </div>
+    <div class="tool-name">Real-time Call Guidance</div>
+    <div class="tool-purpose">Live-call assist. Streaming transcript chunks + full account context produce real-time guidance during the call: objection handling, MEDDPICC gap callouts, next-step suggestions, competitive intel mentions. Sidecar UI; rep decides whether to use any specific suggestion. Quality &gt;&gt; volume &mdash; tool returns silence when guidance would be mediocre.</div>
+    <div class="tool-meta"><strong>Called by:</strong> Live-call sidecar UI (recording-platform integration: Gong / Zoom / Chorus) &middot; <strong>Closes:</strong> Domain 2 (in-call) gap from v26 eval. Complements AGT-407 retrospective conversation intelligence. <strong>Higher infra complexity</strong> than other tools &mdash; requires live audio integration and sidecar UI surface.</div>
+    <a href="TOOL-006_Real_Time_Call_Guidance.html" class="spec-link">View spec →</a>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-007</span>
+      <span class="tool-domain">Domain 2 · Win-rate augment</span>
+      <span class="tool-model">Sonnet</span>
+    </div>
+    <div class="tool-name">Competitive Narrative Writer</div>
+    <div class="tool-purpose">Composes deal-specific competitive narratives from CompetitiveKnowledgeBase + deal context. Output is talking points / brief sections / email copy / battlecard excerpts tailored to the specific deal stage, ICP fit, and prior conversation patterns. Hard rule: every talking point cites a real KB section &mdash; tool composes; AGT-403 maintains the KB.</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-403 (augments reactive briefs), AGT-405 (deal-active meeting briefs), AGT-902 Account Brain, RevOps direct (battlecard refresh) &middot; <strong>Augments:</strong> Domain 2 (deal-specific competitive framing). Quality lift, not gap-closer.</div>
+    <a href="TOOL-007_Competitive_Narrative_Writer.html" class="spec-link">View spec →</a>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-008</span>
+      <span class="tool-domain">Post-sales · Activation</span>
+      <span class="tool-model">Haiku</span>
+      <span class="tool-status tool-status-prototyped">prototyped</span>
+    </div>
+    <div class="tool-name">Product Adoption Pattern Recognizer</div>
+    <div class="tool-purpose">Reads per-account feature engagement telemetry and classifies the adoption pattern: deeply_integrated / surface_only / siloed_by_team / declining / activating. Different from TOOL-004 (consumption volume) &mdash; this is which features get used and how broadly. Cohort-relative when baseline available; degrades gracefully when not.</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-501 Customer Health (daily batch &mdash; augments feature engagement dimension), AGT-902 Account Brain ("is this account actually getting value?"), AGT-503 Expansion Trigger (qualification augment), AGT-601 Onboarding Orchestrator (activation tracking) &middot; <strong>Closes:</strong> post-sales feature-level adoption gap.</div>
+    <a href="TOOL-008_Product_Adoption_Pattern_Recognizer.html" class="spec-link">View spec →</a>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-009</span>
+      <span class="tool-domain">Post-sales · Activation</span>
+      <span class="tool-model">Haiku</span>
+    </div>
+    <div class="tool-name">Activation / Time-to-Value Analyzer</div>
+    <div class="tool-purpose">Measures longitudinal time-to-value milestones for an account against expected timing benchmarks. Distinct from TOOL-008 (current snapshot) &mdash; this is timing analysis: did the account hit first-value within X days, integration within Y, multi-team adoption within Z? Output is per-milestone delta vs. benchmark + projected achievement of remaining milestones based on trajectory.</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-601 Onboarding Orchestrator (weekly batch on onboarding cohort), AGT-501 Customer Health (months 3&ndash;9 ramping accounts), AGT-902 Account Brain ("is this account activating on time?"), AGT-704 (cohort-level TTV trends for QBR) &middot; <strong>Closes:</strong> TTV/timing side of post-sales activation gap.</div>
+    <a href="TOOL-009_Activation_Time_To_Value_Analyzer.html" class="spec-link">View spec →</a>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-010</span>
+      <span class="tool-domain">Domain 2 · Post-sales</span>
+      <span class="tool-model">Haiku</span>
+    </div>
+    <div class="tool-name">Champion Movement Detector</div>
+    <div class="tool-purpose">Detects champion role changes, departures, or disengagement using multi-signal fusion: LinkedIn job-change webhooks, email-bounce patterns, AGT-407 ConvIntelligence "person stopped attending calls" detection. Outputs movement classification with confidence + recommended interventions. <strong>External enrichment dependency</strong> &mdash; degrades gracefully without LinkedIn signals.</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-502 Churn Risk (weekly batch on T-180 renewal cohort), AGT-401 Deal Health (when champion is economic buyer/strong influencer), AGT-902 Account Brain, AGT-501 Customer Health &middot; <strong>Closes:</strong> early-warning gap. Champion-loss predicts retrospective churn with substantial lead time when external signals are available.</div>
+    <a href="TOOL-010_Champion_Movement_Detector.html" class="spec-link">View spec →</a>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-011</span>
+      <span class="tool-domain">Domain 1 / Domain 2</span>
+      <span class="tool-model">Sonnet</span>
+    </div>
+    <div class="tool-name">Pricing Sensitivity Analyzer</div>
+    <div class="tool-purpose">For an active deal at quote stage, classifies pricing sensitivity (low / moderate / high / highly_constrained_budget) from cohort QuoteLog patterns + ConvIntelligence price-objection signals + procurement engagement. Output is sensitivity classification + cohort comparison + do_not_concede flags. <strong>Hard rule: never recommends specific discount magnitude</strong> &mdash; that remains a human decision per AGT-406 spec.</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-406 CPQ &amp; Deal Desk (every quote requiring approval), AGT-401 Deal Health (proposal/negotiation stage), AGT-902 Account Brain, RevOps direct &middot; <strong>Augments:</strong> AGT-406 deal desk decision support &mdash; informational input, not approval mechanism.</div>
+    <a href="TOOL-011_Pricing_Sensitivity_Analyzer.html" class="spec-link">View spec →</a>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-012</span>
+      <span class="tool-domain">Post-sales · Onboarding</span>
+      <span class="tool-model">Haiku</span>
+    </div>
+    <div class="tool-name">Onboarding Health Predictor</div>
+    <div class="tool-purpose">From the first 30&ndash;60 days of telemetry on a newly-onboarded account, predicts 6-month outcome: sustained_adoption / surface_only / churn. Trajectory classification + early warning indicators + intervention recommendations sized to onboarding stage. Distinct from TOOL-008 (descriptive) and TOOL-009 (timing) &mdash; TOOL-012 is <em>predictive</em>.</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-601 Onboarding Orchestrator (weekly batch, primary), AGT-501 (early forward-looking signal), AGT-902 Account Brain, AGT-704 (cohort-level onboarding trajectory for retention health section) &middot; <strong>Closes:</strong> predictive gap in post-sales activation toolkit. Onboarding intervention window is the highest-leverage moment in the customer lifecycle.</div>
+    <a href="TOOL-012_Onboarding_Health_Predictor.html" class="spec-link">View spec →</a>
+  </div>
+</div>
+
+<!-- ── FUTURE CANDIDATES ───────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Future candidates (not specced; case-by-case as gaps emerge)</div>
+  <p class="prose" style="margin-bottom:10px">With three waves shipped (12 tools), the Tier 3 catalogue is broadly complete relative to the v26 architecture eval gaps. Further additions are case-by-case &mdash; the bar is observed operational gap, not theoretical coverage. Tracking ideas as candidates for when signal warrants:</p>
+  <table>
+    <tr><th>Candidate</th><th>Domain</th><th>Trigger to add</th></tr>
+    <tr><td>Procurement Negotiation Pattern Recognizer</td><td>Domain 1 / Domain 2</td><td>If post-launch eval of TOOL-011 shows procurement-stage analysis is a distinct cognition need.</td></tr>
+    <tr><td>Multi-thread Quality Scorer</td><td>Domain 2</td><td>Score deal-level multi-threading quality (stakeholder coverage, persona breadth) beyond what AGT-401 deal health scoring captures. Add if AGT-901 surfaces thin multi-threading as a recurring win-rate driver.</td></tr>
+    <tr><td>QBR Action-Item Outcome Tracker</td><td>Post-sales</td><td>Track QBR commitments through to outcomes, surfacing accountability patterns. Add after AGT-603/AGT-704 adoption shows signal.</td></tr>
+    <tr><td>Renewal Negotiation Risk Profiler</td><td>Post-sales</td><td>Renewal-specific equivalent of TOOL-011 Pricing Sensitivity. Sharper renewal-stage focus. Add if renewal motion produces distinct sensitivity patterns from new-logo motion.</td></tr>
+    <tr><td>Industry-Specific Play Refiner</td><td>Domain 1</td><td>Vertical-specific narrative refinement for plays exiting SalesPlayLibrary. Add when active plays grow past 30 across verticals and quality lift is observed as a need.</td></tr>
+  </table>
+  <div class="note">Tier 3 is intentionally lightweight to add &mdash; same template, ~1500 words per spec. The discipline is restraint: add tools when gaps emerge from operational signal, not when they emerge from theory. Twelve specced tools are already a lot to maintain alongside the eval harness; further additions trade off against catalog maintenance load.</div>
+</div>
+
+<!-- ── INVOCATION PATTERNS ──────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Invocation patterns</div>
+  <table>
+    <tr><th>Pattern</th><th>Caller</th><th>Tool</th><th>Example</th></tr>
+    <tr><td>Brain calls tool during query</td><td>AGT-901 / AGT-902</td><td>Any</td><td>AGT-902 reading per-account view, calls TOOL-004 to forecast overage timing for the account</td></tr>
+    <tr><td>Service calls tool as enrichment</td><td>AGT-201, AGT-503, AGT-402</td><td>TOOL-002, TOOL-004</td><td>AGT-201 calls TOOL-002 on account update events to enrich dev-persona signal before ICP rescore</td></tr>
+    <tr><td>Operator calls tool directly</td><td>RevOps via workspace UI</td><td>TOOL-001, TOOL-003</td><td>RevOps drops a new product API doc into a workspace input; TOOL-001 generates 3 candidate plays for review</td></tr>
+    <tr><td>Tool chains</td><td>Brain calling multiple tools in sequence</td><td>AGT-901 → TOOL-001 → TOOL-003</td><td>Read API docs (TOOL-001 produces candidate plays) then refine the most promising into a structured play definition (TOOL-003)</td></tr>
+  </table>
+</div>
+
+<!-- ── COST AGGREGATION ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost aggregation across the Tier 3 layer</div>
+  <p class="prose" style="margin-bottom:10px">Each tool has its own per-call and monthly budget. Aggregate Tier 3 spend is monitored separately from Tier 2 brain spend.</p>
+  <table>
+    <tr><th>Tool</th><th>Default model</th><th>Per-call budget</th><th>Monthly cap (default)</th></tr>
+    <tr><td>TOOL-001 API-doc translator</td><td>Sonnet</td><td>50K input + 5K output</td><td>$300/mo (low frequency, high context)</td></tr>
+    <tr><td>TOOL-002 Dev-persona enricher</td><td>Haiku</td><td>10K input + 1K output</td><td>$200/mo (high frequency, narrow scope)</td></tr>
+    <tr><td>TOOL-003 Sales play composer</td><td>Sonnet</td><td>30K input + 4K output</td><td>$300/mo (moderate frequency)</td></tr>
+    <tr><td>TOOL-004 Consumption forecasting</td><td>Haiku</td><td>15K input + 2K output</td><td>$400/mo</td></tr>
+    <tr><td>TOOL-005 Outbound deliverability</td><td>Haiku</td><td>8K input + 2K output</td><td>$150/mo</td></tr>
+    <tr><td>TOOL-006 Real-time call guidance</td><td>Sonnet</td><td>30K input + 1.5K output (per invocation)</td><td>$2,000/mo &mdash; ~600 customer calls; per-call ~$3</td></tr>
+    <tr><td>TOOL-007 Competitive narrative writer</td><td>Sonnet</td><td>15K input + 2K output</td><td>$200/mo</td></tr>
+    <tr><td>TOOL-008 Adoption pattern recognizer</td><td>Haiku</td><td>10K input + 1.5K output</td><td>$300/mo (high frequency &mdash; daily batch from AGT-501)</td></tr>
+    <tr><td>TOOL-009 Activation/TTV analyzer</td><td>Haiku</td><td>8K input + 1.5K output</td><td>$200/mo</td></tr>
+    <tr><td>TOOL-010 Champion movement detector</td><td>Haiku</td><td>10K input + 2K output</td><td>$250/mo</td></tr>
+    <tr><td>TOOL-011 Pricing sensitivity analyzer</td><td>Sonnet</td><td>20K input + 2.5K output</td><td>$300/mo</td></tr>
+    <tr><td>TOOL-012 Onboarding health predictor</td><td>Haiku</td><td>10K input + 2K output</td><td>$200/mo</td></tr>
+  </table>
+  <div class="alert-box alert-amber"><strong>Total Tier 3 default budget: ~$4,800/mo across all 12 tools.</strong> TOOL-006 still dominates (~$2,000/mo for live-call guidance). Excluding TOOL-006, the rest of Tier 3 is ~$2,800/mo across 11 narrowly-scoped tools. Combined with Tier 2 brain budgets (~$1,500/mo), reasoning + augmentation layer total ~$6,300/mo &mdash; roughly 1/3 of one RevOps analyst FTE. Track in a single dashboard; alert at 75% of any tier's budget. RevOps configures opt-in per call-type for TOOL-006 to bound cost.</div>
+</div>
+
+<!-- ── EVAL FOR TOOLS ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval discipline for tools</div>
+  <p class="prose">Tools have eval criteria parallel to brains, but lighter:</p>
+  <ul style="font-size:12px;color:#333;line-height:1.8;padding-left:20px;margin-top:8px">
+    <li><strong>Schema compliance.</strong> 100% &mdash; output must match declared output schema. Hard requirement, auto-validated.</li>
+    <li><strong>Hallucination rate.</strong> Tool-specific. For TOOL-001 (API-doc translator) means inventing capabilities the API doesn't have; for TOOL-004 (forecasting) means producing forecasts not supported by the input data.</li>
+    <li><strong>Outcome quality.</strong> Tool-specific retrospective eval where ground truth exists.</li>
+    <li><strong>Latency.</strong> P95 latency budget per tool. Tools are called in real-time inside agent reasoning &mdash; latency matters operationally in a way that doesn't apply to brains.</li>
+  </ul>
+  <p class="prose" style="margin-top:8px">Tool eval is its own harness, smaller than the brain harness (typically 10&ndash;15 questions per tool). Tool eval results land in BrainEvalLog with a flag distinguishing tool runs from brain runs.</p>
+</div>
+
+<div class="footer">
+  Tier 3 Specialist Tools Index &middot; Schema v32 &middot; 12 tools across 3 waves<br>
+  Owners: RevOps (governance) + tool-specific technical owners. Tools are stateless, no table ownership, no cadence.<br>
+  First wave (v29): TOOL-001/002/003/004. Second wave (v31): TOOL-005/006/007/008. Third wave (v32): TOOL-009/010/011/012.<br>
+  Companion: <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902 Account Brain</a> &middot; <a href="../eval/Brain_Eval_Harness.html">Brain Eval Harness</a><br>
+  Tools are functions an agent can call. Add them lightly, eval them rigorously, retire them when their gap is closed by other means.
+</div>
+</body>
+</html>

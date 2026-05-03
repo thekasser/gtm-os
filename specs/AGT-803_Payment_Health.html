@@ -38,8 +38,15 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 
 <div class="meta-row">
   <span class="badge badge-layer">L8 · Agent 03</span>
-  <span class="badge badge-status">Specced · v25</span>
-  <span class="badge badge-schema">Schema adds: PaymentEventLog</span>
+  <span class="badge badge-status">Built · v30</span>
+  <span class="badge badge-schema">Owns: PaymentEventLog</span>
+</div>
+
+<!-- ── v30 PROMOTION BANNER ────────────────────────────────── -->
+<div class="section">
+  <div style="background:#E1F5EE;border:1px solid #5DCAA5;color:#085041;font-size:12px;padding:10px 14px;border-radius:8px;line-height:1.6">
+    <strong>v30 — promoted from Specced to Built.</strong> AGT-803 closes out L8 buildout. Payment health is the cap/floor on AGT-501 customer health, so its promotion completes the post-sales signal chain (UsageMeteringLog → AGT-501 health → AGT-502 churn → AGT-503 expansion, with payment health gating the cap). With L8 complete, the deterministic backbone is fully Built; L9 brain layer can read against trustworthy source data.
+  </div>
 </div>
 
 <!-- ── PURPOSE ─────────────────────────────────────────────── -->
@@ -95,13 +102,48 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
   <p class="prose">AGT-803 writes <code>payment_health_status</code> to <code>CustomerHealthLog</code> on every status change. This is a non-blocking read-only feed — if AGT-803 is not live, AGT-501 skips the payment modifier and scores on the 7 behavioral dimensions alone. When live, AGT-501 applies the modifier last in its scoring sequence (after all dimension scores are computed) so the cap/floor is visible as a distinct adjustment in the log.</p>
 </div>
 
+<!-- ── PRODUCTION CONTROLS & AUDIT ────────────────────────── -->
+<div class="section">
+  <div class="section-title">Production controls &amp; audit (v30)</div>
+  <p class="prose" style="margin-bottom:12px">AGT-803 sits at the intersection of finance and customer-success workflows. Its outputs gate AGT-501's health score (cap/floor model) and trigger AM/SLM notifications on delinquency. Wrong payment state misroutes account interventions; missed retries cost cash. Controls below are mandatory.</p>
+  <table>
+    <tr><th>Control</th><th>Mechanism</th><th>Owner</th></tr>
+    <tr><td>State transitions logged immutably</td><td>Every state change writes a PaymentEventLog row with prior_state, new_state, transition_reason, timestamp. Append-only. Audit can reconstruct full payment history per account.</td><td>Finance + DataEng</td></tr>
+    <tr><td>Per-account state, not per-invoice</td><td>State is computed at account level: any unresolved overdue/failed invoice puts account in worst applicable state. Trigger enforces aggregation rule.</td><td>Finance</td></tr>
+    <tr><td>Suspended state requires Finance authorization</td><td>No automatic transition into Suspended. Finance director-level approval required; CSM/AM cannot trigger. Rationale field mandatory.</td><td>Finance</td></tr>
+    <tr><td>Retry exhaustion before AM notification</td><td>Hard rule: AM is not notified until Retry 3 fails (Failed state). This prevents notification storms on transient payment failures (card-network blips, 3DS prompts, etc.).</td><td>Finance + RevOps</td></tr>
+    <tr><td>AGT-501 modifier is read-only feed</td><td>AGT-803 writes <code>CustomerHealthLog.payment_health_status</code> but does not modify other CustomerHealthLog fields. AGT-501 reads the field, applies cap/floor, owns the rest of the row.</td><td>DataEng</td></tr>
+    <tr><td>Failure events from external billing system idempotent</td><td>Same payment failure replayed from external system is a no-op. Dedupe key: (invoice_id, attempt_number, external_event_id). Trigger enforces.</td><td>DataEng</td></tr>
+    <tr><td>State recovery on payment</td><td>When all outstanding invoices on the account are paid, state auto-transitions to Current. AGT-501 modifier removed in next health refresh. No manual intervention required for normal recovery path.</td><td>Finance</td></tr>
+    <tr><td>7-year retention</td><td>PaymentEventLog retained 7 years &mdash; supports collections audit and dispute resolution.</td><td>Platform</td></tr>
+  </table>
+</div>
+
+<!-- ── EDGE CASES & FAILURE MODES ─────────────────────────── -->
+<div class="section">
+  <div class="section-title">Edge cases &amp; failure modes</div>
+  <table>
+    <tr><th>Scenario</th><th>Behavior</th></tr>
+    <tr><td>Account has multiple open invoices: one Current, one Overdue</td><td>Account state = Overdue (worst applicable wins). AGT-501 modifier caps health at 77. State recovers to Current only when both invoices are paid.</td></tr>
+    <tr><td>Customer pays Failed invoice but new invoice goes Overdue same day</td><td>State remains Overdue (newly Overdue invoice continues to gate). AM may have been notified on prior Failed; new state change does not re-notify (same state class).</td></tr>
+    <tr><td>External billing system processes payment but fails to send confirmation</td><td>Daily reconciliation (per AGT-802 spec) detects discrepancy. AGT-803 holds state on affected invoices until reconciliation resolves; AM not notified prematurely.</td></tr>
+    <tr><td>Customer changes payment method during Overdue state</td><td>Retry resumes with new payment method on next scheduled retry. State transitions normally on success or failure. PaymentEventLog records method change.</td></tr>
+    <tr><td>Account has alternate payment methods on file</td><td>Retry 1 uses primary; Retry 2 and 3 may use alternate per Finance configuration. Payment method used logged per attempt.</td></tr>
+    <tr><td>Delinquency leads to Suspended state mid-billing-cycle</td><td>AGT-501 modifier floors health at Critical. AGT-502 churn risk may already be elevated. AGT-504 customer comm sequenced (with human approval). AGT-503 expansion plays auto-suspended for the account.</td></tr>
+    <tr><td>Previously Suspended account is reactivated</td><td>Finance manually clears Suspended state with rationale. AGT-501 modifier removed in next health refresh. Account returns to behavioral health scoring; AGT-503/AGT-502 resume normal operation.</td></tr>
+    <tr><td>External billing system reports payment success then later reverses (fraud, chargeback)</td><td>AGT-803 receives reversal event, transitions account back to appropriate state (typically Failed). PaymentEventLog records the reversal as a distinct event. AGT-802 may issue compensating credit memo.</td></tr>
+    <tr><td>AGT-803 offline during payment failure event</td><td>External billing system retains the failure event; AGT-803 ingests on recovery. State updates correctly applied; AM notification timing may slip but accuracy preserved.</td></tr>
+  </table>
+</div>
+
 <div class="footer">
-  AGT-803 Payment Health Monitor · Layer 8 · Finance-owned · Schema v25<br>
-  New tables: PaymentEventLog<br>
-  Triggered by: InvoiceLog.due_date (payment attempt), payment failure events from billing system<br>
+  AGT-803 Payment Health Monitor · Layer 8 · Finance-owned · Built · v30<br>
+  Owned tables: PaymentEventLog. 7-year retention.<br>
+  Triggered by: InvoiceLog.due_date (payment attempt), payment failure events from billing system, manual Finance Suspended action<br>
   Reads from: InvoiceLog (AGT-802), Accounts (payment method on file)<br>
-  Writes to: PaymentEventLog, CustomerHealthLog.payment_health_status (AGT-501 feed)<br>
-  Feeds: AGT-501 Customer Health Monitor (payment_health_status modifier — cap/floor model)
+  Writes to: PaymentEventLog, CustomerHealthLog.payment_health_status (AGT-501 feed only — read-only on other CustomerHealthLog fields)<br>
+  Feeds: AGT-501 Customer Health Monitor (payment_health_status modifier — cap/floor model)<br>
+  Production status: Built spec at v30. Operational go-live gated on external billing system payment-event integration + daily reconciliation per AGT-802. <strong>Completes L8 buildout.</strong>
 </div>
 </body>
 </html>

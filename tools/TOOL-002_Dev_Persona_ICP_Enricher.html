@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-002 — Dev-Persona ICP Enricher</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>TOOL-002 &mdash; Dev-Persona ICP Enricher</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Augments AGT-201 ICP scoring with developer-persona signals &middot; Closes the dev-buyer side of the Domain 3 gap</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v29</span>
+  <span class="badge badge-domain">Domain 3 · API/Dev GTM</span>
+  <span class="badge badge-model">Haiku</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-201's 6-dimension ICP scorer captures firmographic, vertical, revenue, tech-stack, growth, and intent signals &mdash; but materially under-weights developer-buyer signal. For API-first products with developer-led adoption, the buying signal is technical: who's hiring engineers with specific stacks, whose GitHub orgs are public-active, who's experimenting with the product via API keys before commercial conversation. TOOL-002 takes those signals and produces a structured dev-persona enrichment that AGT-201 consumes alongside its existing dimensions.</p>
+  <div class="alert-box alert-gold">Closes the dev-persona side of the Domain 3 gap. AGT-201 keeps its existing 6-dimension model unchanged; the dev-persona enrichment is a parallel signal stream, not a replacement.</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "account_id": "uuid",
+  "account_basics": {
+    "company_name": "string",
+    "domain": "string",
+    "employee_count": 0,
+    "industry": "string"
+  },
+  "technical_signals": {
+    "job_postings": [                      // optional — observed in last 90 days
+      { "title": "string", "stack_keywords": ["string"], "posted_date": "ISO 8601" }
+    ],
+    "github_org_activity": {                // optional — public-only data
+      "org_name": "string",
+      "public_repo_count": 0,
+      "trending_languages": ["string"],
+      "recent_topic_keywords": ["string"]
+    },
+    "technographic_data": {                 // from AGT-204 enrichment if available
+      "detected_stack": ["string"],
+      "infrastructure_signals": ["string"]  // e.g., "uses Stripe", "deploys via GitHub Actions"
+    },
+    "product_telemetry": {                  // optional — UsageMeteringLog or upstream
+      "api_keys_active": 0,
+      "first_api_call_at": "ISO 8601",
+      "endpoint_diversity_score": 0.0      // 0-1, how many distinct endpoints touched
+    }
+  },
+  "current_icp_score": {                   // from AGT-201, for context
+    "tier": "T1" | "T2" | "T3",
+    "dimension_breakdown": {
+      "firmographic": 0, "vertical": 0, "revenue": 0,
+      "tech_stack": 0, "growth": 0, "intent": 0
+    }
+  }
+}</div>
+  <div class="note">All technical_signals subfields are optional &mdash; the tool degrades gracefully when data is sparse, and the output reflects which signals were available vs. missing.</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "account_id": "uuid",
+  "dev_persona_score": 0,                  // 0-100 composite
+  "dev_persona_tier": "high" | "medium" | "low" | "none",
+  "buyer_persona_classification": {
+    "primary": "developer" | "platform_team" | "compliance_engineer"
+             | "data_engineer" | "non_technical_buyer" | "unclear",
+    "confidence": "high" | "medium" | "low"
+  },
+  "signals_present": {                      // which signals contributed
+    "job_postings_signal": "strong" | "weak" | "absent",
+    "github_signal": "strong" | "weak" | "absent",
+    "technographic_signal": "strong" | "weak" | "absent",
+    "telemetry_signal": "strong" | "weak" | "absent"
+  },
+  "key_drivers": [                          // top 3 drivers of the score, with citations
+    { "driver": "string", "evidence": "string", "input_field": "string" }
+  ],
+  "agt_201_recommended_adjustment": {       // suggested dimension adjustments for AGT-201
+    "tech_stack_dimension_adjust": 0,      // -15 to +15; bounded
+    "intent_dimension_adjust": 0,          // -15 to +15; bounded
+    "rationale": "string"
+  },
+  "ungrounded_assumptions": ["string"],     // explicit list, parallels TOOL-001
+  "data_completeness": "high" | "partial" | "sparse",
+  "tool_metadata": {
+    "model": "claude-haiku-4-5",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+  <div class="alert-box alert-amber"><strong>Bounded adjustment magnitude.</strong> The tool can recommend AGT-201 dimension adjustments up to &plusmn;15 points on tech_stack and intent dimensions only. It cannot recommend changes to firmographic, vertical, revenue, or growth dimensions &mdash; those are not under TOOL-002's purview. AGT-201 retains the right to ignore the adjustment recommendation.</div>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-201 ICP Scorer</td><td>On account update events that include technical signals (job posting added, GitHub activity refreshed via AGT-204, product telemetry signal change). AGT-201 calls TOOL-002, ingests the recommended adjustment as one input alongside its 6-dimension model, decides whether to apply.</td></tr>
+    <tr><td>AGT-901 Pipeline Brain</td><td>Cross-account analysis of dev-persona patterns. "Are we under-tiered in API-first companies hiring backend engineers?" Brain calls TOOL-002 across a target list to identify dev-persona-rich accounts that AGT-201 ranked low.</td></tr>
+    <tr><td>AGT-204 Lead Enrichment</td><td>As an enrichment subroutine. AGT-204's existing 6-category enrichment may invoke TOOL-002 when technical signals are present, before the rescore trigger fires AGT-201.</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Augment, don't replace.</strong> AGT-201's 6-dimension model stays the canonical ICP signal. TOOL-002 is a parallel enrichment that AGT-201 chooses to integrate &mdash; the existing scoring logic is unchanged.</li>
+    <li><strong>Sparse-data friendly.</strong> Technical signals are uneven by company. Most accounts won't have GitHub org data; many won't have product telemetry. The tool degrades gracefully and reports <code>data_completeness</code> honestly.</li>
+    <li><strong>Bounded magnitude.</strong> Dev-persona signal is real but not infinite &mdash; capped at &plusmn;15 points on two dimensions. A high-grade developer fingerprint shouldn't single-handedly flip a Tier 3 to Tier 1; the firmographic and revenue dimensions still matter.</li>
+    <li><strong>Distinguish persona from intent.</strong> A company can have strong developer presence without buying intent for our specific product. The output separates <em>buyer_persona_classification</em> (who they are) from <em>intent_dimension_adjust</em> (whether they're showing buying signal).</li>
+    <li><strong>Honest unclear classification.</strong> When signals point in conflicting directions, the tool returns "unclear" rather than fabricating a confident classification.</li>
+  </ol>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>10K tokens (account + signals + current ICP score; bounded narrow context)</td></tr>
+    <tr><td>Per-call output budget</td><td>1K tokens (structured enrichment output)</td></tr>
+    <tr><td>Default model</td><td>Haiku &mdash; classification task with bounded scope; Sonnet tested with no measurable quality lift</td></tr>
+    <tr><td>Per-call cost estimate</td><td>~$0.01&ndash;$0.02 per call at Haiku pricing</td></tr>
+    <tr><td>Monthly cap (default)</td><td>$200/mo &mdash; bounds usage to ~10,000 calls/month</td></tr>
+    <tr><td>Frequency expectation</td><td>High &mdash; called on AGT-204 enrichment events, AGT-201 rescore events, AGT-901 batch analyses. Most monthly usage will come from AGT-204 routine enrichment.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Measurement</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>Output validates against output schema</td><td>100% (hard)</td></tr>
+    <tr><td>Persona classification accuracy</td><td>15-account retrospective set with known buyer personas (from won deals); % where primary classification matches</td><td>&ge; 70%</td></tr>
+    <tr><td>Sparse-data graceful degradation</td><td>Tool produces useful output when only 1-2 of 4 signal categories present (vs. fabricating confidence)</td><td><code>data_completeness</code> honestly reflects sparse state; confidence is <code>low</code> or <code>medium</code> not <code>high</code></td></tr>
+    <tr><td>Adjustment magnitude calibration</td><td>Recommended adjustments correlate with retrospective dev-persona quality (won deals at dev-persona accounts)</td><td>Pearson correlation &ge; 0.4 across the eval set</td></tr>
+    <tr><td>Hallucinated signals</td><td>% of <code>key_drivers</code> citing input fields that don't exist or aren't populated</td><td>0% (hard)</td></tr>
+    <tr><td>P95 latency</td><td>End-to-end tool call</td><td>&le; 2s &mdash; tool is called in line with AGT-204 enrichment, latency budget tight</td></tr>
+  </table>
+</div>
+
+<!-- ── FAILURE MODES ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Cause</th><th>Action</th></tr>
+    <tr><td>Tool inflates dev-persona scores when signals are sparse</td><td>Confidence calibration drift</td><td>Eval catches. Tighten "honest unclear classification" instruction in prompt; add few-shot examples of sparse-data outputs that correctly returned low confidence.</td></tr>
+    <tr><td>Tool flips firmographically-low accounts to T1 via adjustment</td><td>Magnitude bound violated, or AGT-201 over-applying recommendation</td><td>The &plusmn;15 cap is enforced in the output schema. If the issue is AGT-201 stacking adjustments, that's an AGT-201 calibration concern, not TOOL-002.</td></tr>
+    <tr><td>High latency in batch invocations from AGT-901</td><td>Tool called per-account synchronously in a 100-account batch</td><td>Caller responsibility &mdash; AGT-901 should batch-parallelize calls. Tool itself is stateless and fast per-call.</td></tr>
+    <tr><td>Persona classifications drift over time</td><td>Tech stack signals aging (yesterday's "developer" stack is today's mainstream)</td><td>Quarterly catalog review; refresh prompt examples with current dev-persona signals.</td></tr>
+    <tr><td>Cost spike</td><td>AGT-204 enrichment running on too-frequent cadence</td><td>Cost cap blocks runaway. Audit AGT-204 invocation cadence; per the existing v22 spec it should be T1 daily, T2 weekly, T3 monthly &mdash; if drifted, reset.</td></tr>
+  </table>
+</div>
+
+<!-- ── INTERACTION WITH AGT-201 ──────────────────────────── -->
+<div class="section">
+  <div class="section-title">Interaction with AGT-201 ICP scoring</div>
+  <p class="prose">AGT-201's spec is unchanged. The integration point is: AGT-201 reads <code>tech_stack_dimension_adjust</code> and <code>intent_dimension_adjust</code> from the most recent TOOL-002 output for the account (logged in EnrichmentLog with the AGT-204 enrichment record), and treats them as additive deltas to its computed dimension scores. AGT-201 retains discretion to ignore the adjustment if other signals contradict.</p>
+  <p class="prose" style="margin-top:8px">For backwards compatibility, accounts with no TOOL-002 enrichment are scored exactly as before (deltas default to 0). The dev-persona enrichment is purely additive &mdash; no existing T1/T2/T3 tier is downgraded by its absence.</p>
+</div>
+
+<div class="footer">
+  TOOL-002 Dev-Persona ICP Enricher &middot; Tier 3 Specialist Tool &middot; Schema v29<br>
+  Stateless. Logged via AGT-204 EnrichmentLog (when AGT-204-invoked) or BrainAnalysisLog (when AGT-901-invoked).<br>
+  Default model: Haiku. Per-call budget: 10K input + 1K output. Monthly cap: $200/mo (10,000 calls).<br>
+  Closes: Domain 3 gap (dev-persona side) from the v26 architecture evaluation.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-201_ICP_Scorer.html">AGT-201 ICP Scorer</a> &middot; <a href="../specs/AGT-204_Lead_Enrichment.html">AGT-204 Lead Enrichment</a>
+</div>
+</body>
+</html>

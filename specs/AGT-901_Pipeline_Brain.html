@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-901 — Pipeline Brain</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-green{background:#E1F5EE;border-left:3px solid #5DCAA5;color:#085041}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.intro-banner{background:linear-gradient(135deg,#FAEEDA 0%,#FCF5E5 100%);border:1px solid #D4A84C;color:#7A4A0E;font-size:12px;padding:14px 16px;border-radius:10px;line-height:1.7;margin-bottom:24px}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-901 &mdash; Pipeline Brain</h1>
+<div class="subtitle">Layer 9: Reasoning &middot; Tier 2 Brain Agent &middot; LLM-native &middot; Reads Tier 1 services &middot; Never writes canonical data &middot; Operator-invoked</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L9 &middot; Agent 01</span>
+  <span class="badge badge-status">Specced &middot; v27</span>
+  <span class="badge badge-tier">Tier 2 &middot; Brain Agent</span>
+  <span class="badge badge-owner">RevOps-owned</span>
+</div>
+
+<div class="intro-banner">
+  <strong>First true Agent in the OS.</strong> AGT-901 is not a GTM Service &mdash; it is a <em>Brain Agent</em>. The distinction matters: Services are deterministic, scheduled, and own canonical tables; Brain Agents are LLM-native, operator-invoked, and never write canonical data. Tier 1 services run fine if AGT-901 is offline. AGT-901 cannot run if Tier 1 services are stale or unbuilt &mdash; which is why L8 was promoted to Built before this layer was specced.
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-901 is the cross-functional reasoning layer for pipeline-level questions: <em>why</em> a segment is off plan, <em>what</em> play would close the gap, <em>which</em> existing levers apply, <em>where</em> the system is missing coverage. It reads from Tier 1 service tables, optionally calls Tier 3 specialist tools, and produces analysis with full source-trace metadata for human review. It does not run on cadence; it is invoked by RevOps or sales leaders posing open-ended queries, and by the WBR/MBR narrative jobs (see AGT-704 charter update in v26).</p>
+</div>
+
+<!-- ── SCOPE ──────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Scope &mdash; what AGT-901 answers, what it doesn't</div>
+  <table>
+    <tr><th>In scope</th><th>Out of scope</th></tr>
+    <tr><td>"Why is Q3 commercial pipeline soft?"</td><td>Computing pipeline metrics (AGT-702 owns)</td></tr>
+    <tr><td>"What play would close the coverage gap in Mid-Market enterprise vertical?"</td><td>Setting quotas (AGT-101 owns)</td></tr>
+    <tr><td>"Which existing AGT-203 ABM motions could be redirected to fill the SDR pipeline gap in EMEA?"</td><td>Routing leads (AGT-202 owns)</td></tr>
+    <tr><td>"What's changed in the win/loss pattern this quarter that should inform next quarter's plays?"</td><td>Computing win/loss (AGT-703 owns)</td></tr>
+    <tr><td>Drafting a candidate sales play for human co-definition in the workspace</td><td>Activating a sales play (requires human promotion gate; AGT-302 executes)</td></tr>
+    <tr><td>Generating narrative sections of WBR/MBR/QBR (AGT-704 narrative call-out)</td><td>Generating metric sections (AGT-704 pulls fresh from MetricsCalc, never from brains)</td></tr>
+  </table>
+  <div class="alert-box alert-amber"><strong>The hard line.</strong> AGT-901 never recomputes a number that a Tier 1 service owns. If MetricsCalc is stale, AGT-901 surfaces the staleness in its output and refuses to estimate. Same posture as AGT-704's "never recompute" principle &mdash; the brain is a synthesis layer, not an alternative source of truth.</div>
+</div>
+
+<!-- ── READ CONTRACT ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Read contract &mdash; Tier 1 services consumed</div>
+  <p class="prose" style="margin-bottom:10px">AGT-901 reads from <em>brain-ready views</em> of Tier 1 service tables. Each view is a precomputed projection optimized for LLM consumption (10&times; input compression typical, no full table dumps). Brain-ready views are owned by the underlying Tier 1 service and are read-only from AGT-901's perspective.</p>
+  <table>
+    <tr><th>Tier 1 service</th><th>Brain-ready view</th><th>Used for</th></tr>
+    <tr><td>AGT-702 GTM Health Monitor</td><td>MetricsCalc.brain_view &mdash; Magic Number, NRR, GRR, CAC Payback by segment + trend</td><td>Plan vs actual diagnosis. "Are we off because of efficiency, ACV, or volume?"</td></tr>
+    <tr><td>AGT-401 Deal Health Monitor</td><td>Opportunities.brain_view &mdash; top-N at-risk deals by ACV &times; risk score</td><td>Identifying which late-stage deals are dragging coverage</td></tr>
+    <tr><td>AGT-402 Forecast Adjuster</td><td>ForecastLog.brain_view &mdash; current forecast + delta vs prior week + components (new logo / renewal / expansion)</td><td>Forecast bias diagnosis</td></tr>
+    <tr><td>AGT-201 ICP Scorer</td><td>Accounts.brain_view &mdash; tier distribution + scoring patterns by segment + vertical</td><td>"Is the ICP profile shifting? Are we under-tiered in a growing segment?"</td></tr>
+    <tr><td>AGT-206 Account Prioritization</td><td>AccountPriorityScore.brain_view &mdash; composite distribution + queue freshness</td><td>"Are reps working the right accounts?"</td></tr>
+    <tr><td>AGT-105 Sales Capacity Planning</td><td>CapacityPlan.brain_view &mdash; deployed eRep + ramp status + open territories</td><td>Coverage gap diagnosis &mdash; structural vs situational</td></tr>
+    <tr><td>AGT-703 Win-Loss &amp; Forecast Accuracy</td><td>WinLossLog.brain_view &mdash; trailing 4-quarter loss reasons + forecast bias by segment</td><td>Pattern-level diagnosis of execution issues</td></tr>
+    <tr><td>AGT-303 Cadence Intelligence</td><td>CadenceEventLog.brain_view &mdash; sequence performance + suppression patterns</td><td>"Is outbound quality the bottleneck, or is it lead supply?"</td></tr>
+    <tr><td>AGT-604 Voice of Customer</td><td>VoCSynthesisLog.brain_view &mdash; trailing 90-day themes + competitive mentions</td><td>"Are customers telling us something we're not hearing in win/loss?"</td></tr>
+  </table>
+  <div class="note">If a Tier 1 service has not yet shipped a brain-ready view, AGT-901 falls back to reading the canonical table directly with explicit token-budget enforcement &mdash; but this is a temporary fallback, not the design target. Brain-ready views are the contract.</div>
+</div>
+
+<!-- ── WRITE CONTRACT ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Write contract &mdash; what AGT-901 may write</div>
+  <table>
+    <tr><th>Target</th><th>What's written</th><th>Canonical?</th></tr>
+    <tr><td><code>BrainAnalysisLog</code></td><td>Every query: question, sources read with timestamps, output narrative, proposed actions, confidence flags, model used, token cost</td><td>No &mdash; this is the brain's own log, not a canonical OS table</td></tr>
+    <tr><td><code>SalesPlayLibrary</code> (status: <code>draft</code>)</td><td>Proposed play definitions: name, hypothesis, target segment, target accounts, suggested cadence, success criteria, source-trace lineage</td><td>No &mdash; drafts only. Promotion to <code>active</code> requires human approval (see Promotion gate below)</td></tr>
+    <tr><td>WBR/MBR/QBR narrative sections</td><td>Per AGT-704 v26 charter: narrative content for sections 1 and 7 of MBR/QBR. Metric sections are off-limits.</td><td>No &mdash; written into BusinessReviewLog narrative fields, not metric fields. AGT-704 still owns the artifact and gates publication.</td></tr>
+    <tr><th colspan="3" style="background:#712B13">What AGT-901 may NEVER write</th></tr>
+    <tr><td><code>Opportunities</code> / <code>ForecastLog</code> / <code>MetricsCalc</code></td><td>Anything &mdash; canonical pipeline/forecast/metric data is Tier 1 only</td><td>n/a</td></tr>
+    <tr><td><code>QuotaStore</code> / <code>CompPlans</code> / <code>RevenueRecognitionLog</code></td><td>Anything &mdash; fiduciary data must remain deterministic</td><td>n/a</td></tr>
+    <tr><td><code>ABMPlaybook</code> directly</td><td>Anything &mdash; promotion from SalesPlayLibrary to ABMPlaybook is a human-gated action that AGT-203 executes after approval</td><td>n/a</td></tr>
+  </table>
+</div>
+
+<!-- ── PROMOTION GATE ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Promotion gate &mdash; from draft play to active play</div>
+  <p class="prose" style="margin-bottom:12px">A core architectural commitment: the brain proposes, humans co-define and approve, then AGT-302 executes. The volume cap is the safety mechanism &mdash; brains cannot quietly proliferate plays.</p>
+  <table>
+    <tr><th>State</th><th>Who can transition</th><th>What's required</th></tr>
+    <tr><td><code>draft</code></td><td>AGT-901 (write)</td><td>Brain produces a play proposal; lands in workspace for human review</td></tr>
+    <tr><td><code>under_review</code></td><td>RevOps or sales leader (manual)</td><td>Human picks a draft to refine into a candidate active play. May edit hypothesis, target, cadence in the workspace.</td></tr>
+    <tr><td><code>active</code></td><td>SLM + RevOps (joint approval)</td><td>Both must approve before activation. AGT-302 reads <code>active</code> plays only. Hard volume cap: 3&ndash;8 active plays per segment per quarter (configurable per segment).</td></tr>
+    <tr><td><code>retired</code></td><td>RevOps</td><td>Play removed from active execution. AGT-302 stops new sequence generation; in-flight sequences complete. Outcomes recorded for retrospective.</td></tr>
+  </table>
+  <div class="alert-box alert-gold"><strong>Hard volume cap is enforced at promotion time, not at proposal time.</strong> AGT-901 may produce many drafts; only a small curated set ever reaches <code>active</code>. This matches the operating model in the v26 architecture eval: too many plays overwhelm reps and managers; sales leaders only commit to plays they helped define.</div>
+</div>
+
+<!-- ── USE CASE PATTERNS ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Use case patterns</div>
+  <table>
+    <tr><th>Pattern</th><th>Trigger</th><th>Sources read</th><th>Output</th></tr>
+    <tr><td><strong>Plan diagnosis</strong></td><td>RevOps query: "Why is [segment/period] off plan?"</td><td>MetricsCalc, ForecastLog, Opportunities, CapacityPlan brain-views</td><td>BrainAnalysisLog narrative with cited sources, decomposition (efficiency vs ACV vs volume), suggested levers</td></tr>
+    <tr><td><strong>Coverage gap proposal</strong></td><td>RevOps query: "Mid-market commercial vertical is under-covered. Options?"</td><td>Accounts, AccountPriorityScore, CapacityPlan, ICP scoring brain-views</td><td>BrainAnalysisLog with diagnosis + 1&ndash;3 candidate plays drafted in SalesPlayLibrary</td></tr>
+    <tr><td><strong>Quarterly play refresh</strong></td><td>Pre-planning kickoff (operator-triggered, not cadence)</td><td>Trailing-quarter outcomes from existing active plays + win/loss patterns + VoC themes</td><td>BrainAnalysisLog retrospective on prior plays + 2&ndash;5 draft plays for next quarter</td></tr>
+    <tr><td><strong>WBR narrative</strong></td><td>AGT-704 invokes for MBR section 1 (month narrative)</td><td>4 weekly WBR artifacts + MetricsCalc month summary</td><td>Narrative content written to BusinessReviewLog narrative fields per AGT-704 charter</td></tr>
+    <tr><td><strong>Anomaly explanation</strong></td><td>RevOps query after AGT-702 breach alert: "What's driving the NRR drop?"</td><td>ChurnRiskLog, ExpansionLog, CustomerHealthLog, UsageMeteringLog brain-views</td><td>BrainAnalysisLog narrative + cohort decomposition with cited sources</td></tr>
+  </table>
+</div>
+
+<!-- ── OUTPUT STRUCTURE ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output structure &mdash; every BrainAnalysisLog row</div>
+  <p class="prose" style="margin-bottom:10px">Every output AGT-901 produces is a <code>BrainAnalysisLog</code> row with full source-trace metadata. This is how the layer earns audit-grade reasoning out of a non-deterministic substrate. See <a href="../schema/BrainAnalysisLog_Schema.html">BrainAnalysisLog production schema</a> for field-level detail.</p>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Question</strong> &mdash; the operator query verbatim, or the AGT-704 narrative-job prompt.</li>
+    <li><strong>Sources read</strong> &mdash; structured list of (table_name, view_name, last_refresh_timestamp, row_count_consumed). Every numerical claim in the output ties back to one of these.</li>
+    <li><strong>Narrative output</strong> &mdash; the brain's prose response, with inline source citations matching the sources-read list (e.g., <code>[src:1]</code>, <code>[src:2]</code>).</li>
+    <li><strong>Proposed actions</strong> &mdash; structured list of (action_type, target, lever, justification). Action types include <code>draft_play</code>, <code>flag_coverage_gap</code>, <code>recommend_query_for_human</code>, <code>none</code>.</li>
+    <li><strong>Confidence flags</strong> &mdash; per claim: <code>high_confidence</code> (single source supports), <code>multi_source</code> (multiple corroborating sources), <code>inference</code> (reasoning beyond direct source), <code>speculation</code> (the brain explicitly marks where it's guessing).</li>
+    <li><strong>Source freshness gate</strong> &mdash; if any source was stale at read time, the output is flagged <code>data_staleness_acknowledged</code> and the staleness is surfaced in the narrative. Per AGT-704 staleness model.</li>
+    <li><strong>Cost metadata</strong> &mdash; (model, input_tokens, output_tokens, cached_tokens, cost_usd_estimate).</li>
+  </ol>
+</div>
+
+<!-- ── COST GUARDRAILS ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost guardrails</div>
+  <p class="prose" style="margin-bottom:10px">Per the v26 architecture eval cost model. The brain is operator-invoked, not on cadence &mdash; cost scales with usage, not with account count.</p>
+  <table>
+    <tr><th>Tactic</th><th>Implementation</th></tr>
+    <tr><td>Default model</td><td>Claude Sonnet tier. Opus reserved for explicit "deep analysis" mode where the operator opts in.</td></tr>
+    <tr><td>Prompt caching enabled</td><td>5-minute TTL cache on system prompt + brain-ready views. Iterative queries on the same context pay the diff only.</td></tr>
+    <tr><td>Brain-ready views, not full tables</td><td>10&times; input compression typical. Tier 1 services own the view definitions; AGT-901 is the consumer.</td></tr>
+    <tr><td>Per-query budget cap</td><td>Hard limit: 50K input + 5K output tokens per query. Queries exceeding the limit return a budget-exceeded result instead of partial output.</td></tr>
+    <tr><td>Monthly tier budget alert</td><td>Alert at 75% of monthly budget (RevOps-configurable, default $500/mo for Pipeline Brain). Hard stop at 100% requires manual override.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <p class="prose" style="margin-bottom:10px">Per the v26 architecture eval directive: build the offline eval harness <em>before</em> turning the brain on in production. AGT-901 has its own eval suite separate from AGT-902.</p>
+  <table>
+    <tr><th>Criterion</th><th>Measurement</th><th>Pass threshold</th></tr>
+    <tr><td>Source citation rate</td><td>% of numerical claims with valid source citation pointing to a real Tier 1 row</td><td>&ge; 95%</td></tr>
+    <tr><td>Hallucination rate</td><td>% of outputs containing claims not supported by cited sources</td><td>&le; 2%</td></tr>
+    <tr><td>Staleness recognition</td><td>When a source is stale, % of outputs that surface the staleness vs. silently using stale data</td><td>100% &mdash; hard requirement</td></tr>
+    <tr><td>Diagnosis accuracy</td><td>30 historical "why off plan" questions where retrospective ground truth exists; % where brain's top-2 causes match</td><td>&ge; 70%</td></tr>
+    <tr><td>Play survival rate</td><td>% of brain-drafted plays that survive co-definition + reach <code>active</code> state</td><td>&ge; 30% (playbook composition matters more than draft volume)</td></tr>
+    <tr><td>Active play outcome lift</td><td>Win rate / sales cycle / ACV on brain-co-designed plays vs. plays without brain involvement, cohort-level</td><td>Track quarterly; positive lift expected by Q+2 after launch</td></tr>
+  </table>
+</div>
+
+<!-- ── FAILURE MODES ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Likely cause</th><th>Action</th></tr>
+    <tr><td>Brain fabricates a number not in cited sources</td><td>Hallucination &mdash; model failure</td><td>Caught by eval suite. Flag in BrainAnalysisLog. Pattern triggers prompt revision + model swap consideration.</td></tr>
+    <tr><td>Brain cites a stale source without flagging</td><td>Staleness check bypassed</td><td>Hard fail. Treated as a sev-2 incident: brain offline pending fix. Source-trace integrity is non-negotiable.</td></tr>
+    <tr><td>Many drafts, low promotion rate</td><td>Brain not aligned with sales leadership's actual play criteria</td><td>Co-definition working session: refine system prompt + add few-shot examples from approved plays.</td></tr>
+    <tr><td>High promotion rate, weak cohort outcomes</td><td>Plays sound good in workspace but don't perform in market</td><td>Quarterly retrospective. May indicate brain is over-fitting to leadership preference rather than underlying signal. Tighten eval suite.</td></tr>
+    <tr><td>Cost overruns</td><td>Caching disabled, full tables passed instead of brain-ready views, or excessive Opus use</td><td>Audit recent queries. Enforce brain-ready view requirement. Reset Opus opt-in.</td></tr>
+    <tr><td>Tier 1 staleness propagating</td><td>Brain reading a stale view</td><td>Brain refuses to produce output without staleness flag. RevOps triages the upstream service per AGT-704 staleness model.</td></tr>
+  </table>
+</div>
+
+<!-- ── INVOCATION ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Invocation paths</div>
+  <table>
+    <tr><th>Path</th><th>Frequency</th><th>Initiated by</th></tr>
+    <tr><td>Operator query (chat-style interface)</td><td>Ad-hoc</td><td>RevOps, sales leader</td></tr>
+    <tr><td>WBR/MBR/QBR narrative job</td><td>On-cadence with AGT-704; AGT-704 calls AGT-901 for narrative sections only</td><td>AGT-704</td></tr>
+    <tr><td>Quarterly play refresh batch</td><td>Once per quarter, kickoff of planning</td><td>RevOps (manual trigger)</td></tr>
+    <tr><td>Anomaly explanation</td><td>Triggered by RevOps after AGT-702 breach alert &mdash; not auto-fired</td><td>RevOps</td></tr>
+  </table>
+  <div class="note">No cadence-driven invocation. The brain does not run on a schedule. This is intentional &mdash; operator-driven invocation keeps cost bounded and aligns with the "humans in the workspace, not autonomy" approval model.</div>
+</div>
+
+<div class="footer">
+  AGT-901 Pipeline Brain &middot; Layer 9 &middot; Tier 2 Brain Agent &middot; RevOps-owned &middot; Schema v27<br>
+  New tables: none owned. Writes to <a href="../schema/BrainAnalysisLog_Schema.html">BrainAnalysisLog</a> (own log) and <a href="../schema/SalesPlayLibrary_Schema.html">SalesPlayLibrary</a> (drafts; promotion is human-gated).<br>
+  Triggered by: operator query · AGT-704 narrative job · quarterly play refresh batch · RevOps anomaly explanation. <strong>Never on cadence.</strong><br>
+  Reads from: brain-ready views of MetricsCalc, Opportunities, ForecastLog, Accounts, AccountPriorityScore, CapacityPlan, WinLossLog, CadenceEventLog, VoCSynthesisLog<br>
+  Writes to: BrainAnalysisLog (own log) · SalesPlayLibrary (drafts only) · BusinessReviewLog narrative fields (per AGT-704 v26 charter)<br>
+  Promotion gate: drafts &rarr; <code>under_review</code> requires human pickup. <code>under_review</code> &rarr; <code>active</code> requires SLM + RevOps joint approval. Hard volume cap on active plays per segment.
+</div>
+</body>
+</html>

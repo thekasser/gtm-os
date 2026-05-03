@@ -37,8 +37,15 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 
 <div class="meta-row">
   <span class="badge badge-layer">L8 · Agent 01</span>
-  <span class="badge badge-status">Specced · v25</span>
-  <span class="badge badge-schema">Schema adds: OrderLog, OrderLineItems, OrderApprovalLog, AmendmentLog</span>
+  <span class="badge badge-status">Built · v30</span>
+  <span class="badge badge-schema">Owns: OrderLog, OrderLineItems, OrderApprovalLog, AmendmentLog</span>
+</div>
+
+<!-- ── v30 PROMOTION BANNER ────────────────────────────────── -->
+<div class="section">
+  <div style="background:#E1F5EE;border:1px solid #5DCAA5;color:#085041;font-size:12px;padding:10px 14px;border-radius:8px;line-height:1.6">
+    <strong>v30 — promoted from Specced to Built.</strong> AGT-801 is the entry point to L8 — every order originates here, and every downstream Tier 1 finance service (AGT-802 billing, AGT-803 payment health, AGT-804 revenue recognition) reads OrderLog/OrderLineItems as the authoritative contract terms. With AGT-804 (the audit-critical agent) now Built and UsageMeteringLog production-spec'd, AGT-801 follows because billing + recognition cannot be Built without their order-of-truth.
+  </div>
 </div>
 
 <!-- ── PURPOSE ─────────────────────────────────────────────── -->
@@ -110,13 +117,47 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
   <p class="prose">On approval, AGT-801 writes the structured OrderLog + OrderLineItems payload and signals AGT-802 to begin billing cycle setup. The billing system (Stripe, Zuora, NetSuite — external) receives the structured payload. AGT-801 does not interact directly with the billing system API — it writes to the OS schema and the billing system integration layer reads from it. This keeps the OS integration-agnostic.</p>
 </div>
 
+<!-- ── PRODUCTION CONTROLS & AUDIT ────────────────────────── -->
+<div class="section">
+  <div class="section-title">Production controls &amp; audit (v30)</div>
+  <p class="prose" style="margin-bottom:12px">AGT-801 establishes the legal contract terms that every downstream finance agent depends on. Wrong order data cascades into wrong invoices (AGT-802), wrong recognized revenue (AGT-804), and wrong customer health modifiers (AGT-803 → AGT-501). Controls below are mandatory before AGT-801 outputs flow to AGT-802/803/804.</p>
+  <table>
+    <tr><th>Control</th><th>Mechanism</th><th>Owner</th></tr>
+    <tr><td>Two-track approval enforced</td><td>Trigger blocks order activation when score band requires Legal track approval and approval is missing. Pricing track and Legal track tracked independently.</td><td>Finance + Legal</td></tr>
+    <tr><td>Pricing correction floor</td><td>All pricing corrections require Finance Director minimum approval regardless of score &mdash; a correction implies a prior error and is an audit event. Trigger enforces.</td><td>Finance</td></tr>
+    <tr><td>Amendment lineage preserved</td><td>AmendmentLog rows always reference the original OrderLog via amendment_chain. Original orders never overwritten; amendments append. Audit can reconstruct full term history at any past point.</td><td>Finance</td></tr>
+    <tr><td>Auto-renewal clauses surfaced explicitly</td><td>Auto-renewal flag and notice period required fields on OrderLog &mdash; cannot be NULL. Surfaces in customer-facing order form for transparency.</td><td>Legal</td></tr>
+    <tr><td>Total contract value computed deterministically</td><td>OrderLog.total_contract_value_usd computed from OrderLineItems sum × term length. Manual override blocked; ramp schedules computed via documented formula.</td><td>Finance + DataEng</td></tr>
+    <tr><td>Billing contact validated</td><td>Order activation requires non-NULL billing_contact_email. Becomes the AGT-504 customer comms target for future price changes; orphaned billing contacts are an operational gap.</td><td>RevOps</td></tr>
+    <tr><td>SOW reference required when services on order</td><td>If OrderLineItems contains services SKU, OrderLog.sow_reference must point to a live ImplementationSOW per AGT-602 spec. Trigger blocks activation otherwise.</td><td>Finance + IE</td></tr>
+    <tr><td>7-year retention for OrderLog + AmendmentLog</td><td>Same retention floor as RevenueRecognitionLog &mdash; orders are the audit source for ASC 606 contract terms.</td><td>Platform</td></tr>
+  </table>
+</div>
+
+<!-- ── EDGE CASES & FAILURE MODES ─────────────────────────── -->
+<div class="section">
+  <div class="section-title">Edge cases &amp; failure modes</div>
+  <table>
+    <tr><th>Scenario</th><th>Behavior</th></tr>
+    <tr><td>Quote accepted but customer changes mind before order signature</td><td>OrderLog created in <code>draft</code> state from QuoteLog acceptance. If customer rescinds before signature, order moves to <code>cancelled</code> with reason. Preserves audit trail; AGT-802 never sees the order.</td></tr>
+    <tr><td>Mid-term seat expansion mid-billing-cycle</td><td>Amendment generates pro-rated billing for remainder of period via AGT-802. Amendment scored independently for approval routing &mdash; small expansion within standard pricing auto-approves; large expansion follows full approval chain.</td></tr>
+    <tr><td>Pricing correction discovered post-invoice</td><td>Always Finance Director floor approval. Credit memo or supplemental invoice generated by AGT-802. AmendmentLog records prior and corrected terms with correction_reason. Forces AGT-804 prior-period adjustment if recognition already booked.</td></tr>
+    <tr><td>Order activation while AGT-802 is offline</td><td>Order activates normally; AGT-802 picks up on recovery. AGT-801 does not depend on AGT-802 readiness.</td></tr>
+    <tr><td>Customer signs order with handwritten markup not in OrderLog</td><td>Hard fail. Order treated as un-activated until terms reconciled. RevOps + Legal review; if markup is acceptable, amendment created to reflect; if not, customer asked to re-sign clean version.</td></tr>
+    <tr><td>Two-track approval: Legal track stuck while Pricing track ready</td><td>Order does not activate. Customer notified of internal review delay. SLA monitoring on each track independently.</td></tr>
+    <tr><td>SKU add to existing order with conflicting payment terms</td><td>Amendment cannot use payment terms different from original order without explicit Finance VP approval (terms inconsistency is audit-flag-worthy).</td></tr>
+    <tr><td>Auto-renewal trigger fires</td><td>AGT-801 generates renewal order from prior order template. Customer notification timing per renewal_notice_days. New OrderLog row created; prior order moves to <code>completed</code>.</td></tr>
+  </table>
+</div>
+
 <div class="footer">
-  AGT-801 Order Management · Layer 8 · Finance-owned · Schema v25<br>
-  New tables: OrderLog, OrderLineItems, OrderApprovalLog, AmendmentLog<br>
-  Triggered by: AGT-406 QuoteLog.status = 'accepted' (primary) · Seat expansion · SKU add · Pricing correction<br>
+  AGT-801 Order Management · Layer 8 · Finance-owned · Built · v30<br>
+  Owned tables: OrderLog, OrderLineItems, OrderApprovalLog, AmendmentLog. 7-year retention.<br>
+  Triggered by: AGT-406 QuoteLog.status = 'accepted' (primary) · Seat expansion (AGT-503 accepted play, or rep-initiated) · SKU add · Pricing correction (Finance-initiated)<br>
   Reads from: QuoteLog (AGT-406), PricingConfig (L0), ImplementationSOW (AGT-602), Accounts<br>
   Writes to: OrderLog, OrderLineItems, OrderApprovalLog, AmendmentLog<br>
-  Feeds: AGT-802 (billing cycle setup), AGT-504 (billing contact on order form), AGT-601 (order signals pre-close onboarding)
+  Feeds: AGT-802 (billing cycle setup), AGT-504 (billing contact on order form), AGT-601 (order signals pre-close onboarding), AGT-804 (recognition schedule trigger on activation)<br>
+  Production status: Built spec at v30. Operational go-live gated on integration with billing system + DocuSign or equivalent e-signature provider.
 </div>
 </body>
 </html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-001 — API-doc → Sales-play Translator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>TOOL-001 &mdash; API-doc → Sales-play Translator</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Reads API documentation, produces sales play candidates for technical buyers &middot; Closes Domain 3 gap from v26 architecture eval</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v29</span>
+  <span class="badge badge-domain">Domain 3 · API/Dev GTM</span>
+  <span class="badge badge-model">Sonnet</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">Reads a product's API documentation and produces 1&ndash;3 candidate sales play definitions for technical buyer personas. The output lands in <code>SalesPlayLibrary</code> with state <code>draft</code>; humans pick up from there to co-define and approve. The tool's job is to translate API surface area into buyer-relevant language &mdash; not to invent positioning, just to surface the use cases the API enables and frame them in a way a sales team can actually run with.</p>
+  <div class="alert-box alert-gold">Closes the Domain 3 gap (20% coverage in v26 eval). Today no service or agent can read API docs and produce plays for technical buyers; this is an LLM-shaped task that no spec-driven function can encode.</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "api_doc_input": {
+    "type": "openapi_spec" | "markdown_url" | "raw_markdown",
+    "content": "...",                      // OpenAPI JSON, URL, or raw markdown
+    "doc_version": "string",               // e.g., "v2.4.0"
+    "doc_publication_date": "ISO 8601"
+  },
+  "context": {
+    "product_family": "string",            // e.g., "background-checks", "kyc", "verifications"
+    "current_icp_summary": "string",       // 2-3 sentence summary of current ICP from AGT-201
+    "current_active_plays": [               // current play context to avoid duplication
+      { "play_id": "uuid", "name": "string", "segment": "string" }
+    ],
+    "target_buyer_persona_hint": "string"  // optional — "developer", "platform_team", "compliance_engineer", etc.
+  },
+  "constraints": {
+    "max_plays_to_propose": 3,             // hard cap; tool never returns more
+    "include_segment": "string"            // optional — restrict proposals to one segment
+  }
+}</div>
+  <div class="note">Input is validated by the calling agent before invocation. Malformed input results in tool rejection with a structured error response &mdash; the tool never silently coerces.</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "candidate_plays": [
+    {
+      "name": "string",                    // human-readable play name
+      "hypothesis": "string",              // 2-3 sentence thesis
+      "target_buyer_persona": "string",    // dev / platform / compliance / etc.
+      "api_capabilities_referenced": [      // which endpoints/capabilities the play depends on
+        { "capability": "string", "doc_section": "string" }
+      ],
+      "target_definition": {
+        "icp_signals": ["string"],         // observable signals: tech stack, job postings, etc.
+        "lifecycle_stage_fit": "string"    // pre-trial, post-trial-stalled, mid-implementation, etc.
+      },
+      "suggested_cadence_outline": {        // not finished cadence — outline only
+        "channel_mix": ["email", "linkedin", "developer_event"],
+        "touch_count_estimate": 6,
+        "notable_assets_needed": ["string"]
+      },
+      "success_criteria_outline": {
+        "primary_metric": "string",        // e.g., "API key activation within 30 days"
+        "qualifying_signal": "string"      // what would tell us the play is working
+      },
+      "confidence_self_rating": "high" | "medium" | "exploratory",
+      "ungrounded_assumptions": ["string"] // explicit list of assumptions NOT backed by API docs
+    }
+  ],
+  "input_doc_summary": "string",           // 2-sentence summary of what the docs cover
+  "capabilities_not_translated": ["string"], // capabilities the tool noticed but didn't propose plays for, with reasons
+  "tool_metadata": {
+    "model": "claude-sonnet-4-6",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+  <div class="alert-box alert-amber"><strong>Hard rule</strong>: <code>ungrounded_assumptions</code> must be populated for every candidate play. The tool cannot claim a play is grounded in API docs when its real basis is general market knowledge. This separation is what makes the output usable downstream &mdash; humans can trust the API-grounded parts and treat the assumption parts as starting hypotheses.</div>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-901 Pipeline Brain</td><td>"What plays does the new product API enable?" — usually after a product launch or major API surface change. Brain calls TOOL-001, then optionally chains to TOOL-003 (Sales Play Composer) to refine the most promising candidate into a fully structured SalesPlayLibrary draft.</td></tr>
+    <tr><td>AGT-902 Account Brain</td><td>"For Account X (uses our API heavily, just upgraded their tech stack), what API-anchored plays could land?" — account-specific variant. Less common than AGT-901 invocation but supported.</td></tr>
+    <tr><td>RevOps direct (workspace UI)</td><td>RevOps drops a new product API doc into the workspace, calls TOOL-001 with constraints, reviews the candidates. Direct invocation is supported and logged the same way as agent-mediated calls.</td></tr>
+  </table>
+</div>
+
+<!-- ── PROMPT DESIGN PRINCIPLES ───────────────────────────── -->
+<div class="section">
+  <div class="section-title">Prompt design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Ground in the docs, separate the assumptions.</strong> The tool's prompt explicitly instructs separation between API-grounded claims and market/positioning assumptions. The output's <code>ungrounded_assumptions</code> field is non-negotiable.</li>
+    <li><strong>Buyer language, not feature language.</strong> Output describes what the buyer can do, not what the API endpoint does. "Verify identities for high-volume gig platform onboarding" not "POST /verifications endpoint accepts batch input."</li>
+    <li><strong>Refuse if docs are too thin.</strong> If the input API documentation doesn't contain enough material to ground at least one play, the tool returns 0 candidates with a structured "insufficient_input_signal" reason rather than fabricating plays.</li>
+    <li><strong>Don't propose what already exists.</strong> The <code>current_active_plays</code> input is checked against; the tool flags overlapping proposals and de-duplicates against existing active set.</li>
+  </ol>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>50K tokens (API doc may be substantial; OpenAPI specs can be 30K+ tokens)</td></tr>
+    <tr><td>Per-call output budget</td><td>5K tokens (candidate plays + metadata)</td></tr>
+    <tr><td>Default model</td><td>Sonnet — synthesis-heavy task; Haiku tested but quality below acceptable</td></tr>
+    <tr><td>Per-call cost estimate</td><td>~$0.20&ndash;$0.30 per call at Sonnet pricing</td></tr>
+    <tr><td>Monthly cap (default)</td><td>$300/mo &mdash; bounds usage to ~1,000 calls/month</td></tr>
+    <tr><td>Frequency expectation</td><td>Low &mdash; product launches and major API changes are infrequent. Most months will see &lt; 50 calls.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Measurement</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>Output validates against output schema</td><td>100% (hard)</td></tr>
+    <tr><td>API grounding</td><td>For each candidate play, % of <code>api_capabilities_referenced</code> items that map to a real endpoint/capability in the input docs (manual reviewer check)</td><td>&ge; 95%</td></tr>
+    <tr><td>Assumption disclosure</td><td>% of plays where <code>ungrounded_assumptions</code> is non-empty when the play extends beyond API docs (manual reviewer check)</td><td>100% (hard) when extension exists</td></tr>
+    <tr><td>Hallucinated capability rate</td><td>% of plays referencing API capabilities the docs don't actually have</td><td>0% (hard) &mdash; any hallucinated capability is automatic eval fail</td></tr>
+    <tr><td>Promotion rate (operational)</td><td>% of TOOL-001-generated drafts that survive co-definition to <code>active</code></td><td>&ge; 25%</td></tr>
+    <tr><td>P95 latency</td><td>End-to-end tool call</td><td>&le; 8s</td></tr>
+  </table>
+  <div class="note">Eval suite: 8 retrospective scenarios &mdash; 4 historical product launches where we know retrospectively which plays worked, 2 API documentation samples with known capability gaps, 2 edge cases (very thin docs, very deep docs). Scored alongside the brain harness on the same cadence.</div>
+</div>
+
+<!-- ── FAILURE MODES ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Cause</th><th>Action</th></tr>
+    <tr><td>Tool fabricates a capability the API doesn't have</td><td>Model hallucination on thin docs, or general market knowledge bleed</td><td>Hard fail in eval. Tighten prompt to explicitly require capability citations against doc sections. If chronic, hold on Sonnet; Opus tested as fallback.</td></tr>
+    <tr><td>Tool returns 0 plays consistently</td><td>Refusing too aggressively, or input docs systematically too thin</td><td>Audit input docs vs. refusal reasons. If refusal is correct, the gap is in product docs, not the tool. Otherwise tune refusal threshold.</td></tr>
+    <tr><td>Output plays look plausible but never get promoted</td><td>Plays grounded in capabilities but disconnected from real buyer pain</td><td>Tune <code>context.current_icp_summary</code> input to give the tool stronger ICP grounding. Refresh prompt with examples of plays that did get promoted.</td></tr>
+    <tr><td>P95 latency creep</td><td>Input docs growing in size; tool processing larger contexts</td><td>Implement input chunking strategy &mdash; summarize large OpenAPI specs to relevant subsections before invocation. Budget cap blocks runaway calls.</td></tr>
+    <tr><td>Cost spiking</td><td>Operator running it repeatedly during exploratory sessions, no caching</td><td>Enable prompt caching at workspace level for the system prompt + ICP context. Operator iteration on the same product family hits cache.</td></tr>
+  </table>
+</div>
+
+<!-- ── SOURCE-TRACE ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Source-trace integration</div>
+  <p class="prose">When TOOL-001 is called by AGT-901 or AGT-902, the calling agent's BrainAnalysisLog row captures the tool invocation: <code>tool_call_id</code>, input doc reference, output candidate count, cost. The candidate plays drafted into SalesPlayLibrary inherit the brain's <code>proposal_id</code> for cohort retrospective lineage. Operator-direct calls (no brain) write a workspace audit record but no SalesPlayLibrary draft until the operator explicitly accepts.</p>
+</div>
+
+<div class="footer">
+  TOOL-001 API-doc → Sales-play Translator &middot; Tier 3 Specialist Tool &middot; Schema v29<br>
+  Stateless. No table ownership. Logged through caller's BrainAnalysisLog (when brain-invoked) or workspace audit (when operator-invoked).<br>
+  Default model: Sonnet. Per-call budget: 50K input + 5K output. Monthly cap: $300/mo.<br>
+  Closes: Domain 3 gap (API/dev-led GTM) from the v26 architecture evaluation.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="TOOL-003_Sales_Play_Composer.html">TOOL-003 Sales Play Composer</a> (often chained after TOOL-001)
+</div>
+</body>
+</html>

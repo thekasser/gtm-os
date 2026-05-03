@@ -33,8 +33,15 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 
 <div class="meta-row">
   <span class="badge badge-layer">L8 · Agent 04</span>
-  <span class="badge badge-status">Specced · v25</span>
-  <span class="badge badge-schema">Schema adds: RevenueRecognitionLog, DeferredRevenueSchedule, UsageMeteringLog</span>
+  <span class="badge badge-status">Built · v26</span>
+  <span class="badge badge-schema">Owns: RevenueRecognitionLog, DeferredRevenueSchedule, UsageMeteringLog</span>
+</div>
+
+<!-- ── v26 PROMOTION BANNER ────────────────────────────────── -->
+<div class="section">
+  <div style="background:#E1F5EE;border:1px solid #5DCAA5;color:#085041;font-size:12px;padding:10px 14px;border-radius:8px;line-height:1.6">
+    <strong>v26 — promoted from Specced to Built.</strong> This is the audit-critical agent in L8: ASC 606 recognized revenue feeds AGT-702's Magic Number, the canonical efficiency metric in MBR/QBR. Recognition methods, deferred revenue schedule, and the UsageMeteringLog integration are now spec-locked. UsageMeteringLog has its own <a href="../schema/UsageMeteringLog_Production_Schema.html" style="color:#085041;text-decoration:underline">production schema document</a> with full field definitions, idempotency model, reconciliation tolerances, and a go-live checklist. AGT-804 itself is the recognition logic that sits on top of that schema; the production schema doc is the data contract for the ingestion service. Building one without the other is incoherent.
+  </div>
 </div>
 
 <!-- ── PURPOSE ─────────────────────────────────────────────── -->
@@ -58,19 +65,20 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 <!-- ── USAGE METERING LOG ──────────────────────────────────── -->
 <div class="section">
   <div class="section-title">UsageMeteringLog</div>
-  <p class="prose" style="margin-bottom:10px">Usage data originates from the external product metering system. AGT-804 receives it as a periodic feed (minimum monthly). The schema is the integration layer — the product system writes to UsageMeteringLog, and multiple OS agents read from it for their own purposes.</p>
+  <p class="prose" style="margin-bottom:10px">Usage data originates from the external product metering system. The ingestion service writes to UsageMeteringLog; AGT-804 and other OS agents read from it. AGT-804 does not write to UsageMeteringLog — it consumes the table for recognition computation. Full field definitions, idempotency rules, quality checks, reconciliation tolerances, retention tiers, and the go-live checklist live in the production schema document — see reference below.</p>
+  <div class="note" style="margin-top:0;margin-bottom:14px">Canonical reference: <a href="../schema/UsageMeteringLog_Production_Schema.html"><strong>UsageMeteringLog Production Schema (v26)</strong></a>. This spec links to that document for all field-level detail rather than duplicating it.</div>
   <table>
     <tr><th>Key</th><th>Granularity</th><th>Notes</th></tr>
-    <tr><td>account_id + sku_id + period_start + period_end</td><td>One row per account per SKU per metering period</td><td>An account with 3 consumption SKUs generates 3 rows per monthly period. Seat utilization SKUs also metered (active_seats used vs licensed).</td></tr>
+    <tr><td>account_id + sku_id + period_start + period_end + source_system + ingest_event_id + record_version</td><td>One row per natural-key per ingest event per version</td><td>Idempotent UPSERT on (source_system, ingest_event_id). Corrections increment record_version. Consumers always filter to MAX(record_version) per natural key. See production schema doc.</td></tr>
   </table>
   <table>
     <tr><th>Consumer</th><th>What they read</th><th>Purpose</th></tr>
-    <tr><td>AGT-804 (self)</td><td>units_consumed, overage_units</td><td>Revenue recognition computation for consumption SKUs</td></tr>
-    <tr><td>AGT-802</td><td>units_consumed, overage_amount_usd</td><td>Consumption invoice generation</td></tr>
-    <tr><td>AGT-503 Expansion Trigger</td><td>units_consumed vs commit_units, overage_units</td><td>Consumption overage (+40 pts) and seat utilization >80% for 2+ months (+30 pts) expansion signals</td></tr>
-    <tr><td>AGT-501 Customer Health</td><td>units_consumed vs commit_units (seat utilization dimension)</td><td>Seat utilization dimension score (18 pts max in health model)</td></tr>
+    <tr><td>AGT-804 (self)</td><td>units_consumed, overage_units, overage_amount_usd, prior-period corrections</td><td>Recognition computation for consumption SKUs. Prior-period corrections trigger ASC 606 prior-period adjustments in RevenueRecognitionLog.</td></tr>
+    <tr><td>AGT-802 Billing &amp; Invoicing</td><td>units_consumed, overage_amount_usd</td><td>Consumption invoice line generation</td></tr>
+    <tr><td>AGT-503 Expansion Trigger</td><td>UsageThresholdEvents subscription (real-time) + daily aggregate poll (fallback)</td><td>Consumption overage (+40 pts) and seat utilization &ge;80% for 2+ periods (+30 pts) expansion signals. Bypasses scheduled cycle.</td></tr>
+    <tr><td>AGT-501 Customer Health</td><td>Daily aggregate per account: max(seat_utilization_pct) over trailing 30 days</td><td>Seat utilization dimension (18 pts max in health model)</td></tr>
   </table>
-  <div class="note">UsageMeteringLog is the single metering source for all OS agents. AGT-503 and AGT-501 do not independently query the product system — they read UsageMeteringLog. This keeps the external integration point in one place (AGT-804) and all consumers downstream of it.</div>
+  <div class="note">UsageMeteringLog is the single metering source for all OS agents. AGT-503 and AGT-501 do not independently query the product system — they read UsageMeteringLog. This concentrates external integration risk in one place (the ingestion service that writes UsageMeteringLog) and gives Finance + the auditor exactly one place to validate ASC 606 source data.</div>
 </div>
 
 <!-- ── DEFERRED REVENUE ────────────────────────────────────── -->
@@ -99,13 +107,47 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
   </table>
 </div>
 
+<!-- ── PRODUCTION CONTROLS & AUDIT ────────────────────────── -->
+<div class="section">
+  <div class="section-title">Production controls &amp; audit (v26)</div>
+  <p class="prose" style="margin-bottom:12px">AGT-804 is the audit-critical agent in L8. Recognized revenue feeds Magic Number, NRR, and CAC Payback &mdash; the metrics the CRO and CFO carry into the board room. The controls below are mandatory before AGT-804 outputs are used downstream of internal review.</p>
+  <table>
+    <tr><th>Control</th><th>Mechanism</th><th>Owner</th></tr>
+    <tr><td>UsageMeteringLog source data verified</td><td>Monthly reconciliation against product DB within &plusmn;0.01% tolerance. AGT-804 month close holds if reconciliation fails.</td><td>Finance + DataEng</td></tr>
+    <tr><td>Recognition method per SKU type immutable within a period</td><td>Recognition method is captured at OrderLog activation. Method change requires AGT-801 amendment + Finance Director approval. AmendmentLog records prior method.</td><td>Finance</td></tr>
+    <tr><td>Deferred revenue schedule reconciles to balance sheet</td><td>Monthly: SUM(DeferredRevenueSchedule.deferred_balance_usd) WHERE schedule_status = 'active' must equal accounting system deferred revenue liability within &plusmn;$1.</td><td>Finance + Accounting</td></tr>
+    <tr><td>Recognition computed from MAX(record_version)</td><td>All consumption queries filter UsageMeteringLog to latest record_version per natural key. Hard CHECK in agent code.</td><td>DataEng</td></tr>
+    <tr><td>Prior-period adjustments flagged distinctly</td><td>RevenueRecognitionLog.prior_period_adjustment = TRUE on rows derived from UsageMeteringLog corrections to closed periods. AGT-702 sums these separately.</td><td>Finance</td></tr>
+    <tr><td>Milestone billing requires customer sign-off</td><td>AGT-804 only recognizes services revenue when TechnicalMilestoneLog.customer_sign_off = TRUE. IE-only completion does not unlock recognition.</td><td>Finance + IE</td></tr>
+    <tr><td>Audit trail preserved for 7 years</td><td>RevenueRecognitionLog and DeferredRevenueSchedule retained in cold storage 7+ years per ASC 606. UsageMeteringLog same per its own production schema.</td><td>Finance + Platform</td></tr>
+    <tr><td>Restatement workflow defined</td><td>If a closed-period figure must be restated (auditor request, material correction), AGT-804 emits a RevenueRecognitionLog entry with restatement_flag = TRUE and reason; AGT-702 surfaces as a separate line in MBR/QBR.</td><td>Finance + RevOps</td></tr>
+  </table>
+</div>
+
+<!-- ── EDGE CASES & FAILURE MODES ─────────────────────────── -->
+<div class="section">
+  <div class="section-title">Edge cases &amp; failure modes</div>
+  <table>
+    <tr><th>Scenario</th><th>Behavior</th></tr>
+    <tr><td>UsageMeteringLog reconciliation fails for the close period</td><td>AGT-804 monthly recognition close holds. Notifies Finance + RevOps. Cascades to AGT-702 MetricsCalcLog &mdash; AGT-704 MBR/QBR staleness gate fires (per AGT-704 spec).</td></tr>
+    <tr><td>Prior-period correction lands after period close</td><td>AGT-804 emits a RevenueRecognitionLog row with prior_period_adjustment = TRUE for the original period AND a current-period offset row, per ASC 606 prior-period adjustment treatment.</td></tr>
+    <tr><td>Mid-term contract amendment changes commit_units</td><td>AGT-801 writes AmendmentLog. AGT-804 amends DeferredRevenueSchedule with schedule_status = 'amended', preserves the original schedule, and writes a new schedule from amendment effective date forward.</td></tr>
+    <tr><td>Customer disputes a usage measurement</td><td>UsageMeteringLog row transitions to audit_status = 'disputed'. AGT-804 excludes disputed rows from recognition until resolved. AGT-802 may issue a credit memo per AGT-802 spec; AGT-804 ingests the resolution path.</td></tr>
+    <tr><td>SKU type changes mid-term (consumption &rarr; hybrid)</td><td>Treated as a new performance obligation under ASC 606. Original schedule completes; new schedule begins on transition date. Documented in AmendmentLog.</td></tr>
+    <tr><td>Customer churns mid-term</td><td>DeferredRevenueSchedule.schedule_status = 'complete'. Remaining deferred balance unwinds per termination terms (typically immediate recognition of remaining balance net of any refund obligation, or pro-rata refund treatment).</td></tr>
+    <tr><td>Source system replays a full month of events</td><td>Idempotency on (source_system, ingest_event_id) absorbs replay without double-count. AGT-804 unaffected. Reconciliation should pass.</td></tr>
+    <tr><td>UsageMeteringLog ingestion offline for &gt;24h during a close period</td><td>AGT-804 holds the close pending data catch-up. Finance receives explicit notification. No partial-data recognition under any circumstance.</td></tr>
+  </table>
+</div>
+
 <div class="footer">
-  AGT-804 Revenue Recognition · Layer 8 · Finance-owned · Schema v25<br>
-  New tables: RevenueRecognitionLog, DeferredRevenueSchedule, UsageMeteringLog<br>
-  Triggered by: OrderLog activation (seat license recognition schedule), metering period close (consumption), TechnicalMilestoneLog sign-off (services)<br>
-  Reads from: OrderLog, OrderLineItems (AGT-801), InvoiceLog (AGT-802), TechnicalMilestoneLog (AGT-602), UsageMeteringLog (external product system feed)<br>
-  Writes to: RevenueRecognitionLog, DeferredRevenueSchedule, UsageMeteringLog (receives external feed)<br>
-  Feeds: AGT-702 MetricsCalcLog (recognized revenue for Magic Number) · AGT-503 ExpansionLog (usage signals) · AGT-501 CustomerHealthLog (seat utilization) · AGT-402 (consumption trend context) · Accounting system (DeferredRevenueSchedule for journal entries)
+  AGT-804 Revenue Recognition · Layer 8 · Finance-owned · Built · v26<br>
+  Owned tables: RevenueRecognitionLog, DeferredRevenueSchedule. Reads UsageMeteringLog (owned by ingestion service per <a href="../schema/UsageMeteringLog_Production_Schema.html">production schema</a>).<br>
+  Triggered by: OrderLog activation (seat license recognition schedule) · metering period close (consumption) · TechnicalMilestoneLog customer sign-off (services) · UsageMeteringLog corrections (prior-period adjustments)<br>
+  Reads from: OrderLog, OrderLineItems (AGT-801), InvoiceLog (AGT-802), TechnicalMilestoneLog (AGT-602), UsageMeteringLog (ingestion service)<br>
+  Writes to: RevenueRecognitionLog, DeferredRevenueSchedule<br>
+  Feeds: AGT-702 MetricsCalcLog (recognized revenue for Magic Number) · AGT-503 ExpansionLog (usage signals via UsageThresholdEvents subscription) · AGT-501 CustomerHealthLog (seat utilization) · AGT-402 (consumption trend context) · Accounting system (DeferredRevenueSchedule for journal entries)<br>
+  Production status: Built spec at v26. Operational go-live gated on the UsageMeteringLog production schema checklist.
 </div>
 </body>
 </html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Brain-Ready Views — Contract & Catalog</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1100px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-schema{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:13px;font-weight:700;color:#0D1B2A;margin:18px 0 10px;padding-left:10px;border-left:3px solid #D4A84C}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.intro-banner{background:linear-gradient(135deg,#FAEEDA 0%,#FCF5E5 100%);border:1px solid #D4A84C;color:#7A4A0E;font-size:12px;padding:14px 16px;border-radius:10px;line-height:1.7;margin-bottom:24px}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.view-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;font-family:monospace;display:inline-block}
+.vt-901{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.vt-902{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.vt-both{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.req{color:#712B13;font-weight:700;font-size:10px}
+.opt{color:#888;font-weight:600;font-size:10px}
+</style>
+</head>
+<body>
+
+<h1>Brain-Ready Views &mdash; Contract &amp; Catalog</h1>
+<div class="subtitle">Layer 9 dependency &middot; Per-service projections of Tier 1 canonical tables, optimized for LLM consumption &middot; Owned by the underlying Tier 1 service &middot; Read-only from L9 perspective &middot; The load-bearing piece of the brain layer's read contract</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">Tier 1 → Tier 2 contract</span>
+  <span class="badge badge-status">Specced &middot; v30</span>
+  <span class="badge badge-schema">20 views catalogued</span>
+  <span class="badge badge-owner">Tier 1 service owners (per-view)</span>
+</div>
+
+<div class="intro-banner">
+  <strong>Why this document exists.</strong> The L9 brain specs (AGT-901, AGT-902) reference brain-ready views &mdash; <code>MetricsCalc.brain_view</code>, <code>UsageMeteringLog.account_brain_view</code>, the per-account composite view &mdash; as the read contract between Tier 2 brains and Tier 1 services. Until v30, those views existed only as references in the brain specs. This document is where the views actually get defined: which fields, which aggregation, which freshness window, which token budget. Without this, AGT-901 and AGT-902 can't actually run.
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">A brain-ready view is a precomputed projection of a Tier 1 service's canonical table, optimized for consumption by LLM-native callers. The brain doesn't read raw canonical tables &mdash; it reads brain-ready views. This decoupling is what keeps brain calls cost-bounded (10&times; input compression typical) and contract-stable (brain prompt changes don't require service schema changes, and vice-versa).</p>
+  <div class="alert-box alert-blue">Owned by the underlying Tier 1 service. AGT-702 owns <code>MetricsCalc.brain_view</code>; AGT-501 owns <code>CustomerHealthLog.account_brain_view</code>. The brain layer is a <em>consumer</em> of these views &mdash; never a writer. View definitions can change only via the service owner's spec process, with v-bump and changelog ripple.</div>
+</div>
+
+<!-- ── THE CONTRACT ────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">The brain-ready view contract</div>
+  <p class="prose" style="margin-bottom:10px">Every brain-ready view must define the following:</p>
+  <table>
+    <tr><th>Element</th><th>What it captures</th></tr>
+    <tr><td><strong>Source table</strong></td><td>The canonical Tier 1 table the view projects from. Single source per view; no cross-table joins inside one view (unless explicitly composite, e.g., AGT-902's account composite).</td></tr>
+    <tr><td><strong>Owning service</strong></td><td>The Tier 1 service responsible for view maintenance. Same service that owns the source table.</td></tr>
+    <tr><td><strong>Projection rule</strong></td><td>Which fields survive into the view, plus any computed/aggregated fields. Typical compression: top-N rows by relevance, aggregate stats over the rest.</td></tr>
+    <tr><td><strong>Filter rule</strong></td><td>Row scope. For per-account views: <code>WHERE account_id = ?</code>. For top-N views: <code>ORDER BY priority_metric DESC LIMIT N</code>. Always parameterized.</td></tr>
+    <tr><td><strong>Refresh cadence</strong></td><td>How often the view is recomputed. Most views: daily batch. Some: event-driven (e.g., on canonical table write). Brain reads <code>last_refresh_timestamp</code> from view metadata to detect staleness.</td></tr>
+    <tr><td><strong>Staleness threshold</strong></td><td>Max time since last refresh before brain treats data as stale. View-specific based on the underlying source's volatility. Brain surfaces staleness in BrainAnalysisLog when threshold exceeded.</td></tr>
+    <tr><td><strong>Token budget</strong></td><td>Max tokens the view can produce when serialized for LLM input. Hard cap; views that exceed truncate with a flag.</td></tr>
+    <tr><td><strong>Used by</strong></td><td>Which brains (and occasionally services) consume the view. AGT-901, AGT-902, or both.</td></tr>
+    <tr><td><strong>Backwards compatibility</strong></td><td>View additions are non-breaking; field removals are breaking and require coordinated brain prompt updates.</td></tr>
+  </table>
+</div>
+
+<!-- ── COMPRESSION DISCIPLINE ─────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Compression discipline &mdash; why views, not raw tables</div>
+  <p class="prose">Per the v26 architecture cost model, "aggressively summarize Tier 1 inputs into brain-ready views" was one of three high-leverage cost tactics. The expected compression ratio is 10&times; or better &mdash; brain reads ~30K tokens per query instead of ~300K from raw tables. Three patterns achieve compression:</p>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Top-N + aggregate.</strong> Top 20 rows by salience, plus aggregate stats over the full population. Used for cross-population views (Opportunities, Accounts, etc.).</li>
+    <li><strong>Time-windowed slice.</strong> Trailing 90 days at daily granularity, or trailing 12 months at monthly granularity. Used for time-series views (UsageMeteringLog, MetricsCalc).</li>
+    <li><strong>Per-account composite.</strong> One row per account, joining 11 sources at the row level. Used by AGT-902 to bound input to a single account's full picture.</li>
+  </ol>
+  <div class="alert-box alert-amber"><strong>Composition without query expansion.</strong> The composite view is precomputed (denormalized) per-account at refresh time, not constructed via 11 joins at brain query time. This is why the AGT-902 cost model works &mdash; one read, ~30K tokens, instead of 11 reads at variable cost.</div>
+</div>
+
+<!-- ── STALENESS MODEL ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Staleness model &mdash; how brains detect stale views</div>
+  <p class="prose">Every brain-ready view exposes two metadata fields the brain reads on every invocation:</p>
+  <div class="code-block">{
+  "view_metadata": {
+    "last_refresh_timestamp": "2026-05-01T14:23:11Z",
+    "staleness_threshold_hours": 24,
+    "is_stale": false   // computed: NOW() - last_refresh_timestamp > threshold
+  },
+  ...rest of view payload
+}</div>
+  <p class="prose" style="margin-top:8px">The brain reads <code>is_stale</code> first. If TRUE, the brain sets <code>data_staleness_acknowledged = TRUE</code> in BrainAnalysisLog and surfaces the staleness in narrative_output. Brain may proceed with caveats but must not estimate values from stale data &mdash; per the staleness recognition hard requirement (100%, eval-enforced).</p>
+  <div class="alert-box alert-red">If <code>last_refresh_timestamp</code> is missing entirely (view-metadata bug or first-run), brain treats as maximally stale and refuses to produce a confident output. Loud failure beats silent fabrication.</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- AGT-901 PIPELINE BRAIN — 9 BRAIN-READY VIEWS                             -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
+<div class="section">
+  <div class="section-title">AGT-901 Pipeline Brain &mdash; 9 brain-ready views</div>
+  <p class="prose" style="margin-bottom:10px">Cross-account / cross-segment views. Each view exposes a top-N + aggregate pattern over the canonical source. Refresh cadence is daily by default; specific views may go faster.</p>
+
+  <table>
+    <tr><th>View</th><th>Source</th><th>Owner</th><th>Projection</th><th>Refresh</th><th>Stale &gt;</th><th>Tokens</th></tr>
+    <tr>
+      <td><code>MetricsCalc.brain_view</code> <span class="view-tag vt-901">901</span></td>
+      <td>MetricsCalc</td>
+      <td>AGT-702</td>
+      <td>Magic Number, NRR, GRR, R40 variants, CAC Payback &mdash; current snapshot + trailing 4Q trend by segment. Plan-vs-actual delta.</td>
+      <td>On MetricsCalc snapshot (monthly + quarterly)</td>
+      <td>2 business days post month close</td>
+      <td>~3K</td>
+    </tr>
+    <tr>
+      <td><code>Opportunities.brain_view</code> <span class="view-tag vt-901">901</span></td>
+      <td>Opportunities</td>
+      <td>AGT-401</td>
+      <td>Top 20 at-risk deals by ACV &times; (100 - health_score). Aggregate stats over rest: count by stage, mean ACV, win-rate trailing 4Q.</td>
+      <td>Daily</td>
+      <td>24h</td>
+      <td>~4K</td>
+    </tr>
+    <tr>
+      <td><code>ForecastLog.brain_view</code> <span class="view-tag vt-901">901</span></td>
+      <td>ForecastLog</td>
+      <td>AGT-402</td>
+      <td>Current bottoms-up forecast + delta vs prior week + 3-component breakdown (new logo / renewal / expansion). Reference top-down (AGT-404) for divergence flag.</td>
+      <td>Weekly (per AGT-402 cadence)</td>
+      <td>7 days</td>
+      <td>~2K</td>
+    </tr>
+    <tr>
+      <td><code>Accounts.brain_view</code> <span class="view-tag vt-901">901</span></td>
+      <td>Accounts</td>
+      <td>AGT-201</td>
+      <td>Tier distribution by segment + vertical. ICP score percentile bands. Recent rescore activity (trailing 30 days). Sample of recent T1 nominations.</td>
+      <td>Daily</td>
+      <td>24h</td>
+      <td>~3K</td>
+    </tr>
+    <tr>
+      <td><code>AccountPriorityScore.brain_view</code> <span class="view-tag vt-901">901</span></td>
+      <td>AccountPriorityScore</td>
+      <td>AGT-206</td>
+      <td>Composite score distribution by segment. Queue freshness stats (oldest unworked T1, mean days-since-update). Top 30 highest-priority accounts with rep assignment status.</td>
+      <td>Daily</td>
+      <td>24h</td>
+      <td>~3K</td>
+    </tr>
+    <tr>
+      <td><code>CapacityPlan.brain_view</code> <span class="view-tag vt-901">901</span></td>
+      <td>CapacityPlan, HiringPlan, TerritoryDefinitions</td>
+      <td>AGT-105</td>
+      <td>Deployed eRep + ramp-status by segment. Open territories with quarter-of-impact. Hiring pipeline status. Coverage ratios.</td>
+      <td>Weekly</td>
+      <td>7 days</td>
+      <td>~2K</td>
+    </tr>
+    <tr>
+      <td><code>WinLossLog.brain_view</code> <span class="view-tag vt-901">901</span></td>
+      <td>WinLossLog</td>
+      <td>AGT-703</td>
+      <td>Trailing 4Q top loss reasons by segment + vertical. Competitive displacement trend. Rep-aggregate win rate vs benchmark (manager-level only, no individual). Forecast bias trend.</td>
+      <td>Monthly (lightweight refresh weekly)</td>
+      <td>3 business days post month close</td>
+      <td>~3K</td>
+    </tr>
+    <tr>
+      <td><code>CadenceEventLog.brain_view</code> <span class="view-tag vt-901">901</span></td>
+      <td>CadenceEventLog</td>
+      <td>AGT-303</td>
+      <td>Sequence performance by template + segment (meeting rate, reply rate, suppression rate). Top suppression reasons. Active play execution status (post-v27 ripple: includes <code>play_id</code> aggregation).</td>
+      <td>Weekly</td>
+      <td>7 days</td>
+      <td>~3K</td>
+    </tr>
+    <tr>
+      <td><code>VoCSynthesisLog.brain_view</code> <span class="view-tag vt-901">901</span></td>
+      <td>VoCSynthesisLog</td>
+      <td>AGT-604</td>
+      <td>Trailing 90-day customer themes (top 10). Competitive mention frequency. Sentiment trajectory by segment. Open feedback loops to L0 / L2.</td>
+      <td>Monthly synthesis (weekly digest)</td>
+      <td>14 days</td>
+      <td>~2K</td>
+    </tr>
+  </table>
+  <div class="note">AGT-901 may read multiple views per query. Total token budget per query bounded by 50K input cap (per AGT-901 spec). 9 views &times; ~3K avg = 27K, leaving headroom for the question + system prompt.</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- AGT-902 ACCOUNT BRAIN — PER-ACCOUNT COMPOSITE VIEW                       -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
+<div class="section">
+  <div class="section-title">AGT-902 Account Brain &mdash; per-account composite view</div>
+  <p class="prose" style="margin-bottom:10px">AGT-902 reads a single composite view scoped to one account. The composite is precomputed (denormalized) per-account at refresh time, joining 11 source views at the row level. The brain does not see 11 separate queries &mdash; it sees one structured snapshot.</p>
+
+  <div class="subsection-title">Composite view shape</div>
+  <div class="code-block">{
+  "view_metadata": {
+    "last_refresh_timestamp": "ISO 8601",
+    "staleness_threshold_hours": 24,
+    "is_stale": false,
+    "stale_components": []   // populated when individual sub-views are stale
+  },
+  "account_id": "uuid",
+  "components": {
+    "customer_health": { ... },        // per CustomerHealthLog.account_brain_view
+    "churn_risk": { ... },             // per ChurnRiskLog.account_brain_view
+    "expansion_signals": { ... },      // per ExpansionLog.account_brain_view
+    "usage_metering": { ... },         // per UsageMeteringLog.account_brain_view
+    "opportunities": { ... },          // per Opportunities.account_brain_view
+    "conversation_intel": { ... },     // per ConvIntelligence.account_brain_view
+    "qbr_history": { ... },            // per QBRLog.account_brain_view
+    "onboarding": { ... },             // per OnboardingLog.account_brain_view
+    "implementation": { ... },         // per TechnicalMilestoneLog.account_brain_view
+    "payment_health": { ... },         // per PaymentEventLog.account_brain_view
+    "account_root": { ... }            // per Accounts.account_brain_view
+  }
+}</div>
+
+  <div class="alert-box alert-amber"><strong>Per-component staleness</strong>: each sub-view has its own refresh cadence and staleness threshold. The composite's <code>stale_components</code> array lists which sub-views are stale. The brain may proceed with fresh components and surface specific stale dimensions in narrative.</div>
+
+  <div class="subsection-title">11 sub-view component definitions</div>
+  <table>
+    <tr><th>Component</th><th>Source</th><th>Owner</th><th>Projection</th><th>Refresh</th><th>Stale &gt;</th><th>Tokens</th></tr>
+    <tr>
+      <td><code>customer_health</code> <span class="view-tag vt-902">902</span></td>
+      <td>CustomerHealthLog</td>
+      <td>AGT-501</td>
+      <td>Current score + 90d trend at weekly granularity + 7-dimension breakdown + ConvIntelligence adjustment + payment modifier state.</td>
+      <td>Daily (matches AGT-501 cadence)</td>
+      <td>24h</td>
+      <td>~2K</td>
+    </tr>
+    <tr>
+      <td><code>churn_risk</code> <span class="view-tag vt-902">902</span></td>
+      <td>ChurnRiskLog</td>
+      <td>AGT-502</td>
+      <td>Current tier (Critical/High/Medium/Low) + renewal proximity multiplier state + top 3 risk drivers + 30d tier transition history.</td>
+      <td>Daily</td>
+      <td>24h</td>
+      <td>~1.5K</td>
+    </tr>
+    <tr>
+      <td><code>expansion_signals</code> <span class="view-tag vt-902">902</span></td>
+      <td>ExpansionLog</td>
+      <td>AGT-503</td>
+      <td>Open expansion plays + 5-signal scoring breakdown + suppression history + trailing 90d signal events.</td>
+      <td>Event-driven on threshold breach + daily batch</td>
+      <td>24h</td>
+      <td>~2K</td>
+    </tr>
+    <tr>
+      <td><code>usage_metering</code> <span class="view-tag vt-902">902</span></td>
+      <td>UsageMeteringLog</td>
+      <td>AGT-804 (ingestion service writes)</td>
+      <td>Trailing 90d consumption per SKU at daily granularity. Trailing 90d seat utilization at daily granularity. Overage event log. Filtered to <code>audit_status IN (verified, pending_recon)</code>.</td>
+      <td>Per UsageMeteringLog production schema (event-driven on metering period close)</td>
+      <td>48h (longer than other views to absorb late-arrival)</td>
+      <td>~5K (largest sub-view)</td>
+    </tr>
+    <tr>
+      <td><code>opportunities</code> <span class="view-tag vt-902">902</span></td>
+      <td>Opportunities</td>
+      <td>AGT-401</td>
+      <td>Open opportunities for the account + per-opp health trend (30d) + stage history + most recent forecast category.</td>
+      <td>Daily</td>
+      <td>24h</td>
+      <td>~3K</td>
+    </tr>
+    <tr>
+      <td><code>conversation_intel</code> <span class="view-tag vt-902">902</span></td>
+      <td>ConvIntelligence</td>
+      <td>AGT-407</td>
+      <td>Trailing 90d call summaries with <code>call_owner_role</code> filter capability. Sentiment trajectory (per role). Top objection patterns (per role). Unaddressed showstoppers list. Stakeholder expansion signals.</td>
+      <td>Per-call (on transcript receipt)</td>
+      <td>14 days (calls are infrequent for some accounts; staleness threshold longer than for high-frequency views)</td>
+      <td>~4K</td>
+    </tr>
+    <tr>
+      <td><code>qbr_history</code> <span class="view-tag vt-902">902</span></td>
+      <td>QBRLog</td>
+      <td>AGT-603</td>
+      <td>QBR history for the account: dates, attendees, outcomes, open commitments, action item status. Most recent QBR's expansion/churn flags.</td>
+      <td>Event-driven on QBR completion</td>
+      <td>Last QBR + 100 days (if no QBR recorded in 100 days, marked stale-by-absence)</td>
+      <td>~2K</td>
+    </tr>
+    <tr>
+      <td><code>onboarding</code> <span class="view-tag vt-902">902</span></td>
+      <td>OnboardingLog</td>
+      <td>AGT-601</td>
+      <td>Current onboarding stage (if active) or completion date (if completed). MAP status. Comp hold status (if active per AGT-104 integration). Day-1 health flag history.</td>
+      <td>Daily during active onboarding; static post-completion</td>
+      <td>24h during active; n/a post-completion</td>
+      <td>~1K</td>
+    </tr>
+    <tr>
+      <td><code>implementation</code> <span class="view-tag vt-902">902</span></td>
+      <td>TechnicalMilestoneLog</td>
+      <td>AGT-602</td>
+      <td>Milestones list (6 standard) with completion + customer_sign_off status. Open technical risks. Active IE assignment.</td>
+      <td>Event-driven on milestone updates</td>
+      <td>14 days (milestones move infrequently)</td>
+      <td>~1.5K</td>
+    </tr>
+    <tr>
+      <td><code>payment_health</code> <span class="view-tag vt-902">902</span></td>
+      <td>PaymentEventLog</td>
+      <td>AGT-803</td>
+      <td>Current payment_health_status (Current/Overdue/Failed/Suspended). Recent payment events (30d). AGT-501 modifier state.</td>
+      <td>Event-driven on payment state changes + daily batch</td>
+      <td>24h</td>
+      <td>~1K</td>
+    </tr>
+    <tr>
+      <td><code>account_root</code> <span class="view-tag vt-902">902</span></td>
+      <td>Accounts, TerritoryDefinitions, RepActivity</td>
+      <td>AGT-201 (root)</td>
+      <td>Account demographics. AE/CSM/AM assignment with rotation history (30d). Contract terms summary (start, end, total_contract_value, sku composition). ICP tier + score breakdown. Territory assignment.</td>
+      <td>Daily</td>
+      <td>24h</td>
+      <td>~2K</td>
+    </tr>
+  </table>
+
+  <div class="note"><strong>Composite total: ~25K tokens typical, ~30K worst case for an account with high-volume ConvIntelligence and dense usage history.</strong> Within AGT-902's 35K input budget per spec. Account synthesis signature caching (per AGT-902 spec) hits the cache for repeat queries within freshness window &mdash; saves cost on iterative meeting-prep workflows.</div>
+</div>
+
+<!-- ── BACKWARDS COMPATIBILITY ───────────────────────────── -->
+<div class="section">
+  <div class="section-title">Backwards compatibility &amp; change management</div>
+  <table>
+    <tr><th>Change type</th><th>Compatibility</th><th>Process</th></tr>
+    <tr><td>Add a new field to a view</td><td>Non-breaking</td><td>Service owner updates view spec; brain may or may not consume the new field. No coordinated deploy required.</td></tr>
+    <tr><td>Remove a field from a view</td><td><strong>Breaking</strong></td><td>Service owner ripple-audits brain prompts (AGT-901, AGT-902, any service consumers). Coordinated deploy: brain prompt updates ship before view field removal.</td></tr>
+    <tr><td>Change projection rule (e.g., top-20 → top-10)</td><td>Possibly breaking</td><td>If brain prompt depends on the count, breaking. If just a sample, non-breaking. Service owner judgment + ripple audit.</td></tr>
+    <tr><td>Change refresh cadence to faster</td><td>Non-breaking</td><td>Brains read fresher data. No prompt impact. Cost may increase if cadence affects compute.</td></tr>
+    <tr><td>Change refresh cadence to slower</td><td>Possibly breaking</td><td>Staleness threshold may need adjustment. Coordinated change with brain spec.</td></tr>
+    <tr><td>Change staleness threshold</td><td>Non-breaking but auditable</td><td>Service owner adjusts threshold; brain reads new threshold from view metadata. Logged in changelog.</td></tr>
+  </table>
+  <div class="alert-box alert-gold">View definitions are versioned alongside the owning service. The <code>brain_view_contracts_hash</code> field on BrainEvalLog (per v28 spec) detects when view contracts change between eval runs &mdash; triggers a re-eval before brain promotion.</div>
+</div>
+
+<!-- ── IMPLEMENTATION PATTERNS ───────────────────────────── -->
+<div class="section">
+  <div class="section-title">Implementation patterns</div>
+  <p class="prose">Three implementation patterns work; service owners pick the simplest that meets the cadence + freshness requirement:</p>
+  <table>
+    <tr><th>Pattern</th><th>When to use</th><th>Example</th></tr>
+    <tr><td><strong>Materialized view</strong></td><td>Source table is large; view is read-heavy; refresh cadence ≥ daily.</td><td>Most AGT-901 views (MetricsCalc, Accounts, Opportunities, AccountPriorityScore, CapacityPlan).</td></tr>
+    <tr><td><strong>Compute on read with cache</strong></td><td>Source table is small or read-rare; freshness matters.</td><td>QBRLog (event-driven, low volume), TechnicalMilestoneLog.</td></tr>
+    <tr><td><strong>Precomputed denormalized snapshot</strong></td><td>Composite views requiring joins across many sources.</td><td>AGT-902's per-account composite. Refresh job runs daily, writes the full per-account snapshot to a separate table; brain queries the snapshot table directly.</td></tr>
+  </table>
+  <div class="note">The composite pattern is what makes AGT-902 cost-bounded. Constructing the composite at brain query time would require 11 reads per query, blowing both latency and token budget. Precomputed denormalized snapshots are the operationally correct choice.</div>
+</div>
+
+<!-- ── EVAL LINKAGE ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval linkage</div>
+  <p class="prose">Brain-ready views are part of the brain eval contract. The Brain Eval Question Catalog includes 5 deliberately stale-fixture questions; each tests staleness recognition for a specific view. Eval reviewers verify that <code>view_metadata.is_stale = TRUE</code> propagates through to <code>BrainAnalysisLog.data_staleness_acknowledged = TRUE</code>.</p>
+  <p class="prose" style="margin-top:8px">If a view spec changes between eval runs, the <code>brain_view_contracts_hash</code> on BrainEvalLog detects the change and forces a re-eval before brain promotion to production.</p>
+</div>
+
+<!-- ── COST AGGREGATION ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost of maintaining brain-ready views</div>
+  <table>
+    <tr><th>Cost component</th><th>Estimate</th></tr>
+    <tr><td>Materialized view storage (10 views)</td><td>Negligible &mdash; views are small (most &lt; 5K rows of compressed projection).</td></tr>
+    <tr><td>Daily refresh compute (10 views)</td><td>Modest &mdash; runs on existing data warehouse; piggybacks on existing AGT-XXX nightly jobs.</td></tr>
+    <tr><td>Per-account composite refresh (AGT-902)</td><td>Higher &mdash; runs per active account. For 10K accounts, daily refresh compute is real but bounded.</td></tr>
+    <tr><td>Storage of denormalized composite snapshot</td><td>~10KB per account snapshot &times; 10K accounts = 100MB. Trivial.</td></tr>
+    <tr><td>View-driven brain cost reduction</td><td>10&times; vs raw-table reads. Saves ~$200/month in brain token spend at expected volumes.</td></tr>
+  </table>
+  <div class="alert-box alert-blue">Net effect: views save more in brain token spend than they cost in compute + storage. The economics are favorable; the architectural correctness is the bigger win.</div>
+</div>
+
+<div class="footer">
+  Brain-Ready Views &middot; Contract &amp; Catalog &middot; Tier 1 → Tier 2 contract &middot; Schema v30<br>
+  Owners: per-view, the underlying Tier 1 service. Brain layer is read-only consumer.<br>
+  20 views catalogued: 9 cross-population (AGT-901), 11 per-account components (AGT-902 composite). Total view payload bounded ~50K tokens for AGT-901, ~30K for AGT-902.<br>
+  Companion: <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902 Account Brain</a> &middot; <a href="BrainAnalysisLog_Schema.html">BrainAnalysisLog</a> &middot; <a href="BrainEvalLog_Schema.html">BrainEvalLog</a><br>
+  This is the load-bearing piece of the brain layer's read contract. Without these views formally defined, AGT-901 and AGT-902 are theory.
+</div>
+</body>
+</html>

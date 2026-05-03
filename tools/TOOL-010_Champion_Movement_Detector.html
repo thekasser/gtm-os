@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-010 — Champion Movement Detector</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-warn{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>TOOL-010 &mdash; Champion Movement Detector</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Detects when a champion at a customer account changes role, leaves the company, or stops engaging &mdash; high-leverage churn / deal-risk signal often missed by behavioral telemetry alone</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v32</span>
+  <span class="badge badge-domain">Domain 2 / Post-sales</span>
+  <span class="badge badge-model">Haiku</span>
+  <span class="badge badge-warn">External enrichment dependency</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">A champion's departure or role change is among the highest-leverage churn predictors in B2B sales-led GTM &mdash; often visible in external signals (LinkedIn updates, email-bounce patterns, AGT-407 "person no longer in calls" detection) before account behavioral telemetry shifts. TOOL-010 reads multiple weak signals across these sources and produces a structured movement classification with confidence, recommended interventions, and explicit acknowledgment of which signals contributed.</p>
+  <div class="alert-box alert-gold">High-signal, low-cost early warning. Most accounts that lose a champion 60+ days before renewal end up at-risk; behavioral telemetry usually doesn't catch this until 2–3 months later, when the new champion is showing surface_only adoption patterns. TOOL-010 surfaces the signal as soon as the champion's situation changes.</div>
+  <div class="alert-box alert-red"><strong>External enrichment dependency.</strong> Effectiveness depends on having external signals: LinkedIn job-change webhooks (or equivalent enrichment provider), email-bounce monitoring on key contact emails, and AGT-407 ConvIntelligence with sufficient call coverage to detect "person stopped attending calls." Without these signals, the tool degrades to "AGT-407-only" mode and surfaces lower-confidence outputs.</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "account_id": "uuid",
+  "tracked_champions": [                   // contacts flagged as champions in CRM
+    {
+      "contact_id": "uuid",
+      "contact_name": "string",
+      "title_at_last_check": "string",
+      "company_at_last_check": "string",
+      "champion_classification": "primary" | "secondary" | "technical_champion",
+      "first_identified_as_champion_date": "ISO 8601",
+      "last_engaged_at": "ISO 8601"
+    }
+  ],
+  "external_signals": {                    // optional — depends on enrichment provider
+    "linkedin_signals": [
+      { "contact_id": "uuid", "title_change_detected": true | false,
+        "company_change_detected": true | false, "detected_at": "ISO 8601" }
+    ],
+    "email_bounce_signals": [
+      { "contact_id": "uuid", "bounce_type": "soft" | "hard",
+        "first_bounce_at": "ISO 8601", "consecutive_bounce_count": 0 }
+    ]
+  },
+  "internal_signals": {
+    "conv_intelligence_attendance": [      // from AGT-407 trailing 90 days
+      {
+        "contact_id": "uuid",
+        "calls_attended_trailing_30d": 0,
+        "calls_attended_trailing_90d": 0,
+        "last_call_attendance_at": "ISO 8601 | null",
+        "last_call_sentiment": "positive" | "neutral" | "negative" | null
+      }
+    ],
+    "email_engagement": [
+      { "contact_id": "uuid", "last_reply_at": "ISO 8601 | null",
+        "trailing_30d_reply_count": 0 }
+    ]
+  },
+  "account_context": {
+    "renewal_date": "ISO 8601",
+    "current_health_tier": "string",
+    "open_opportunities_count": 0
+  }
+}</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "champion_movements": [
+    {
+      "contact_id": "uuid",
+      "movement_type": "left_company" | "role_changed_internal" |
+                       "stopped_engaging" | "engagement_declining" |
+                       "no_movement_detected",
+      "confidence": "high" | "medium" | "low",
+      "earliest_signal_at": "ISO 8601 | null",
+      "contributing_signals": [
+        { "signal_type": "string", "signal_detail": "string",
+          "signal_strength": "strong" | "moderate" | "weak" }
+      ],
+      "implications": {
+        "champion_replacement_needed": true | false,
+        "renewal_risk_uplift": "none" | "low" | "medium" | "high",
+        "deal_risk_uplift": "none" | "low" | "medium" | "high"
+      },
+      "recommended_interventions": [
+        {
+          "intervention_type": "identify_new_champion" |
+                               "executive_sponsor_outreach" |
+                               "escalate_to_slm" |
+                               "introduce_csm_handoff" |
+                               "reconfirm_renewal_path" |
+                               "no_action_needed",
+          "urgency": "high" | "medium" | "low",
+          "rationale": "string"
+        }
+      ]
+    }
+  ],
+  "account_level_summary": {
+    "primary_champion_status": "stable" | "at_risk" | "lost",
+    "champion_redundancy": "high" | "medium" | "single_threaded",
+    "overall_movement_signal": "stable" | "early_warning" | "active_concern" | "critical"
+  },
+  "data_quality": {
+    "external_signal_coverage": "full" | "partial" | "none",
+    "internal_signal_coverage": "full" | "partial" | "none",
+    "overall_quality": "high" | "medium" | "low"
+  },
+  "ungrounded_assumptions": ["string"],
+  "tool_metadata": {
+    "model": "claude-haiku-4-5",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+  <div class="alert-box alert-amber"><strong>Hard rule:</strong> Every <code>movement_type</code> classification stronger than <code>no_movement_detected</code> must have at least one <code>contributing_signal</code> with strength &ge; <code>moderate</code>. Tool cannot fabricate champion movement based on pattern guesses; needs evidence.</div>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-502 Churn Risk Detector</td><td>Weekly batch on accounts with renewal in &le; 180 days. Output augments churn risk drivers; champion-movement signal becomes one of the renewal-proximity multiplier inputs.</td></tr>
+    <tr><td>AGT-401 Deal Health Monitor</td><td>For active opportunities, called when champion is identified as economic buyer or strong influencer. Champion movement triggers AGT-401 rescore.</td></tr>
+    <tr><td>AGT-902 Account Brain</td><td>For per-account "what's the move" queries when AM/CSM raises concern about champion engagement.</td></tr>
+    <tr><td>AGT-501 Customer Health</td><td>Augments behavioral health monitoring for accounts with explicit champion tracking enabled in CRM.</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Multi-signal fusion, not single-signal alerting.</strong> A title change without engagement decline may just be a promotion; a hard email bounce alone could be an out-of-office misconfig. The tool fuses signals; single weak signals do not produce high-confidence movement classifications.</li>
+    <li><strong>Graceful degradation when external signals absent.</strong> Many accounts will not have LinkedIn or email-bounce signals available. The tool clearly reports <code>external_signal_coverage</code> and degrades confidence accordingly. Internal signals (AGT-407 attendance, email engagement) alone can detect <code>stopped_engaging</code> reliably, but not <code>left_company</code> with high confidence.</li>
+    <li><strong>Distinguish movement types.</strong> Champion who left the company is a different intervention than champion who shifted internal role (still at the company, different priorities) than champion who stopped engaging (still in role, disengaged). Recommended interventions differ.</li>
+    <li><strong>No proactive signaling on weak data.</strong> When data quality is low, tool returns conservative classifications. Better to under-flag than to drown signal in noise &mdash; AM trust matters.</li>
+    <li><strong>Privacy disciplined.</strong> Tool reads only signals already in the OS or from approved enrichment providers under signed data agreements. No web-scraping, no scraping personal social media beyond LinkedIn role-change webhooks the customer has consented to.</li>
+  </ol>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>10K tokens (multiple champions + multi-signal context)</td></tr>
+    <tr><td>Per-call output budget</td><td>2K tokens</td></tr>
+    <tr><td>Default model</td><td>Haiku</td></tr>
+    <tr><td>Per-call cost</td><td>~$0.015</td></tr>
+    <tr><td>Monthly cap</td><td>$250/mo (~16,000 calls)</td></tr>
+    <tr><td>Frequency</td><td>Weekly batch from AGT-502 over T-180-day renewal cohort, plus event-driven on enrichment signal changes.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>100% (hard)</td></tr>
+    <tr><td>Movement classification accuracy</td><td>15 retrospective accounts with known champion movements (LinkedIn job changes, observed disengagement); &ge; 75% match.</td></tr>
+    <tr><td>False positive rate on stable accounts</td><td>&le; 10% &mdash; over-flagging produces alert fatigue and burns AM trust.</td></tr>
+    <tr><td>Lead time</td><td>For accounts that retrospectively churned with champion-loss as a contributing factor: % where TOOL-010 flagged movement &ge; 60 days before churn. &ge; 60%.</td></tr>
+    <tr><td>Single-signal restraint</td><td>For 5 cases with one weak signal only: tool returns <code>confidence = low</code> or <code>no_movement_detected</code>. 100% (hard).</td></tr>
+    <tr><td>Privacy compliance</td><td>0 instances of using non-consented signals (hard)</td></tr>
+    <tr><td>P95 latency</td><td>&le; 2s</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  TOOL-010 Champion Movement Detector &middot; Tier 3 Specialist Tool &middot; Schema v32<br>
+  Stateless. Multi-signal fusion. External enrichment dependency for full effectiveness. Default Haiku.<br>
+  Per-call: 10K input + 2K output. Monthly cap: $250/mo.<br>
+  High-leverage early-warning signal often missed by behavioral telemetry alone. Per the v26 architecture eval, champion-loss signal predicts retrospective churn with substantial lead time when external signals are available.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-502_Churn_Risk_Detector.html">AGT-502</a> &middot; <a href="../specs/AGT-407_Conv_Intelligence.html">AGT-407</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902</a>
+</div>
+</body>
+</html>

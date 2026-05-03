@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SalesPlayLibrary — Production Schema</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-schema{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.alert-green{background:#E1F5EE;border-left:3px solid #5DCAA5;color:#085041}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.req{color:#712B13;font-weight:700;font-size:10px}
+.opt{color:#888;font-weight:600;font-size:10px}
+.state-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;font-family:monospace}
+.s-draft{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.s-review{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.s-active{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.s-retired{background:#f0f0f0;color:#555;border:1px solid #ccc}
+</style>
+</head>
+<body>
+
+<h1>SalesPlayLibrary &mdash; Production Schema</h1>
+<div class="subtitle">Layer 9 (drafts) → Layer 3 execution (active plays) &middot; Brain proposes, humans co-define, AGT-302 executes &middot; Hard volume cap on active plays &middot; Promotion-gated state machine</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L9 &middot; Schema</span>
+  <span class="badge badge-status">Production &middot; v27</span>
+  <span class="badge badge-schema">Owns: SalesPlayLibrary</span>
+  <span class="badge badge-owner">Brain Agents (drafts) · RevOps + SLM (promotion gate)</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">SalesPlayLibrary is the workspace where Brain Agents draft sales plays for human co-definition. It is the operational mechanism for the architectural commitment in the v26 evaluation: <em>brains propose, RevOps and sales leaders refine into a small curated set, then AGT-302 executes</em>. The hard volume cap on active plays per segment is the safety mechanism that prevents quiet play proliferation.</p>
+  <div class="alert-box alert-gold"><strong>Two architectural roles in one table.</strong> SalesPlayLibrary is both a workspace (where drafts live) and a registry of active plays (what AGT-302 reads to execute). The state machine is the bridge. Drafts are non-canonical; <code>active</code> rows are canonical &mdash; but only RevOps + SLM can transition state, never a Brain Agent.</div>
+</div>
+
+<!-- ── STATE MACHINE ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">State machine</div>
+  <table>
+    <tr><th>State</th><th>Meaning</th><th>Who can write/transition</th></tr>
+    <tr><td><span class="state-pill s-draft">draft</span></td><td>Brain Agent has proposed a play. Lives in workspace for human review. Not visible to AGT-302.</td><td>Brain Agent (AGT-901 / AGT-902) inserts. No one else writes to <code>draft</code> rows.</td></tr>
+    <tr><td><span class="state-pill s-review">under_review</span></td><td>RevOps or sales leader has picked up a draft and is co-defining it into a candidate active play. May edit hypothesis, target, cadence. Not visible to AGT-302.</td><td>RevOps + sales leader (manual transition from <code>draft</code>). Edits permitted.</td></tr>
+    <tr><td><span class="state-pill s-active">active</span></td><td>Play approved and live. AGT-302 reads only <code>active</code> plays. Subject to hard volume cap per segment.</td><td>SLM + RevOps joint approval (both must approve; tracked in approval fields). Hard volume cap enforced at write time.</td></tr>
+    <tr><td><span class="state-pill s-retired">retired</span></td><td>Play removed from active execution. AGT-302 stops new sequence generation; in-flight sequences complete. Outcomes recorded for retrospective.</td><td>RevOps. Retiring a play frees capacity under the volume cap.</td></tr>
+  </table>
+  <p class="prose" style="margin-top:12px">Allowed transitions:</p>
+  <ul style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><code>draft</code> &rarr; <code>under_review</code> (manual human pickup)</li>
+    <li><code>draft</code> &rarr; <code>retired</code> (rejected without further work)</li>
+    <li><code>under_review</code> &rarr; <code>active</code> (joint approval)</li>
+    <li><code>under_review</code> &rarr; <code>retired</code> (rejected after review)</li>
+    <li><code>active</code> &rarr; <code>retired</code> (RevOps decision; play has run its course or replaced)</li>
+    <li>No backward transitions. <code>retired</code> is terminal. To re-launch a retired play, copy it into a new <code>draft</code> row.</li>
+  </ul>
+</div>
+
+<!-- ── VOLUME CAP ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Hard volume cap on active plays</div>
+  <p class="prose" style="margin-bottom:10px">Per the v26 architecture commitment: <em>too many plays overwhelm reps and managers; sales leaders only commit to plays they helped define</em>. The cap is enforced at the database level &mdash; not advisory.</p>
+  <table>
+    <tr><th>Scope</th><th>Default cap</th><th>Configurable by</th></tr>
+    <tr><td>Per segment (SMB / MM / Ent / strategic / etc.) per quarter</td><td>3 to 8 active plays simultaneously</td><td>RevOps via <code>SalesPlayLibraryConfig</code> (L0 table). Per-segment override permitted; default is 5.</td></tr>
+    <tr><td>Per account (account-specific plays from AGT-902)</td><td>1 active per account</td><td>Hard cap. Account-specific plays must complete or retire before another can activate.</td></tr>
+    <tr><td>Per quarter total (across all segments)</td><td>Soft monitoring; no hard cap</td><td>RevOps dashboard surfaces total active count. Sustained drift past 30 active triggers a quarterly playbook review.</td></tr>
+  </table>
+  <div class="alert-box alert-amber">Cap enforcement: a transition to <code>active</code> when the cap is already met is rejected at write time. The blocking transition surfaces an error to RevOps suggesting they retire an existing play first. No silent overflow.</div>
+</div>
+
+<!-- ── SCHEMA DEFINITION ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema definition</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+    <tr><td><code>play_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>Primary key.</td></tr>
+    <tr><td><code>state</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td><code>draft</code> / <code>under_review</code> / <code>active</code> / <code>retired</code>. State transitions enforced via trigger.</td></tr>
+    <tr><td><code>scope</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td><code>segment</code> (cross-account, segment-targeted) / <code>account_specific</code> (per-account from AGT-902).</td></tr>
+    <tr><td><code>segment</code></td><td>VARCHAR(64)</td><td><span class="opt">opt</span></td><td>Required when scope = segment. Free-text segment label (e.g., <code>commercial_mm</code>, <code>enterprise_strategic</code>) matching segment taxonomy in TerritoryDefinitions.</td></tr>
+    <tr><td><code>account_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Required when scope = account_specific. FK to Accounts.</td></tr>
+    <tr><td><code>name</code></td><td>VARCHAR(128)</td><td><span class="req">REQ</span></td><td>Human-readable play name. Editable in <code>under_review</code>.</td></tr>
+    <tr><td><code>hypothesis</code></td><td>TEXT</td><td><span class="req">REQ</span></td><td>The thesis the play tests. Editable in <code>under_review</code>.</td></tr>
+    <tr><td><code>target_definition</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Target audience criteria: ICP tier, vertical, intent signals, lifecycle stage. JSON schema validated.</td></tr>
+    <tr><td><code>suggested_cadence</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Sequence steps, channel mix, touch counts &mdash; in the format AGT-302 expects. May reference existing cadence templates by ID.</td></tr>
+    <tr><td><code>success_criteria</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Measurable outcomes: target meeting rate, target opp create rate, target ACV. How the play will be retrospectively evaluated.</td></tr>
+    <tr><td><code>originating_proposal_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>FK to BrainAnalysisLog.proposal_id of the brain output that drafted this play. Lineage anchor for cohort retrospective.</td></tr>
+    <tr><td><code>writer_agent_id</code></td><td>VARCHAR(16)</td><td><span class="req">REQ</span></td><td>Brain Agent that drafted: <code>AGT-901</code> or <code>AGT-902</code>.</td></tr>
+    <tr><td><code>created_at</code></td><td>TIMESTAMPTZ</td><td><span class="req">REQ</span></td><td>DEFAULT NOW().</td></tr>
+    <tr><td><code>picked_up_by_user_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Set on <code>draft</code> &rarr; <code>under_review</code> transition. The human who picked up the draft.</td></tr>
+    <tr><td><code>picked_up_at</code></td><td>TIMESTAMPTZ</td><td><span class="opt">opt</span></td><td>Set on <code>draft</code> &rarr; <code>under_review</code>.</td></tr>
+    <tr><td><code>edits_during_review</code></td><td>JSONB</td><td><span class="opt">opt</span></td><td>Diff log of edits during <code>under_review</code>. Captures what humans changed from brain draft &mdash; valuable signal for brain calibration.</td></tr>
+    <tr><td><code>slm_approver_user_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Required to transition to <code>active</code>. SLM identity.</td></tr>
+    <tr><td><code>revops_approver_user_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Required to transition to <code>active</code>. RevOps identity.</td></tr>
+    <tr><td><code>activated_at</code></td><td>TIMESTAMPTZ</td><td><span class="opt">opt</span></td><td>Set on <code>under_review</code> &rarr; <code>active</code>.</td></tr>
+    <tr><td><code>active_period_start</code></td><td>DATE</td><td><span class="opt">opt</span></td><td>Required when active. When AGT-302 begins executing.</td></tr>
+    <tr><td><code>active_period_end</code></td><td>DATE</td><td><span class="opt">opt</span></td><td>Optional sunset date. Beyond this, play auto-retires.</td></tr>
+    <tr><td><code>retired_at</code></td><td>TIMESTAMPTZ</td><td><span class="opt">opt</span></td><td>Set on transition to <code>retired</code>.</td></tr>
+    <tr><td><code>retired_by_user_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Set on transition to <code>retired</code>.</td></tr>
+    <tr><td><code>retire_reason</code></td><td>ENUM</td><td><span class="opt">opt</span></td><td>Set on retire. <code>completed</code> / <code>replaced</code> / <code>poor_performance</code> / <code>rejected_at_review</code> / <code>rejected_at_draft</code> / <code>auto_sunset</code>.</td></tr>
+    <tr><td><code>retrospective_outcomes</code></td><td>JSONB</td><td><span class="opt">opt</span></td><td>Measured success vs. success_criteria. Populated quarterly by RevOps from cohort data. Read by AGT-901 in next play-refresh batch.</td></tr>
+  </table>
+</div>
+
+<!-- ── KEYS & CONSTRAINTS ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Keys, constraints, indexes</div>
+  <table>
+    <tr><th>Element</th><th>Definition</th><th>Why</th></tr>
+    <tr><td>Primary key</td><td><code>play_id</code></td><td>Surrogate.</td></tr>
+    <tr><td>Index 1</td><td><code>(state, segment) WHERE state = 'active'</code></td><td>AGT-302 hot path: read active plays per segment. Fast.</td></tr>
+    <tr><td>Index 2</td><td><code>(state, account_id) WHERE state = 'active' AND account_id IS NOT NULL</code></td><td>Account-specific play lookup.</td></tr>
+    <tr><td>Index 3</td><td><code>(state, created_at DESC) WHERE state IN ('draft','under_review')</code></td><td>Workspace UI: show pending drafts/reviews to humans.</td></tr>
+    <tr><td>Index 4</td><td><code>(originating_proposal_id)</code></td><td>Cohort retrospective lookup.</td></tr>
+    <tr><td>Index 5</td><td><code>(writer_agent_id, created_at DESC)</code></td><td>Per-brain draft history (eval, brain calibration).</td></tr>
+    <tr><td>CHECK: scope ↔ segment/account_id</td><td><code>(scope = 'segment' AND segment IS NOT NULL AND account_id IS NULL) OR (scope = 'account_specific' AND account_id IS NOT NULL)</code></td><td>Mutual exclusion: a play targets either a segment or a single account, never both.</td></tr>
+    <tr><td>CHECK: active requires approvers</td><td>If <code>state = 'active'</code> THEN <code>slm_approver_user_id IS NOT NULL AND revops_approver_user_id IS NOT NULL AND activated_at IS NOT NULL</code></td><td>Activation gate &mdash; both approvers required.</td></tr>
+    <tr><td>CHECK: state machine</td><td>Trigger validates allowed transitions only. Backward transitions blocked.</td><td>Auditability + integrity.</td></tr>
+    <tr><td>CHECK: volume cap (segment)</td><td>Trigger: on transition to <code>active</code> for scope=segment, count of existing active plays in that segment must be &lt; cap from <code>SalesPlayLibraryConfig</code>.</td><td>Hard cap enforcement.</td></tr>
+    <tr><td>CHECK: volume cap (account)</td><td>Trigger: on transition to <code>active</code> for scope=account_specific, no other active play exists for the same account_id.</td><td>One active per account.</td></tr>
+    <tr><td>CHECK: writer_agent_id</td><td><code>writer_agent_id IN ('AGT-901','AGT-902')</code> (extensible)</td><td>Brain identity discipline.</td></tr>
+    <tr><td>FK</td><td><code>originating_proposal_id</code> &rarr; BrainAnalysisLog.proposal_id; <code>account_id</code> &rarr; Accounts; user IDs &rarr; Users.</td><td>Referential integrity.</td></tr>
+  </table>
+</div>
+
+<!-- ── AGT-302 INTEGRATION ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">AGT-302 integration &mdash; how active plays execute</div>
+  <p class="prose" style="margin-bottom:10px">AGT-302 Cadence Coordinator is the execution engine. It reads <code>SalesPlayLibrary WHERE state = 'active'</code> at sequence-generation time. Plays in any other state are invisible to AGT-302 &mdash; the workspace is hidden from production execution by design.</p>
+  <table>
+    <tr><th>AGT-302 read</th><th>What's used</th></tr>
+    <tr><td><code>target_definition</code></td><td>Filters which accounts/leads receive the play's sequence.</td></tr>
+    <tr><td><code>suggested_cadence</code></td><td>Sequence steps + cadence type. AGT-302's existing 3-touch/week cap and ABM backstop still apply on top.</td></tr>
+    <tr><td><code>play_id</code></td><td>Written to <code>CadenceEventLog.play_id</code> for every event generated under this play.</td></tr>
+    <tr><td><code>originating_proposal_id</code></td><td>Written to <code>CadenceEventLog.originating_proposal_id</code> for cohort retrospective lineage. Per BrainAnalysisLog spec.</td></tr>
+    <tr><td><code>active_period_end</code></td><td>If reached, AGT-302 stops generating new sequences from this play. AGT-302 can also auto-transition the play to <code>retired</code> with <code>retire_reason = 'auto_sunset'</code> if RevOps configures auto-sunset.</td></tr>
+  </table>
+  <div class="note">Existing AGT-302 v25 spec governs touch caps, suppression, ABM backstop. This integration adds two new read fields (play_id, originating_proposal_id) to write through to CadenceEventLog &mdash; a v27 ripple change to AGT-302's schema.</div>
+</div>
+
+<!-- ── BRAIN CALIBRATION FEEDBACK ─────────────────────────── -->
+<div class="section">
+  <div class="section-title">Brain calibration feedback loop</div>
+  <p class="prose" style="margin-bottom:10px">SalesPlayLibrary closes the loop on brain quality. Three signals matter:</p>
+  <table>
+    <tr><th>Signal</th><th>What it measures</th><th>Brain calibration use</th></tr>
+    <tr><td>Promotion rate (<code>active</code> / <code>draft</code> ratio per quarter, per brain)</td><td>How often brain drafts make it through co-definition to activation</td><td>Per AGT-901 eval criteria target &ge; 30%. Below that &rarr; brain not aligned with leadership criteria.</td></tr>
+    <tr><td>Edit volume in <code>edits_during_review</code></td><td>How heavily humans rewrite brain drafts during review</td><td>Heavy edits &rarr; brain drafts are starting points, not finished products. Light edits &rarr; brain is calibrated. Used to tune system prompt + few-shot examples.</td></tr>
+    <tr><td>Retrospective outcomes vs success_criteria</td><td>Did active plays hit their stated success criteria?</td><td>Cohort-level lift on brain-co-designed plays vs. plays without brain involvement. Reads by AGT-901 in next play-refresh batch.</td></tr>
+  </table>
+  <div class="alert-box alert-green">This is the v26 architecture's "cohort-level retrospective" mechanism in concrete form. Tag every action with the brain's proposal_id, compare cohort outcomes quarterly, refine. No per-deal attribution; pattern-level signal.</div>
+</div>
+
+<!-- ── RETENTION ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Retention</div>
+  <table>
+    <tr><th>Tier</th><th>Window</th><th>Access</th></tr>
+    <tr><td>Hot</td><td>Active or recently retired (last 90 days)</td><td>Operational reads (AGT-302, workspace UI, dashboards)</td></tr>
+    <tr><td>Warm</td><td>Retired 90 days to 18 months</td><td>Quarterly retrospectives, brain calibration analysis</td></tr>
+    <tr><td>Cold</td><td>18 months to 7 years</td><td>Audit access for any audit period covering brain-influenced actions</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  SalesPlayLibrary &middot; Production Schema &middot; Layer 9 (drafts) → Layer 3 execution (active) &middot; Schema v27<br>
+  Owners: Brain Agents (drafts) · RevOps + SLM (promotion gate). AGT-302 reads active plays for execution.<br>
+  State machine enforces promotion gate. Hard volume cap per segment per quarter.<br>
+  Read by: AGT-302 (active plays only) · workspace UI (drafts + under-review) · RevOps dashboards · Brain Agents (own drafts + retrospective outcomes for next refresh batch).<br>
+  Related: <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902 Account Brain</a> &middot; <a href="BrainAnalysisLog_Schema.html">BrainAnalysisLog Schema</a> &middot; <a href="../specs/AGT-302_Cadence_Coordinator.html">AGT-302 Cadence Coordinator</a>
+</div>
+</body>
+</html>

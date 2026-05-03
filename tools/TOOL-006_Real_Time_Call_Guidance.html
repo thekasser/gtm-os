@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-006 — Real-time Call Guidance</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-warn{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>TOOL-006 &mdash; Real-time Call Guidance</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Live-call assist for AE/CSM &mdash; surfaces objection handling, MEDDPICC gaps, next-step suggestions during the call &middot; Closes Domain 2 (in-call) gap from v26 eval</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v31</span>
+  <span class="badge badge-domain">Domain 2 · Win-rate</span>
+  <span class="badge badge-model">Sonnet</span>
+  <span class="badge badge-warn">Higher infra complexity than other tools</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">Live-call assist. As a sales call is happening, takes streaming transcript chunks + the full deal/account context (from AGT-902 composite view) and produces real-time guidance: objection-handling hints, MEDDPICC gap callouts, next-step suggestions, mention of competitive intel relevant to what was just said. Output appears in a sidecar UI the rep watches during the call &mdash; the rep decides whether to use any specific suggestion.</p>
+  <div class="alert-box alert-gold">Closes Domain 2 (in-call) gap from v26 eval. Today AGT-407 Conversation Intelligence is retrospective only &mdash; analyzes the transcript after the call. TOOL-006 operates during the call. The two complement each other: in-call guidance + retrospective coaching.</div>
+  <div class="alert-box alert-red"><strong>Higher infrastructure complexity than other Tier 3 tools.</strong> Requires live audio integration with the recording platform (Gong / Zoom / Chorus) for streaming transcript access, plus a sidecar UI surface in the rep's call window. Tool spec is here; integration is engineering work that depends on the recording-platform partnerships and is not gated by other Tier 3 tools.</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "call_session_id": "uuid",               // recording-platform session
+  "rep_user_id": "uuid",
+  "rep_role": "AE" | "SDR" | "AM" | "CSM" | "SE",
+  "opportunity_id": "uuid | null",         // null for pre-deal calls
+  "account_id": "uuid",
+  "call_context": {
+    "call_type": "discovery" | "demo" | "evaluation" |
+                 "negotiation" | "renewal" | "qbr" | "general",
+    "scheduled_duration_min": 0,
+    "elapsed_seconds": 0
+  },
+  "account_context": { ... },              // full per-account brain-ready composite
+                                           // (per AGT-902 composite spec)
+  "deal_context": {                        // populated when opportunity_id != null
+    "current_stage": "string",
+    "deal_health_score": 0,
+    "competitor_detected": "string | null",
+    "meddpicc_state": {
+      "metrics_documented": true | false,
+      "economic_buyer_identified": true | false,
+      "decision_criteria_documented": true | false,
+      "decision_process_mapped": true | false,
+      "paper_process_understood": true | false,
+      "identified_pain": true | false,
+      "champion_qualified": true | false,
+      "competition_known": true | false
+    }
+  },
+  "transcript_window": {
+    "last_60_seconds_transcript": "string",     // rolling window, redacted of PII
+    "speaker_segments": [
+      { "speaker": "rep" | "prospect", "text": "string", "elapsed_at": 0 }
+    ]
+  },
+  "suggestion_history_in_session": [        // what's already been suggested this call
+    { "suggested_at_elapsed": 0, "suggestion_type": "string", "was_used": null | true | false }
+  ]
+}</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "guidance": [
+    {
+      "guidance_type": "objection_response" | "meddpicc_gap" |
+                       "competitor_callout" | "next_step_prompt" |
+                       "discovery_question" | "champion_validation",
+      "priority": "high" | "medium" | "low",
+      "trigger": "string",                 // what in the recent transcript triggered this
+      "suggestion_text": "string",         // 1-2 sentence guidance the rep can use verbatim
+      "rationale": "string",               // 1 sentence why this matters now
+      "supporting_context": "string"       // where this came from in account_context
+    }
+  ],
+  "suppress_until_next_window": true | false,  // when no useful guidance, stay quiet
+  "tool_metadata": {
+    "model": "claude-sonnet-4-6",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+  <div class="alert-box alert-amber"><strong>Hard rule:</strong> If no high-quality guidance is available for the current window, return empty <code>guidance</code> array with <code>suppress_until_next_window = TRUE</code>. Silence is better than noise &mdash; a rep watching a sidecar full of low-value suggestions stops watching it. Quality &gt;&gt; volume.</div>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation pattern</th></tr>
+    <tr><td>Live-call sidecar UI (recording platform integration)</td><td>Triggered every 30&ndash;60 seconds during an active call. Recording platform pushes transcript chunks; sidecar service composes the input, calls TOOL-006, displays guidance to the rep.</td></tr>
+    <tr><td>Rep can pause/resume guidance</td><td>Rep-side control. Invocations stop when paused. Used in customer-trust-sensitive moments (off-the-record discussions).</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Quality over volume.</strong> Mediocre suggestions during a live customer call distract the rep, harm the relationship, and erode trust in the tool. The tool returns silence (suppress_until_next_window=TRUE) when the best available guidance is mediocre.</li>
+    <li><strong>Suggestion debouncing.</strong> The tool reads <code>suggestion_history_in_session</code> and avoids repeating the same suggestion within a session. If a suggestion was offered and not used, the tool downgrades that suggestion type's priority for the rest of the call.</li>
+    <li><strong>Hard latency budget.</strong> P95 &le; 3 seconds end-to-end. A 5-second suggestion is useless &mdash; the call has moved on. Latency is the operational quality bar.</li>
+    <li><strong>Privacy first.</strong> Transcripts arrive PII-redacted from the recording platform. Tool does not read raw call audio. Tool output is logged for retrospective coaching but the live transcript is not retained beyond the rolling window.</li>
+    <li><strong>Rep autonomy preserved.</strong> Tool suggests; rep decides. No auto-action. Rep flags <code>was_used</code> post-call (or via in-call quick-mark UI) for calibration.</li>
+  </ol>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call (one tool call) input budget</td><td>30K tokens (account context is the bulk; transcript window is small)</td></tr>
+    <tr><td>Per-call output budget</td><td>1.5K tokens (compact guidance)</td></tr>
+    <tr><td>Default model</td><td>Sonnet — needs to reason across account context + recent transcript + MEDDPICC state in real time</td></tr>
+    <tr><td>Per-call cost estimate</td><td>~$0.10 per tool invocation</td></tr>
+    <tr><td>Per-customer-call cost estimate</td><td>~$3 (one customer call &asymp; 30 tool invocations at 60s cadence over 30 min)</td></tr>
+    <tr><td>Monthly cap (default)</td><td>$2,000/mo &mdash; supports ~600 customer calls/month with full guidance</td></tr>
+    <tr><td>Frequency expectation</td><td>Highest cost per use of any tool, though invocations bounded by call volume. Prompt caching essential &mdash; account context cache on session opening saves 50%+ on subsequent windows.</td></tr>
+  </table>
+  <div class="note">Per-customer-call cost is the right unit, not per-tool-call. RevOps configures opt-in: which call types get live guidance (typically discovery, evaluation, negotiation, renewal &mdash; not internal calls or first-touch outreach). Volume constraints prevent cost runaway.</div>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>100% (hard)</td></tr>
+    <tr><td>P95 latency</td><td>&le; 3s (hard) &mdash; missed latency = unusable tool</td></tr>
+    <tr><td>Suggestion grounding</td><td>Every suggestion's <code>supporting_context</code> traces to a real field in account_context or recent transcript &mdash; 100% (hard)</td></tr>
+    <tr><td>Suggestion adoption rate</td><td>% of suggestions reps mark <code>was_used = TRUE</code> &mdash; calibration signal, &ge; 25% target. Below that, suggestions are noise.</td></tr>
+    <tr><td>Suppression discipline</td><td>% of windows where output is empty (suppress=TRUE) when no high-quality guidance exists. Eval reviewers verify the tool stays quiet appropriately. &ge; 30% suppression rate expected (most call windows don't need active guidance).</td></tr>
+    <tr><td>Privacy compliance</td><td>0 instances of guidance referencing PII redacted from transcript (hard)</td></tr>
+  </table>
+</div>
+
+<!-- ── FAILURE MODES ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Action</th></tr>
+    <tr><td>Latency drift &gt; 3s</td><td>Hard fail. Switch to Haiku for low-stakes call types as fallback. Sonnet preserved for high-stakes (negotiation, executive).</td></tr>
+    <tr><td>Reps stop checking sidecar (low adoption)</td><td>Suggestion quality issue, not tool issue. Recalibrate via post-call surveys + adoption rate by suggestion_type.</td></tr>
+    <tr><td>Tool suggests something that contradicts customer privacy or contract</td><td>Hard incident. Audit prompt for context bleed. Tighten input filtering on PII redaction.</td></tr>
+    <tr><td>Cost spike on high-volume call days</td><td>Per-call session cap (e.g., 50 invocations max per session); prompt caching enforced; opt-in per call-type list throttle.</td></tr>
+    <tr><td>Recording platform integration drops mid-call</td><td>Tool stops being called; sidecar shows offline state. Rep continues without guidance &mdash; existing rep behavior unchanged.</td></tr>
+  </table>
+</div>
+
+<!-- ── INTERACTION WITH AGT-407 ──────────────────────────── -->
+<div class="section">
+  <div class="section-title">Interaction with AGT-407 Conversation Intelligence</div>
+  <p class="prose">TOOL-006 and AGT-407 are complementary: TOOL-006 operates during the call (live, ephemeral), AGT-407 operates after the call (retrospective, persisted in ConvIntelligence). TOOL-006 output is logged in a separate <code>CallGuidanceLog</code> with foreign keys to <code>ConvIntelligence.conv_intelligence_id</code> &mdash; AGT-701 (Rep Coaching) reads both for the full picture: what guidance was offered live, what was used, what AGT-407 saw retrospectively.</p>
+</div>
+
+<div class="footer">
+  TOOL-006 Real-time Call Guidance &middot; Tier 3 Specialist Tool &middot; Schema v31<br>
+  Stateless. Live-call sidecar via recording-platform integration. Default Sonnet (Haiku fallback).<br>
+  Per-tool-call: 30K input + 1.5K output. Per-customer-call: ~$3. Monthly cap: $2,000/mo.<br>
+  Closes: Domain 2 (in-call) gap from v26 architecture evaluation.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-407_Conv_Intelligence.html">AGT-407</a> (retrospective complement) &middot; <a href="../specs/AGT-701_Rep_Performance_Coaching.html">AGT-701</a> (downstream coaching)
+</div>
+</body>
+</html>

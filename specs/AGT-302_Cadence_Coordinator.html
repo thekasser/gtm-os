@@ -37,8 +37,9 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 
 <div class="meta-row">
   <span class="badge badge-layer">L3 · Agent 02</span>
-  <span class="badge badge-status">Specced · v18 original + v22 wire update</span>
+  <span class="badge badge-status">Specced · v18 original + v22 wire update + v27 L9 ripple</span>
   <span class="badge badge-ripple">L2 ripple wired: ABM backstop check + suppressed_reason write</span>
+  <span class="badge badge-ripple">L9 ripple wired: SalesPlayLibrary execution + play_id/originating_proposal_id lineage</span>
 </div>
 
 <!-- ── L2 WIRE ITEM ────────────────────────────────────────── -->
@@ -56,6 +57,29 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
     &nbsp;&nbsp;&nbsp;→ Notify originating agent (AGT-304) of suppression<br>
     &nbsp;· All other sequence types: no ABM check applied here — ABM only modifies nurture behavior<br><br>
     <strong>Why a backstop?</strong> AGT-304 is the primary gate but AGT-302 has no visibility into whether future sequence routing paths might bypass AGT-304 (e.g. a marketing automation trigger sending a nurture-type sequence directly). The backstop ensures the OS-level constraint holds regardless of origination path. The suppressed_reason field makes the block traceable in AGT-303 cadence intelligence analysis.
+  </div>
+</div>
+
+<!-- ── L9 WIRE ITEM ────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">L9 wire item (v27)</div>
+
+  <div class="wire-box" style="background:#FAEEDA;border:1px solid #D4A84C;color:#7A4A0E">
+    <strong>Wire 4 — SalesPlayLibrary execution + lineage anchoring</strong><br>
+    With L9 Brain Agents (AGT-901 Pipeline Brain, AGT-902 Account Brain) drafting plays into <code>SalesPlayLibrary</code> that get human-promoted to <code>active</code> state, AGT-302 becomes the execution engine for brain-co-designed plays. Two wire updates:<br><br>
+
+    <strong>1. Read active plays from SalesPlayLibrary.</strong><br>
+    &nbsp;· On sequence generation, AGT-302 reads <code>SalesPlayLibrary WHERE state = 'active'</code> alongside existing AGT-301 outreach generator output and AGT-203 ABMPlaybook entries.<br>
+    &nbsp;· Active plays carry <code>target_definition</code> + <code>suggested_cadence</code> + <code>active_period_start/end</code>. AGT-302 matches accounts/leads against target_definition, generates sequences per suggested_cadence, respects active_period_end as auto-stop.<br>
+    &nbsp;· Existing AGT-302 v22 behavior preserved: 3-touch/week cap, ABM backstop, suppression compliance gates &mdash; all apply on top of brain-co-designed play execution. The play does not bypass coordination guards.<br><br>
+
+    <strong>2. Lineage fields written to CadenceEventLog (schema v27 ripple).</strong> Two new columns on <code>CadenceEventLog</code>:<br>
+    &nbsp;· <code>play_id</code> &mdash; FK to SalesPlayLibrary.play_id when the event derives from an active brain-co-designed play. NULL otherwise (existing behavior preserved).<br>
+    &nbsp;· <code>originating_proposal_id</code> &mdash; FK chain back to the BrainAnalysisLog row that produced the draft play. Inherited via SalesPlayLibrary.originating_proposal_id. NULL when no brain in the lineage.<br><br>
+
+    <strong>Why this matters &mdash; cohort retrospective.</strong> Per the v26 architecture commitment: at quarter end, RevOps compares outcomes on plays the brain co-designed vs. plays designed without brain involvement. The <code>originating_proposal_id</code> column on CadenceEventLog (and on ABMPlaybook, ExpansionLog, QBRLog, OpportunityBriefLog, CommBriefLog &mdash; same v27 ripple across 6 services) enables exactly that cohort filter. Win rate / sales cycle / ACV measured cohort-wise; not per-deal attribution.<br><br>
+
+    <strong>Backwards compatibility.</strong> Both new columns nullable. Existing CadenceEventLog rows have NULL on both. Existing AGT-301 / AGT-304 / AGT-203 sequence generation paths continue working without writing the new fields when no brain involvement. AGT-303 Cadence Intelligence reads CadenceEventLog including the new fields &mdash; brain-co-designed plays appear in cadence performance analytics with <code>play_id</code> grouping (per AGT-303 v27 brain-ready view extension).
   </div>
 </div>
 

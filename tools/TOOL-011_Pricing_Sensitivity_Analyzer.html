@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-011 — Pricing Sensitivity Analyzer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>TOOL-011 &mdash; Pricing Sensitivity Analyzer</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Reads quote acceptance/rejection patterns + competitive context to classify deal-level pricing elasticity &middot; Augments AGT-406 deal desk decisions</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v32</span>
+  <span class="badge badge-domain">Domain 1 / Domain 2</span>
+  <span class="badge badge-model">Sonnet</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">For an active deal at the quote stage, classifies how pricing-sensitive the prospect is likely to be based on (a) cohort-level patterns from QuoteLog history (similar deals, similar competitive context, similar segment), (b) deal-specific signals from ConvIntelligence (objection patterns around price, budget mentions, procurement involvement), and (c) any explicit pricing pushback already observed. Output is a sensitivity classification + suggested concession path + risk-flagged "do not concede here" guidance for the deal desk reviewer.</p>
+  <div class="alert-box alert-gold">Augments AGT-406 CPQ &amp; Deal Desk's existing 4-tier approval flow. AGT-406 owns the approval gate; TOOL-011 informs the human reviewer with structured pricing-sensitivity context. This is the "should we discount, and how much" decision support layer &mdash; not the approval mechanism.</div>
+  <div class="alert-box alert-red"><strong>Calibration risk.</strong> Pricing decisions have outsized financial impact and are highly contextual. The tool is informational input, not a recommendation engine for actual discount amounts. Hard rule: tool never recommends specific discount percentages &mdash; only classifies sensitivity and flags risk patterns. Discount magnitude remains a human decision per AGT-406 spec.</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "opportunity_id": "uuid",
+  "current_quote": {
+    "quote_id": "uuid",
+    "list_price_total_usd": 0,
+    "current_proposed_price_total_usd": 0,
+    "current_discount_pct": 0.0,
+    "skus_in_quote": [
+      { "sku_id": "string", "list_unit_price": 0, "proposed_unit_price": 0, "quantity": 0 }
+    ]
+  },
+  "deal_context": {
+    "current_stage": "string",
+    "deal_health_score": 0,
+    "icp_tier": "T1" | "T2" | "T3",
+    "vertical": "string",
+    "estimated_acv_usd": 0,
+    "competitor_detected": "string | null",
+    "champion_qualified": true | false,
+    "economic_buyer_identified": true | false
+  },
+  "conversation_signals": {                // from AGT-407 trailing 60d for this deal
+    "price_objections_raised": [
+      { "objection_text_summary": "string", "raised_at": "ISO 8601",
+        "addressed": true | false }
+    ],
+    "budget_mentions": [
+      { "mention_text_summary": "string", "mention_at": "ISO 8601",
+        "stated_budget_range_usd": "string | null" }
+    ],
+    "procurement_involvement_detected": true | false,
+    "procurement_engagement_stage": "not_yet" | "introduced" |
+                                    "actively_negotiating" | "blocking"
+  },
+  "cohort_history": {                      // from QuoteLog
+    "cohort_definition": "string",         // similar segment/vertical/ACV band
+    "cohort_size": 0,
+    "cohort_avg_final_discount_pct": 0.0,
+    "cohort_p25_final_discount_pct": 0.0,
+    "cohort_p75_final_discount_pct": 0.0,
+    "cohort_avg_revisions_to_close": 0.0,
+    "cohort_acceptance_rate_at_initial_quote": 0.0
+  },
+  "previous_quote_revisions_in_deal": [    // if any prior versions
+    { "version": 0, "discount_pct": 0.0, "outcome": "rejected" | "negotiated" }
+  ]
+}</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "sensitivity_classification": "low_sensitivity" | "moderate_sensitivity" |
+                                "high_sensitivity" | "highly_constrained_budget",
+  "classification_confidence": "high" | "medium" | "low",
+  "key_drivers": [
+    {
+      "driver": "string",
+      "evidence": "string",
+      "input_field": "string",             // citation
+      "directional_impact": "increases_sensitivity" | "decreases_sensitivity"
+    }
+  ],
+  "cohort_comparison": {
+    "current_discount_vs_cohort": "below_p25" | "p25_to_p50" |
+                                   "p50_to_p75" | "above_p75",
+    "interpretation": "string"
+  },
+  "concession_path_observations": [
+    {
+      "observation": "string",
+      "rationale": "string"
+    }
+  ],
+  "do_not_concede_flags": [
+    {
+      "flag_type": "weak_qualifier" |
+                   "discount_above_authority" |
+                   "competitive_response_not_warranted" |
+                   "contract_term_concession_higher_leverage" |
+                   "champion_not_confirmed",
+      "explanation": "string"
+    }
+  ],
+  "deal_desk_review_recommendation": {
+    "review_priority": "standard" | "elevated" | "executive",
+    "reviewer_focus_areas": ["string"]
+  },
+  "ungrounded_assumptions": ["string"],
+  "data_completeness": "high" | "medium" | "low",
+  "tool_metadata": {
+    "model": "claude-sonnet-4-6",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+  <div class="alert-box alert-amber"><strong>Hard rule:</strong> Output never contains a specific recommended discount percentage or unit price. Tool produces sensitivity classification + cohort context + observation/flag patterns; human deal desk reviewer determines actual discount magnitude per AGT-406 approval flow.</div>
+</div>
+
+<!-- ── SENSITIVITY TAXONOMY ──────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Sensitivity taxonomy</div>
+  <table>
+    <tr><th>Classification</th><th>Indicators</th><th>Interpretation</th></tr>
+    <tr><td><code>low_sensitivity</code></td><td>Champion qualified + economic buyer engaged + minimal price objections + no procurement blocking + cohort accepts at list-or-near</td><td>Concession unnecessary. List or near-list pricing likely to close. Discount here erodes margin without advancing close probability.</td></tr>
+    <tr><td><code>moderate_sensitivity</code></td><td>Some price objections (addressed) + procurement introduced but not blocking + cohort typical discount in p25&ndash;p75 range</td><td>Standard concession path expected. Cohort-typical discount range is the reasonable negotiation envelope.</td></tr>
+    <tr><td><code>high_sensitivity</code></td><td>Multiple unaddressed price objections + active procurement negotiation + competitor detected + cohort discount typically above p75</td><td>Significant negotiation likely. Multiple revisions likely. Consider non-price levers (term length, payment terms, ramp) before deeper price concessions.</td></tr>
+    <tr><td><code>highly_constrained_budget</code></td><td>Explicit stated budget &lt; current proposed price + procurement blocking + objections framing as "can't afford" not "want better deal"</td><td>Different negotiation altogether. Either reduce scope (remove SKUs, smaller term) or qualify out. Discounting to meet a constrained budget may set a precedent that hurts later expansion.</td></tr>
+  </table>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-406 CPQ &amp; Deal Desk</td><td>On every quote generation requiring approval. Output included in the deal-desk review packet alongside existing 4-tier approval routing data. Reviewer reads sensitivity classification + flags before approving discount magnitude.</td></tr>
+    <tr><td>AGT-401 Deal Health Monitor</td><td>For deals at proposal/negotiation stage with discount under consideration. Output augments deal health context for AGT-902 narrative queries.</td></tr>
+    <tr><td>AGT-902 Account Brain</td><td>For "should we hold the line on this deal?" queries. Brain integrates classification into BrainAnalysisLog narrative.</td></tr>
+    <tr><td>RevOps direct (workspace UI)</td><td>For ad-hoc quote analysis and pricing strategy work. RevOps drops in deal context, gets structured sensitivity read.</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Decision support, not decision authority.</strong> Tool informs the human deal desk reviewer with structured context. Approval and discount magnitude remain in AGT-406's existing 4-tier approval flow, with humans deciding.</li>
+    <li><strong>Cohort comparison anchors interpretation.</strong> Absolute discount levels mean little; relative-to-cohort matters. The cohort_history input provides the anchor. Tool degrades gracefully when cohort data is sparse (small segment, new vertical).</li>
+    <li><strong>Surface anti-patterns explicitly.</strong> The <code>do_not_concede_flags</code> are at least as valuable as the sensitivity classification. "Don't discount here because the champion isn't qualified" is more actionable than "this looks high-sensitivity."</li>
+    <li><strong>Contract-term concessions before price concessions.</strong> Tool's observations may suggest non-price levers (term length, payment terms, ramp schedule, multi-year commit) when those have higher leverage than equivalent price concession. Contract terms preserve list-price baseline for renewals.</li>
+    <li><strong>Avoid race-to-the-bottom dynamics.</strong> Aggregate use of the tool across deal desk should not produce monotonically rising discounts over time. Quarterly retrospective compares pre-tool and post-tool cohort discount distributions; sustained drift is a calibration concern.</li>
+  </ol>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>20K tokens (deal context + cohort history + conversation signals)</td></tr>
+    <tr><td>Per-call output budget</td><td>2.5K tokens</td></tr>
+    <tr><td>Default model</td><td>Sonnet (synthesis-heavy, multi-signal reasoning)</td></tr>
+    <tr><td>Per-call cost</td><td>~$0.10</td></tr>
+    <tr><td>Monthly cap</td><td>$300/mo (~3,000 calls)</td></tr>
+    <tr><td>Frequency</td><td>Moderate &mdash; one call per quote generation requiring deal-desk approval; deals with multiple revisions get multiple calls.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>100% (hard)</td></tr>
+    <tr><td>No discount magnitude in output</td><td>0 instances of specific discount % recommendations (hard, regex-enforced)</td></tr>
+    <tr><td>Sensitivity classification accuracy</td><td>20 retrospective deals with known final discount and acceptance pattern; &ge; 70% classification match.</td></tr>
+    <tr><td>Anti-pattern flag precision</td><td>For 10 retrospective deals where weak champion qualification preceded discount-and-loss outcome: &ge; 60% had <code>weak_qualifier</code> flag set in TOOL-011 output at quote time.</td></tr>
+    <tr><td>Cohort-baseline degradation</td><td>For 5 cases with sparse cohort data: tool returns confidence = medium or low; does not produce inflated cohort comparisons. 100% (hard).</td></tr>
+    <tr><td>Aggregate discount drift monitoring</td><td>Pre-tool vs post-tool cohort discount distribution: median discount should not drift &gt; 2pp. Quarterly retrospective; sustained drift triggers calibration sprint.</td></tr>
+    <tr><td>P95 latency</td><td>&le; 4s</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  TOOL-011 Pricing Sensitivity Analyzer &middot; Tier 3 Specialist Tool &middot; Schema v32<br>
+  Stateless. Decision support only &mdash; never recommends specific discount magnitude. Default Sonnet.<br>
+  Per-call: 20K input + 2.5K output. Monthly cap: $300/mo (~3,000 calls).<br>
+  Augments AGT-406 deal desk approval. Approval flow and discount authority remain unchanged from AGT-406 v18 spec.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-406_CPQ_Deal_Desk.html">AGT-406</a> &middot; <a href="../specs/AGT-401_Deal_Health_Monitor.html">AGT-401</a> &middot; <a href="../specs/AGT-407_Conv_Intelligence.html">AGT-407</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-009 — Activation / Time-to-Value Analyzer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>TOOL-009 &mdash; Activation / Time-to-Value Analyzer</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Measures time-to-value milestones longitudinally per account &middot; Distinct from TOOL-008 (current state snapshot) &mdash; this is timing analysis</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v32</span>
+  <span class="badge badge-domain">Post-sales · Activation</span>
+  <span class="badge badge-model">Haiku</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">Measures longitudinal time-to-value (TTV) milestones for an account against expected timing benchmarks. Where TOOL-008 classifies <em>current</em> adoption pattern (snapshot), TOOL-009 measures <em>timing</em>: did this account hit first-value within X days, did integration light up within Y days, did multi-team adoption emerge within Z days? Output is per-milestone delta vs. benchmark + projected achievement of remaining milestones based on trajectory.</p>
+  <div class="alert-box alert-gold">Closes the timing-side of the post-sales activation gap. TOOL-008 answers "what does this account's adoption look like today?" TOOL-009 answers "is this account on the activation trajectory we expected, and if not, where is it slipping?"</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "account_id": "uuid",
+  "contract_start_date": "ISO 8601",
+  "milestone_definitions": [               // configured per ICP segment
+    {
+      "milestone_id": "string",
+      "milestone_name": "string",          // "first_api_call" / "first_workflow_complete"
+                                           //  "5_users_active" / "integration_live"
+      "expected_days_to_achieve": 0,       // benchmark for this segment
+      "achievement_signal": "string"       // which event/state indicates achievement
+    }
+  ],
+  "achievement_history": [                 // observed achievements
+    {
+      "milestone_id": "string",
+      "achieved_at": "ISO 8601 | null",    // null if not yet achieved
+      "elapsed_days_at_achievement": 0
+    }
+  ],
+  "activity_signals_remaining_milestones": {
+    "trailing_30d_activity_score": 0.0,    // 0-1
+    "feature_adoption_velocity": 0.0,      // features added per week trailing 30d
+    "user_growth_rate": 0.0
+  },
+  "comparison_cohort": {                   // similar accounts at similar contract age
+    "cohort_definition": "string",
+    "cohort_p50_days_per_milestone": [
+      { "milestone_id": "string", "p50_days": 0 }
+    ]
+  }
+}</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "milestone_status": [
+    {
+      "milestone_id": "string",
+      "status": "achieved_on_time" | "achieved_late" |
+                "in_progress_on_track" | "in_progress_at_risk" |
+                "in_progress_off_track" | "stalled",
+      "delta_days_vs_benchmark": 0,        // negative = early; positive = late
+      "delta_pct_vs_cohort_p50": 0.0
+    }
+  ],
+  "overall_ttv_pattern": "ahead" | "on_track" | "lagging" | "stalled",
+  "projected_remaining_milestones": [
+    {
+      "milestone_id": "string",
+      "projected_days_to_achieve": 0,
+      "projected_vs_benchmark": "ahead" | "on_target" | "late" | "very_late",
+      "projection_confidence": "high" | "medium" | "low"
+    }
+  ],
+  "key_observations": [
+    {
+      "observation": "string",
+      "supporting_metric": "string",
+      "implication": "string"
+    }
+  ],
+  "intervention_recommendations": [
+    {
+      "trigger": "string",                 // what observation triggered this
+      "intervention_type": "csm_outreach" | "ie_check_in" |
+                           "workflow_acceleration" | "no_action_needed",
+      "urgency": "high" | "medium" | "low"
+    }
+  ],
+  "ungrounded_assumptions": ["string"],
+  "data_completeness": "high" | "medium" | "low",
+  "tool_metadata": {
+    "model": "claude-haiku-4-5",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-601 Onboarding Orchestrator</td><td>Weekly batch on accounts in onboarding window. Output drives onboarding interventions.</td></tr>
+    <tr><td>AGT-501 Customer Health</td><td>For accounts past onboarding but still ramping (months 3&ndash;9 post-contract). Output augments activation dimension distinct from TOOL-008.</td></tr>
+    <tr><td>AGT-902 Account Brain</td><td>For "is this account activating on time?" queries during meeting prep or hand-off.</td></tr>
+    <tr><td>AGT-704 Business Review Orchestrator</td><td>Aggregate cohort-level TTV trends for QBR retention health section.</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Milestones are configured, not invented.</strong> The tool reads milestone definitions from input &mdash; it does not decide what TTV milestones matter for the segment. RevOps + Product define the milestones; tool measures against them.</li>
+    <li><strong>Numerical comparison + LLM characterization.</strong> Same hybrid pattern as TOOL-004 / TOOL-005 / TOOL-008. Time-delta math runs deterministically; LLM produces the pattern label, observations, and intervention recommendations.</li>
+    <li><strong>Cohort-relative when baseline available.</strong> Absolute timing thresholds matter less than relative-to-cohort timing. A 30-day delay from benchmark is fine if the cohort p50 is at 35; same 30-day delay is concerning if cohort p50 is at 14.</li>
+    <li><strong>Honest about projection confidence.</strong> Projecting future milestone achievement from current activity signals is inherently uncertain. Tool emits projections only when activity signals are strong enough; otherwise marks confidence as low or omits the projection.</li>
+    <li><strong>Distinct from TOOL-008.</strong> TOOL-008 is descriptive (current state of feature adoption); TOOL-009 is longitudinal (timing of milestone achievement). Both can be called for the same account; they answer different questions.</li>
+  </ol>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>8K tokens</td></tr>
+    <tr><td>Per-call output budget</td><td>1.5K tokens</td></tr>
+    <tr><td>Default model</td><td>Haiku</td></tr>
+    <tr><td>Per-call cost</td><td>~$0.01</td></tr>
+    <tr><td>Monthly cap</td><td>$200/mo (~10,000 calls)</td></tr>
+    <tr><td>Frequency</td><td>Moderate &mdash; AGT-601 weekly batch on onboarding accounts; AGT-501 monthly batch on ramping accounts.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>100% (hard)</td></tr>
+    <tr><td>Milestone status classification accuracy</td><td>15 retrospective accounts; &ge; 80% of milestone statuses match retrospective ground truth</td></tr>
+    <tr><td>Projection calibration</td><td>For projected milestones with known retrospective achievement: % where actual achievement fell within projected range &ge; 70%</td></tr>
+    <tr><td>Low-confidence honesty</td><td>For 5 cases with deliberately weak activity signals: tool returns <code>projection_confidence = 'low'</code> (not 'high'). 100% (hard).</td></tr>
+    <tr><td>Cohort-baseline degradation</td><td>5 cases without cohort baseline: tool returns absolute deltas only, marks <code>data_completeness = 'medium'</code> or 'low'. 100% (hard).</td></tr>
+    <tr><td>P95 latency</td><td>&le; 2s</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  TOOL-009 Activation / Time-to-Value Analyzer &middot; Tier 3 Specialist Tool &middot; Schema v32<br>
+  Stateless. Numerical comparison in code, characterization in LLM. Default Haiku.<br>
+  Per-call: 8K input + 1.5K output. Monthly cap: $200/mo (~10,000 calls).<br>
+  Closes: TTV/timing side of post-sales activation gap. Complementary to TOOL-008 (current adoption snapshot).<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-601_Onboarding_Orchestrator.html">AGT-601</a> &middot; <a href="../specs/AGT-501_Customer_Health_Monitor.html">AGT-501</a> &middot; <a href="TOOL-008_Product_Adoption_Pattern_Recognizer.html">TOOL-008</a>
+</div>
+</body>
+</html>

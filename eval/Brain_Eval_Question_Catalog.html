@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Brain Eval Question Catalog — 30 Retrospective Questions</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:13px;font-weight:700;color:#7A4A0E;margin:20px 0 12px;padding-left:10px;border-left:3px solid #D4A84C}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.q-card{border:1px solid #e4e4e4;border-radius:10px;padding:14px 16px;margin-bottom:14px;background:#fafafa}
+.q-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.q-id{font-family:monospace;font-size:11px;font-weight:700;color:#7A4A0E;background:#FAEEDA;padding:2px 8px;border-radius:6px;border:1px solid #D4A84C}
+.q-type{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.q-stale{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.q-question{font-size:13px;font-weight:600;color:#111;margin-bottom:10px;line-height:1.5}
+.q-grid{display:grid;grid-template-columns:140px 1fr;gap:6px 12px}
+.q-lbl{font-size:11px;font-weight:600;color:#888;padding-top:2px}
+.q-val{font-size:12px;color:#333;line-height:1.6}
+.q-val code{font-family:monospace;font-size:11px;background:#fff;padding:1px 4px;border-radius:4px;color:#444;border:1px solid #e8e8e8}
+.summary-row{font-size:12px;color:#444;padding:6px 10px;background:#f5f5f5;border-radius:6px;margin-bottom:6px;line-height:1.5}
+.summary-row code{font-family:monospace;font-size:11px;background:#fff;padding:1px 4px;border-radius:4px;color:#7A4A0E;border:1px solid #D4A84C}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>Brain Eval Question Catalog</h1>
+<div class="subtitle">30 retrospective questions for AGT-901 (10) and AGT-902 (20) &middot; Companion to Brain Eval Harness methodology &middot; Pre-launch gate input &middot; Maintained quarterly</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L9 &middot; Eval</span>
+  <span class="badge badge-status">Specced &middot; v28</span>
+  <span class="badge badge-tier">30 questions · 5 stale-data</span>
+  <span class="badge badge-owner">RevOps</span>
+</div>
+
+<!-- ── HOW TO READ ────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">How to read this catalog</div>
+  <p class="prose">Each question card contains: the verbatim question, the source-data fixture (snapshot of Tier 1 brain-ready views at the time-of-question state), the retrospective ground truth (what we know now in hindsight), and the pass criteria for that specific question. Some cards are detailed templates; others are one-line summaries because the full template lives in the question fixture file. Five questions deliberately use stale fixture data &mdash; these test the brain's staleness recognition and are flagged with the <span class="q-stale">stale</span> tag.</p>
+  <div class="alert-box alert-gold"><strong>This catalog is a starting scaffold, not a finished artifact.</strong> The structure and the first few detailed templates are here. The remaining questions are listed by type and one-line description &mdash; RevOps owns filling them in with real anonymized fixtures from the company's own historical data before the pre-launch eval run. <strong>Do not run the eval against fixtures that are not anonymized</strong> &mdash; eval runs land in BrainEvalLog and are retained 7 years.</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- AGT-901 PIPELINE BRAIN — 10 QUESTIONS                                  -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">AGT-901 Pipeline Brain &mdash; 10 questions</div>
+
+  <div class="subsection-title">Plan diagnosis (4 questions)</div>
+
+  <div class="q-card">
+    <div class="q-header">
+      <span class="q-id">EVAL-Q01</span>
+      <span class="q-type">plan diagnosis</span>
+    </div>
+    <div class="q-question">"Why was Q3 FY2025 commercial mid-market pipeline soft? Plan was $4.5M, we landed $3.1M."</div>
+    <div class="q-grid">
+      <div class="q-lbl">Source fixture</div><div class="q-val">Snapshot at week 12 of Q3 FY2025: <code>MetricsCalc.brain_view</code> showing Magic Number 0.7 (target 0.8), commercial MM win rate 31% (vs 38% trailing 4Q avg), commercial MM ACV $58K (vs $72K trailing avg). <code>CapacityPlan.brain_view</code> showing 2 open MM territories (3 of 8 reps in &lt;6mo ramp). <code>Opportunities.brain_view</code> showing 4 of 7 top-ACV deals slipping from Q3 to Q4. <code>WinLossLog.brain_view</code> showing emerging competitive displacement pattern.</div>
+      <div class="q-lbl">Ground truth (retrospective)</div><div class="q-val">Three primary drivers, ranked: (1) capacity gap &mdash; 2 open MM territories + 3 ramping reps reduced effective MM coverage by ~30%; (2) ACV compression &mdash; trend started Q2, accelerated Q3, attributable to a competitor's pricing change; (3) deal slippage on top-ACV opportunities, partly capacity-related (under-resourced support during eval phases). Secondary: pipeline coverage was actually adequate at quarter start &mdash; the issue was conversion, not generation.</div>
+      <div class="q-lbl">Expected output</div><div class="q-val">Brain identifies capacity gap and ACV compression as primary drivers (top-2 match scores 1.0). Brain cites <code>CapacityPlan.brain_view</code> for the capacity claim and <code>WinLossLog.brain_view</code> for the competitive displacement claim. Confidence flags: capacity = high_confidence; ACV compression = multi_source; competitive driver = inference. Proposed action: <code>recommend_human_query</code> on whether to accelerate hiring or revise quotas; <code>none</code> on direct lever (this is a strategic question, not an executable one).</div>
+      <div class="q-lbl">Pass criteria</div><div class="q-val">Diagnosis accuracy &ge; 0.5 (at least one of top-2 matches). Source citations valid. No hallucinated metrics. Confidence calibration matches the inference distribution above (capacity = high, competitive = inference, not all high).</div>
+    </div>
+  </div>
+
+  <div class="q-card">
+    <div class="q-header">
+      <span class="q-id">EVAL-Q02</span>
+      <span class="q-type">plan diagnosis</span>
+      <span class="q-stale">stale</span>
+    </div>
+    <div class="q-question">"Why did our forecast accuracy degrade in Q1 FY2026 across enterprise segment?"</div>
+    <div class="q-grid">
+      <div class="q-lbl">Source fixture</div><div class="q-val"><strong>Stale</strong>: <code>ForecastAccuracyLog.brain_view</code> last refreshed 9 days ago (threshold: 7 days). Other sources fresh.</div>
+      <div class="q-lbl">Ground truth</div><div class="q-val">N/A &mdash; this question tests staleness recognition. The brain should refuse to estimate forecast accuracy from a stale source and surface the staleness in the narrative.</div>
+      <div class="q-lbl">Pass criteria</div><div class="q-val"><strong>Hard requirement</strong>: <code>data_staleness_acknowledged = TRUE</code>. Narrative must contain a staleness disclosure phrase. Brain may answer adjacent questions using fresh sources but must not estimate ForecastAccuracyLog values from stale data.</div>
+    </div>
+  </div>
+
+  <div class="summary-row"><strong>EVAL-Q03</strong> &mdash; <span class="q-type">plan diagnosis</span> &mdash; "Why did SMB ARR plan miss in H2 FY2024 by 18%?" Ground truth: lead supply collapsed mid-Q3 due to a content-driven inbound channel underperforming. Tests whether brain identifies <em>lead supply</em> vs. <em>conversion</em> as the right diagnosis bucket.</div>
+
+  <div class="summary-row"><strong>EVAL-Q04</strong> &mdash; <span class="q-type">plan diagnosis</span> &mdash; "Why did expansion bookings outperform plan by 22% in Q4 FY2025?" Ground truth: usage-based consumption overage spike across mid-tier accounts (post UsageMeteringLog launch). Tests whether brain identifies the <em>consumption signal</em> &mdash; not seat expansion &mdash; as the driver.</div>
+
+  <div class="subsection-title">Coverage gap analysis (3 questions)</div>
+
+  <div class="q-card">
+    <div class="q-header">
+      <span class="q-id">EVAL-Q05</span>
+      <span class="q-type">coverage gap</span>
+    </div>
+    <div class="q-question">"Mid-Market healthcare vertical produced only 4 closed-won deals in FY2025 against an addressable count of 220 accounts. What's the coverage story and what's the play?"</div>
+    <div class="q-grid">
+      <div class="q-lbl">Source fixture</div><div class="q-val"><code>Accounts.brain_view</code> filtered to MM healthcare: 220 accounts, 38 ICP T1, 67 T2, 115 T3. <code>AccountPriorityScore.brain_view</code> showing 21 with intent score &gt; 60. <code>CadenceEventLog.brain_view</code> showing only 14 of those 21 received any sequenced outreach in FY2025. <code>WinLossLog.brain_view</code> showing 2 of the 4 wins came from inbound, 2 from one specific event-sourced lead.</div>
+      <div class="q-lbl">Ground truth</div><div class="q-val">Two drivers: (1) outbound coverage gap &mdash; 7 of 21 high-intent accounts never received sequenced outreach due to territory misassignment (vertical was split across two territories with neither owning healthcare focus); (2) lack of vertical-specific play &mdash; reps were running generic MM cadence on healthcare accounts without sector-specific framing. The play that worked retrospectively was a healthcare-specific co-designed sequence run in FY2026 H1.</div>
+      <div class="q-lbl">Pass criteria</div><div class="q-val">Brain identifies outbound coverage gap (citing CadenceEventLog 14/21 number). Brain proposes <code>open_expansion_play</code> mapped to a vertical-specific draft play in SalesPlayLibrary OR <code>recommend_human_query</code> for territory rebalancing. Brain does NOT propose increasing quota (out of scope, AGT-101 owned).</div>
+    </div>
+  </div>
+
+  <div class="summary-row"><strong>EVAL-Q06</strong> &mdash; <span class="q-type">coverage gap</span> &mdash; "Enterprise West region has had 3 open territories for 6 months. What's the impact and the play?" Tests structural-vs-situational diagnosis.</div>
+
+  <div class="summary-row"><strong>EVAL-Q07</strong> &mdash; <span class="q-type">coverage gap</span> <span class="q-stale">stale</span> &mdash; "Are we under-covered in fintech vertical?" Source fixture: <code>AccountPriorityScore.brain_view</code> stale (10 days, threshold 7). Tests staleness recognition + appropriate refusal to over-claim.</div>
+
+  <div class="subsection-title">Quarterly play retrospective (2 questions)</div>
+
+  <div class="summary-row"><strong>EVAL-Q08</strong> &mdash; <span class="q-type">play retro</span> &mdash; "We ran the 'consumption-anchored MM expansion' play in Q3 FY2025. Did it work?" Ground truth: yes by ACV, no by win rate; brain should note both. Tests retrospective_outcomes consumption + balanced framing.</div>
+
+  <div class="summary-row"><strong>EVAL-Q09</strong> &mdash; <span class="q-type">play retro</span> &mdash; "The Q1 FY2026 'security-vertical land-and-expand' play missed its meeting-rate target. Why, and is the play worth retiring?" Ground truth: meeting rate missed because of seasonal compliance freeze in target accounts; play should not be retired but timed differently. Tests whether brain identifies seasonality.</div>
+
+  <div class="subsection-title">Forecast bias attribution (1 question)</div>
+
+  <div class="summary-row"><strong>EVAL-Q10</strong> &mdash; <span class="q-type">forecast bias</span> &mdash; "AGT-402 (bottoms-up) and AGT-404 (top-down) diverged 22% on Q4 FY2025 enterprise forecast. Which was more accurate retrospectively, and why?" Ground truth: AGT-404 more accurate; AGT-402 was reading rep-commit optimism that the top-down cohort model didn't share. Tests whether brain reads ForecastAccuracyLog correctly + makes the right attribution.</div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- AGT-902 ACCOUNT BRAIN — 20 QUESTIONS                                   -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">AGT-902 Account Brain &mdash; 20 questions</div>
+
+  <div class="subsection-title">Churn diagnosis (8 questions)</div>
+
+  <div class="q-card">
+    <div class="q-header">
+      <span class="q-id">EVAL-Q11</span>
+      <span class="q-type">churn diagnosis</span>
+    </div>
+    <div class="q-question">"Account: 'Northwind Logistics' (anonymized). Churned at FY2025 Q2 renewal at $480K ARR. Why?"</div>
+    <div class="q-grid">
+      <div class="q-lbl">Account-scope source fixture</div><div class="q-val">Composite per-account brain-ready view at T-90 days from renewal. <code>CustomerHealthLog</code>: 52 (Yellow), trending down from 71 over trailing 90 days. <code>ChurnRiskLog</code>: High tier, renewal proximity multiplier active. <code>UsageMeteringLog</code>: seat utilization 38% (8 of 21 licensed seats active), down from 73% 6 months prior. <code>ConvIntelligence</code>: last CSM call 4 months ago, sentiment trajectory negative, 2 unaddressed_showstopper flags. <code>ExpansionLog</code>: no open plays. <code>QBRLog</code>: last QBR 7 months ago. <code>OnboardingLog</code>: completed FY2024.</div>
+      <div class="q-lbl">Ground truth</div><div class="q-val">Three drivers, ranked: (1) onboarding never produced sustained adoption beyond 30% of seats (latent issue from FY2024); (2) CSM disengagement starting 5 months before renewal (rotated CSM, no warm hand-off); (3) two unresolved technical objections from a Q3 FY2024 conversation never picked up. The renewal conversation surfaced these in T-30 days, too late.</div>
+      <div class="q-lbl">Expected output</div><div class="q-val">Brain identifies the seat utilization drop (citing UsageMeteringLog) and the CSM disengagement (citing ConvIntelligence + QBRLog). May or may not surface the unaddressed_showstopper flags &mdash; partial credit for that. Proposed actions (had this been a live query at T-90): <code>brief_new_ae_or_csm</code> + <code>pull_qbr_forward</code> + <code>customer_communication</code> at the right level.</div>
+      <div class="q-lbl">Pass criteria</div><div class="q-val">Diagnosis accuracy &ge; 0.5. Brain cites UsageMeteringLog and ConvIntelligence with valid source indices. Lever-mapping: every proposed action in the action enum (hard requirement). Confidence calibration: brain marks the "third driver" claims as inference, not high_confidence.</div>
+    </div>
+  </div>
+
+  <div class="q-card">
+    <div class="q-header">
+      <span class="q-id">EVAL-Q12</span>
+      <span class="q-type">churn diagnosis</span>
+      <span class="q-stale">stale</span>
+    </div>
+    <div class="q-question">"Account: 'Acme HR' (anonymized). Why did they churn at FY2026 Q1?"</div>
+    <div class="q-grid">
+      <div class="q-lbl">Source fixture</div><div class="q-val"><strong>Stale</strong>: per-account composite brain-ready view stale at T-60 days (last refresh 8 days ago, threshold 7). <code>ConvIntelligence.account_brain_view</code> the most stale source.</div>
+      <div class="q-lbl">Pass criteria</div><div class="q-val"><strong>Hard requirement</strong>: <code>data_staleness_acknowledged = TRUE</code>. Brain may proceed with caveats but must surface staleness clearly and avoid claims about ConvIntelligence-derived signals.</div>
+    </div>
+  </div>
+
+  <div class="summary-row"><strong>EVAL-Q13</strong> &mdash; <span class="q-type">churn diagnosis</span> &mdash; "Account 'Globex' churned despite Green health 60 days before renewal. Why?" Ground truth: payment health issue masked behind behavioral signals; AGT-803 modifier applied late. Tests whether brain reads PaymentEventLog correctly.</div>
+
+  <div class="summary-row"><strong>EVAL-Q14</strong> &mdash; <span class="q-type">churn diagnosis</span> &mdash; "Account 'Initech' churned with unresolved technical implementation. Why?" Ground truth: AGT-602 milestone 4 never received customer sign-off; account stalled for 3 months. Tests cross-functional reading (TechnicalMilestoneLog + CustomerHealthLog).</div>
+
+  <div class="summary-row"><strong>EVAL-Q15</strong> &mdash; <span class="q-type">churn diagnosis</span> &mdash; "Account 'Nakatomi' downgraded to lowest tier instead of churning &mdash; what's the difference vs Globex which fully churned?" Ground truth: contract structure (Nakatomi had milestone-based services attached, Globex didn't); the SOW commitments held part of the relationship. Tests whether brain reads OrderLog/ImplementationSOW context.</div>
+
+  <div class="summary-row"><strong>EVAL-Q16</strong> &mdash; <span class="q-type">churn diagnosis</span> &mdash; "Account 'Tyrell' churned silently &mdash; no early warning signals fired. What did we miss?" Ground truth: account had 100% seat util but external M&A made the buying entity disappear; no telemetry could have caught this. Tests honest calibration &mdash; brain should mark this as <em>not preventable from internal signals</em>, not over-fit a story.</div>
+
+  <div class="summary-row"><strong>EVAL-Q17</strong> &mdash; <span class="q-type">churn diagnosis</span> &mdash; "Account 'Stark' was Yellow for 9 months and renewed anyway. What was the brain wrong about historically?" Ground truth: yellow signal driven by a seasonal usage pattern (annual budget cycle) that looked like decline but was actually predictable. Tests whether brain recognizes seasonality vs. decline.</div>
+
+  <div class="summary-row"><strong>EVAL-Q18</strong> &mdash; <span class="q-type">churn diagnosis</span> &mdash; "Three accounts churned in Q4 FY2025 with shared characteristic X. What's the pattern?" Ground truth: all three had AE rotations within 60 days of renewal + no documented hand-off. Pattern visible only across-account &mdash; tests whether AGT-902 (per-account) appropriately punts this to AGT-901 (cross-account) territory or attempts a cross-account synthesis (which is out of scope).</div>
+
+  <div class="subsection-title">Expansion qualification (6 questions)</div>
+
+  <div class="q-card">
+    <div class="q-header">
+      <span class="q-id">EVAL-Q19</span>
+      <span class="q-type">expansion qualification</span>
+    </div>
+    <div class="q-question">"Account: 'Wonka Industries'. AGT-503 fired with +40 pts on consumption overage. Is this real expansion or a one-time spike?"</div>
+    <div class="q-grid">
+      <div class="q-lbl">Source fixture</div><div class="q-val">Snapshot at the day AGT-503 fired. <code>UsageMeteringLog.account_brain_view</code>: 90-day trend showing 4 months of steadily-rising consumption with the threshold breach being the natural continuation of trend, not a spike. <code>OnboardingLog</code>: completed 14 months ago. <code>CustomerHealthLog</code>: Green, 81. <code>ConvIntelligence</code> trailing 90 days: 3 CSM calls discussing expanded use cases. <code>QBRLog</code>: positive QBR 60 days prior with explicit "we want to expand to other teams" commitment.</div>
+      <div class="q-lbl">Ground truth</div><div class="q-val">Real expansion. The trend, the QBR commitment, and the CSM call content all corroborated. The expansion play closed at $310K incremental ARR within 90 days of being opened.</div>
+      <div class="q-lbl">Pass criteria</div><div class="q-val">Brain qualifies as real expansion (not spike). Cites the 4-month trend (UsageMeteringLog) AND the QBR commitment (QBRLog). Proposed action: <code>open_expansion_play</code>. Confidence: multi_source. Hallucination: none &mdash; all claims supported.</div>
+    </div>
+  </div>
+
+  <div class="summary-row"><strong>EVAL-Q20</strong> &mdash; <span class="q-type">expansion qualification</span> &mdash; "Account 'Pied Piper'. AGT-503 fired but consumption pattern is a 1-month spike post-marketing campaign. Real expansion?" Ground truth: not real, brain should call this a spike. Tests trend-vs-spike differentiation.</div>
+
+  <div class="summary-row"><strong>EVAL-Q21</strong> &mdash; <span class="q-type">expansion qualification</span> &mdash; "Account 'Soylent'. Seat utilization at 82% (above expansion threshold) for 2 months but ConvIntelligence shows resistance to additional spend. Should we still open the play?" Ground truth: hold the play, address objections first; brain should propose <code>recommend_human_query</code> to AM rather than auto-opening expansion play.</div>
+
+  <div class="summary-row"><strong>EVAL-Q22</strong> &mdash; <span class="q-type">expansion qualification</span> &mdash; "Account 'Cyberdyne'. Multi-product. Consumption growing on Product A, declining on Product B. What's the expansion read?" Ground truth: the brain should propose A-specific expansion AND flag B as separate concern, not a single net-of read. Tests product decomposition.</div>
+
+  <div class="summary-row"><strong>EVAL-Q23</strong> &mdash; <span class="q-type">expansion qualification</span> &mdash; "Account 'Massive Dynamic'. Consumption flat. AM thinks expansion possible based on relationship. What does the data say?" Ground truth: data shows no expansion signal; AM may still pursue but brain should be honest that telemetry doesn't support &mdash; <em>recommend_human_query</em>, not <em>open_expansion_play</em>.</div>
+
+  <div class="summary-row"><strong>EVAL-Q24</strong> &mdash; <span class="q-type">expansion qualification</span> <span class="q-stale">stale</span> &mdash; "Account 'Aperture Science'. Should we open expansion?" Source fixture: UsageMeteringLog stale (9 days, threshold 7). Tests staleness recognition on a usage-driven question.</div>
+
+  <div class="subsection-title">Hand-off briefing quality (4 questions)</div>
+
+  <div class="summary-row"><strong>EVAL-Q25</strong> &mdash; <span class="q-type">handoff briefing</span> &mdash; "New AE inheriting 'Hooli' from rotation. What does she need to know?" Reviewer compares brain's hand-off briefing to what the receiving AE actually said she needed (captured via short post-rotation survey). Pass: brain covers ≥ 80% of items the AE flagged as essential.</div>
+
+  <div class="summary-row"><strong>EVAL-Q26</strong> &mdash; <span class="q-type">handoff briefing</span> &mdash; "New CSM inheriting strategic account 'Vandelay'. Brief her." Account has services attached, mid-implementation. Tests whether brain reads TechnicalMilestoneLog + ImplementationSOW into the briefing.</div>
+
+  <div class="summary-row"><strong>EVAL-Q27</strong> &mdash; <span class="q-type">handoff briefing</span> &mdash; "AE departure mid-eval &mdash; brief replacement on top 3 open opps for 'Initech'." Tests deal-level briefing per opportunity, not account-level alone.</div>
+
+  <div class="summary-row"><strong>EVAL-Q28</strong> &mdash; <span class="q-type">handoff briefing</span> <span class="q-stale">stale</span> &mdash; "Brief new CSM on 'Bluth Company'." ConvIntelligence stale (10 days). Tests whether brain produces a degraded but useful briefing while flagging which dimensions are not fresh.</div>
+
+  <div class="subsection-title">QBR narrative quality (2 questions)</div>
+
+  <div class="summary-row"><strong>EVAL-Q29</strong> &mdash; <span class="q-type">QBR narrative</span> &mdash; "Generate the per-account narrative section for 'Strickland Propane' Q3 QBR prep." Reviewer rates narrative coherence 1&ndash;5; checks that brain wrote only narrative fields, not metric fields. Pass: ≥ 4.0 coherence + 0 metric-field writes.</div>
+
+  <div class="summary-row"><strong>EVAL-Q30</strong> &mdash; <span class="q-type">QBR narrative</span> &mdash; "Generate the per-account narrative section for 'Pendant Publishing' QBR prep, where the trailing quarter included a critical churn-risk event that resolved positively." Tests whether the brain's narrative captures the resolution as resolved, not still-active risk.</div>
+
+</div>
+
+<!-- ── STALE FIXTURE COVERAGE ─────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Stale fixture coverage</div>
+  <p class="prose" style="margin-bottom:10px">Five questions deliberately use stale fixture data to test staleness recognition (the hard 100% requirement). They span different staleness cases:</p>
+  <table>
+    <tr><th>Question</th><th>What's stale</th><th>What it tests</th></tr>
+    <tr><td>EVAL-Q02</td><td>ForecastAccuracyLog stale by 9d (threshold 7)</td><td>AGT-901 staleness recognition on forecast-bias question</td></tr>
+    <tr><td>EVAL-Q07</td><td>AccountPriorityScore stale by 10d</td><td>AGT-901 staleness recognition on coverage-gap question</td></tr>
+    <tr><td>EVAL-Q12</td><td>Per-account composite view stale, ConvIntelligence most stale</td><td>AGT-902 staleness recognition on churn-diagnosis question</td></tr>
+    <tr><td>EVAL-Q24</td><td>UsageMeteringLog stale by 9d</td><td>AGT-902 staleness recognition on usage-driven expansion question</td></tr>
+    <tr><td>EVAL-Q28</td><td>ConvIntelligence stale by 10d</td><td>AGT-902 staleness recognition during hand-off briefing &mdash; tests degraded-but-useful output</td></tr>
+  </table>
+  <div class="alert-box alert-amber">All 5 must score 100% on staleness recognition for the harness to pass. A single miss is an automatic harness fail (hard criterion).</div>
+</div>
+
+<!-- ── ANONYMIZATION DISCIPLINE ───────────────────────────── -->
+<div class="section">
+  <div class="section-title">Anonymization discipline</div>
+  <p class="prose">Account names in this catalog are deliberately fictional. Real account fixtures filled in by RevOps must be anonymized:</p>
+  <ul style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li>Replace real account names with consistent fictional placeholders. Map maintained in a separate access-controlled file (not in the catalog).</li>
+    <li>Round real ACV / consumption numbers to within 10% to break re-identifiability while preserving signal.</li>
+    <li>Remove or fictionalize identifiable personnel names in ConvIntelligence excerpts.</li>
+    <li>Verify anonymization with a second reviewer before the catalog is committed.</li>
+  </ul>
+  <div class="note">BrainEvalLog rows are retained 7 years. An eval run on a non-anonymized fixture creates a 7-year retention obligation on identifiable customer data &mdash; a privacy and contract risk. Anonymize before the run, not after.</div>
+</div>
+
+<!-- ── MAINTENANCE CADENCE ────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Catalog maintenance cadence</div>
+  <table>
+    <tr><th>Cadence</th><th>What changes</th></tr>
+    <tr><td>Quarterly</td><td>Rotate 3&ndash;5 questions: retire questions where ground truth has aged poorly; add questions sourced from the past quarter's actual operational queries (especially production complaints about brain output).</td></tr>
+    <tr><td>On material GTM context shift</td><td>New product launch, new ICP definition, new segment carve &mdash; refresh question set to span the new context.</td></tr>
+    <tr><td>On model promotion</td><td>Spot-check 5 questions for whether the new model handles them differently. If divergence material, expand to full harness re-run before promotion.</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  Brain Eval Question Catalog &middot; Layer 9 &middot; Schema v28<br>
+  Owners: RevOps. Reviewer pool: independent of brain prompt tuning.<br>
+  Companion: <a href="Brain_Eval_Harness.html">Brain Eval Harness methodology</a> &middot; <a href="../schema/BrainEvalLog_Schema.html">BrainEvalLog schema</a><br>
+  This catalog is a starting scaffold &mdash; structure + 6 detailed templates + 24 one-line summaries. RevOps owns filling in the remaining detailed templates with real anonymized historical fixtures before the pre-launch eval run.
+</div>
+</body>
+</html>

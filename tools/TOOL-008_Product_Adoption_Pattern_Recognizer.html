@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-008 — Product Adoption Pattern Recognizer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.pattern-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;font-family:monospace}
+</style>
+</head>
+<body>
+
+<h1>TOOL-008 &mdash; Product Adoption Pattern Recognizer</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Recognizes feature-by-feature adoption patterns for an account &middot; Different shape than TOOL-004 &mdash; this is feature engagement, not consumption volume</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v31</span>
+  <span class="badge badge-domain">Post-sales · Activation</span>
+  <span class="badge badge-model">Haiku</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">Reads per-account feature engagement telemetry (which product features are used, by how many users, how often, in what sequence) and classifies the account's adoption pattern: deeply integrated / surface-only / siloed-by-team / declining / activating. Different from TOOL-004 (consumption volume forecasting) &mdash; this tool is about <em>which</em> features are used, not <em>how much</em>. Used by AGT-501 customer health (as activation dimension augment) and AGT-902 Account Brain for "is this account actually getting value?" diagnostic queries.</p>
+  <div class="alert-box alert-gold">Closes the post-sales gap on feature-level adoption that the v26 evaluation flagged as missing. Today AGT-501 has a seat utilization dimension (how many seats are active) but no feature-engagement dimension (which features those seats are using). That distinction matters for predicting churn/expansion much earlier than seat metrics alone.</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "account_id": "uuid",
+  "feature_engagement_telemetry": {
+    "trailing_window_days": 90,
+    "feature_usage": [
+      {
+        "feature_id": "string",
+        "feature_category": "core" | "advanced" | "integration" | "admin" | "experimental",
+        "first_use_at": "ISO 8601 | null",
+        "last_use_at": "ISO 8601 | null",
+        "use_event_count_in_window": 0,
+        "distinct_users_in_window": 0,
+        "users_pct_of_active": 0.0          // % of account's active users using this feature
+      }
+    ]
+  },
+  "account_context": {
+    "contract_start_date": "ISO 8601",
+    "active_seats": 0,
+    "licensed_seats": 0,
+    "primary_use_case": "string",
+    "ideal_feature_set_for_use_case": ["feature_id"]   // optional —
+                                                       // expected features per ICP segment
+  },
+  "comparison_baseline": {                  // optional — expected pattern per cohort
+    "cohort_definition": "string",
+    "cohort_typical_feature_breadth": 0,    // # features used by median similar account
+    "cohort_typical_users_per_feature_pct": 0.0
+  }
+}</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "adoption_pattern": {
+    "primary_pattern": "deeply_integrated" | "surface_only" |
+                       "siloed_by_team" | "declining" | "activating",
+    "secondary_pattern": "string | null",   // when account fits two patterns
+    "pattern_confidence": "high" | "medium" | "low"
+  },
+  "adoption_metrics": {
+    "feature_breadth": 0,                    // # distinct features used in window
+    "feature_breadth_vs_cohort": 0.0,        // ratio vs baseline
+    "core_feature_adoption_pct": 0.0,        // % of core features used
+    "advanced_feature_adoption_pct": 0.0,    // % of advanced features used
+    "integration_feature_count": 0,
+    "feature_concentration_index": 0.0,      // 0-1, low = broad use, high = concentrated
+    "newly_adopted_features_in_window": 0,
+    "abandoned_features_in_window": 0        // features that lost users
+  },
+  "key_observations": [
+    {
+      "observation": "string",
+      "supporting_metric": "string",
+      "interpretation": "string"
+    }
+  ],
+  "implications_for_caller": {
+    "expansion_signal": "strong" | "moderate" | "none",
+    "churn_signal": "strong" | "moderate" | "none",
+    "intervention_recommendation": "string | null"
+  },
+  "ungrounded_assumptions": ["string"],
+  "data_completeness": "high" | "medium" | "low",
+  "tool_metadata": {
+    "model": "claude-haiku-4-5",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+</div>
+
+<!-- ── PATTERN TAXONOMY ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Adoption pattern taxonomy</div>
+  <table>
+    <tr><th>Pattern</th><th>What it looks like</th><th>Implication</th></tr>
+    <tr><td><span class="pattern-pill" style="background:#E1F5EE;color:#085041;border:1px solid #5DCAA5">deeply_integrated</span></td><td>Broad feature breadth + high users-per-feature + multiple integration features active. Account uses the product as system-of-record for the use case.</td><td>Strong renewal signal. Strong expansion candidate. Low churn risk.</td></tr>
+    <tr><td><span class="pattern-pill" style="background:#FAEEDA;color:#633806;border:1px solid #EF9F27">surface_only</span></td><td>Narrow breadth + only core features + low users-per-feature. Account uses the product but hasn't gone deep.</td><td>At-risk on renewal &mdash; competitor swap-out is easier. Activation play candidate &mdash; can grow into deeply_integrated.</td></tr>
+    <tr><td><span class="pattern-pill" style="background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB">siloed_by_team</span></td><td>Decent breadth but concentrated &mdash; one team uses many features, other teams use few or none. High feature_concentration_index.</td><td>Cross-team expansion signal. Risky on champion loss &mdash; if the active team's champion leaves, account drops to surface_only fast.</td></tr>
+    <tr><td><span class="pattern-pill" style="background:#FAECE7;color:#712B13;border:1px solid #F0997B">declining</span></td><td>Abandoned features &gt; newly adopted features in window. Users-per-feature trending down.</td><td>Strong churn signal. Intervention candidate. AGT-503 expansion plays should be suppressed.</td></tr>
+    <tr><td><span class="pattern-pill" style="background:#EAF3DE;color:#27500A;border:1px solid #97C459">activating</span></td><td>Newly-onboarded account with rapidly expanding feature breadth + new users adopting. Trajectory positive.</td><td>Onboarding success signal. Activation investment paying off. AGT-501 health should reflect upward trend.</td></tr>
+  </table>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-501 Customer Health Monitor</td><td>Daily batch on per-account basis. Output augments AGT-501's behavioral dimensions with a "feature engagement" dimension (separate from seat utilization).</td></tr>
+    <tr><td>AGT-902 Account Brain</td><td>"Is this account actually getting value?" queries. Brain integrates pattern + key_observations into BrainAnalysisLog narrative.</td></tr>
+    <tr><td>AGT-503 Expansion Trigger</td><td>Augments expansion qualification &mdash; deeply_integrated and siloed_by_team accounts get higher expansion-readiness signal; declining accounts get expansion suppressed.</td></tr>
+    <tr><td>AGT-601 Onboarding Orchestrator</td><td>For activating accounts &mdash; tracks onboarding success via feature breadth growth.</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Pattern recognition, not score generation.</strong> Output is a <em>characterization</em>, not a single number. AGT-501 owns score composition; this tool informs one dimension of that score.</li>
+    <li><strong>Cohort-relative when possible.</strong> Feature breadth means little in absolute terms ("they use 8 features") &mdash; meaningful only relative to expected breadth for similar accounts. The <code>comparison_baseline</code> input enables this; tool degrades gracefully when baseline absent.</li>
+    <li><strong>Numerical work in code, characterization in LLM.</strong> Same pattern as TOOL-004 and TOOL-005. Concentration index, breadth ratios, abandonment counts &mdash; all computed deterministically. LLM produces the pattern label + observations + interpretation.</li>
+    <li><strong>Distinguish "siloed_by_team" from "concentrated usage."</strong> A small account where 3 users use many features is not siloed &mdash; it's appropriately scoped. Siloed_by_team requires multi-team account context (active_seats &gt; some threshold). Tool is honest when account size doesn't permit the distinction.</li>
+    <li><strong>Onboarding-aware.</strong> An account 30 days into contract with low feature breadth is not "surface_only" &mdash; it's "activating" or pre-pattern. Tool factors contract_start_date.</li>
+  </ol>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>10K tokens (feature telemetry can be sparse for small accounts, dense for large)</td></tr>
+    <tr><td>Per-call output budget</td><td>1.5K tokens</td></tr>
+    <tr><td>Default model</td><td>Haiku (numerical + classification)</td></tr>
+    <tr><td>Per-call cost estimate</td><td>~$0.01</td></tr>
+    <tr><td>Monthly cap</td><td>$300/mo (~15,000 calls)</td></tr>
+    <tr><td>Frequency</td><td>Daily batch from AGT-501 across active accounts. Higher volume than other tools but Haiku keeps cost contained.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>100% (hard)</td></tr>
+    <tr><td>Pattern classification accuracy</td><td>20 retrospective accounts with known retrospective adoption profiles. &ge; 75% pattern match.</td></tr>
+    <tr><td>Churn signal calibration</td><td>10 accounts that retrospectively churned. % where TOOL-008 flagged churn_signal as moderate or strong &ge; 12mo before churn. &ge; 60%.</td></tr>
+    <tr><td>Onboarding-aware classification</td><td>5 accounts in first 60 days of contract. % correctly labeled "activating" rather than "surface_only" &mdash; 100% (hard, eval-enforced).</td></tr>
+    <tr><td>Cohort-baseline degradation</td><td>5 cases without baseline data. Tool produces output with <code>data_completeness = 'medium'</code> or <code>'low'</code>; does not fabricate cohort comparisons. 100% (hard).</td></tr>
+    <tr><td>P95 latency</td><td>&le; 2s</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  TOOL-008 Product Adoption Pattern Recognizer &middot; Tier 3 Specialist Tool &middot; Schema v31<br>
+  Stateless. Numerical work in code, classification in LLM. Default Haiku.<br>
+  Per-call: 10K input + 1.5K output. Monthly cap: $300/mo (~15,000 calls).<br>
+  Closes: post-sales feature-level adoption gap from v26 architecture evaluation.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-501_Customer_Health_Monitor.html">AGT-501</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902</a> &middot; <a href="TOOL-004_Consumption_Forecasting.html">TOOL-004</a> (consumption volume; complementary)
+</div>
+</body>
+</html>

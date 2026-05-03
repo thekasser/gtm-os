@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Brain Eval Harness — Methodology & Rubric</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-green{background:#E1F5EE;border-left:3px solid #5DCAA5;color:#085041}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.intro-banner{background:linear-gradient(135deg,#FAEEDA 0%,#FCF5E5 100%);border:1px solid #D4A84C;color:#7A4A0E;font-size:12px;padding:14px 16px;border-radius:10px;line-height:1.7;margin-bottom:24px}
+.checklist{list-style:none;padding:0;margin:8px 0}
+.checklist li{font-size:12px;color:#333;line-height:1.7;padding-left:22px;position:relative;margin-bottom:4px}
+.checklist li:before{content:"☐";position:absolute;left:0;color:#888;font-size:14px}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.score-pass{color:#085041;font-weight:700}
+.score-warn{color:#7A4A0E;font-weight:700}
+.score-fail{color:#712B13;font-weight:700}
+</style>
+</head>
+<body>
+
+<h1>Brain Eval Harness &mdash; Methodology &amp; Rubric</h1>
+<div class="subtitle">Layer 9: Reasoning &middot; Evaluation infrastructure &middot; Pre-launch gate &middot; Quarterly drift detection &middot; CFO-defensible measurement of brain output quality</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L9 &middot; Eval</span>
+  <span class="badge badge-status">Specced &middot; v28</span>
+  <span class="badge badge-tier">Pre-launch gate &middot; Quarterly drift check</span>
+  <span class="badge badge-owner">RevOps</span>
+</div>
+
+<div class="intro-banner">
+  <strong>Eval before launch, eval forever.</strong> Per the v26 architecture directive: build the offline eval harness <em>before</em> turning any Brain Agent on in production. This is also the CFO defense &mdash; when costs come up, point at measurable accuracy gains. The harness is permanent, not one-and-done; re-run quarterly to detect drift, and on every material prompt or model change.
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">Brain Agents (AGT-901, AGT-902) produce non-deterministic outputs informed by deterministic Tier 1 sources. The eval harness measures whether those outputs are <em>defensible</em> &mdash; cite real sources, recognize stale data, match retrospective ground truth, and route proposed actions to real existing levers. Without this measurement, the brain layer is a pile of opinions; with it, the layer earns its place beside the deterministic backbone.</p>
+</div>
+
+<!-- ── WHEN TO RUN ────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">When to run the eval</div>
+  <table>
+    <tr><th>Trigger</th><th>Scope</th><th>Pass requirement</th></tr>
+    <tr><td><strong>Pre-launch (one time per brain)</strong></td><td>Full 30-question harness against the proposed brain config (model + system prompt + brain-ready views)</td><td>Hard gate. Brain does not go live in production until all hard-requirement criteria pass + at least 70% of soft criteria are within thresholds.</td></tr>
+    <tr><td><strong>Quarterly (recurring)</strong></td><td>Full 30-question harness, on the same questions with refreshed source data</td><td>Soft. If thresholds drift below pass, brain remains live but RevOps gets a calibration alert and the next quarter's planning includes prompt/model adjustment.</td></tr>
+    <tr><td><strong>Material prompt change</strong></td><td>Full 30-question harness</td><td>Hard gate before the new prompt is deployed. Material = changes to system prompt, change in default model tier, change in brain-ready view contracts.</td></tr>
+    <tr><td><strong>New model version available</strong></td><td>Full 30-question harness on the new model</td><td>Comparison against current production. Promotion only if new model meets or beats current on all hard criteria + 5/7 soft criteria.</td></tr>
+    <tr><td><strong>On-demand (operator suspicion)</strong></td><td>Full or partial harness, RevOps choice</td><td>Diagnostic only &mdash; does not gate production. Used when RevOps suspects drift or has a complaint about a recent brain output.</td></tr>
+  </table>
+</div>
+
+<!-- ── HARNESS COMPOSITION ────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Harness composition &mdash; 30 historical questions</div>
+  <table>
+    <tr><th>Brain</th><th>Question count</th><th>Question types</th></tr>
+    <tr><td><strong>AGT-901 Pipeline Brain</strong></td><td>10 questions</td><td>4 plan diagnosis · 3 coverage gap analysis · 2 quarterly play retrospective · 1 forecast bias attribution</td></tr>
+    <tr><td><strong>AGT-902 Account Brain</strong></td><td>20 questions</td><td>8 churn diagnosis · 6 expansion qualification · 4 hand-off briefing quality · 2 QBR narrative quality</td></tr>
+  </table>
+  <p class="prose" style="margin-top:8px">Question split favors AGT-902 because it operates at higher volume (per-account synthesis is the high-frequency use case) and because per-account historical ground truth is easier to construct than cross-segment ground truth. Both are real use cases worth eval coverage, but the volumes are different.</p>
+  <p class="prose" style="margin-top:8px">See <a href="Brain_Eval_Question_Catalog.html"><strong>Brain Eval Question Catalog</strong></a> for the full 30-question catalog with templates, fixtures, and expected outputs.</p>
+</div>
+
+<!-- ── QUESTION CONSTRUCTION GUIDELINES ──────────────────── -->
+<div class="section">
+  <div class="section-title">Question construction &mdash; what makes a good retrospective question</div>
+  <p class="prose" style="margin-bottom:10px">A good retrospective eval question has four properties:</p>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Ground truth exists.</strong> The right answer is knowable in retrospect because we can see what actually happened (deal closed/lost, customer churned/renewed, expansion materialized/didn't, plan met/missed).</li>
+    <li><strong>Source data is reconstructible.</strong> The Tier 1 service tables can be replayed to the state they were in at the time the question would have been asked. The brain reads the historical state, not today's state.</li>
+    <li><strong>Multiple defensible answers are possible &mdash; but some are clearly better.</strong> Eval is not "exact match" &mdash; it's "did the brain identify the right drivers, propose the right levers, recognize the data freshness, cite real sources." A wrong-but-defensible answer scores partial; a confident-and-wrong answer scores zero on hallucination dimension.</li>
+    <li><strong>Spans the brain's actual use cases.</strong> Don't over-fit the eval to easy questions. Coverage across the use case taxonomy in the brain spec is what makes eval predictive of production performance.</li>
+  </ol>
+  <div class="note">Hard rule: if you can't reconstruct what the Tier 1 service tables looked like at the time the question would have been asked, the question is not eligible for the harness. The brain reads the time-of-question state, not the post-hoc state. Otherwise the eval measures hindsight bias, not brain quality.</div>
+</div>
+
+<!-- ── SCORING RUBRIC ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Scoring rubric &mdash; per-question dimensions</div>
+  <p class="prose" style="margin-bottom:10px">Every brain output is scored across 7 dimensions. Some are hard requirements (binary pass/fail); some are soft thresholds (graded). Aggregated across the 30 questions, the brain either passes the harness or it doesn't.</p>
+  <table>
+    <tr><th>Dimension</th><th>Type</th><th>Measurement</th><th>Pass threshold</th></tr>
+    <tr><td><strong>1. Source citation rate</strong></td><td>Soft</td><td>% of numerical claims in narrative_output that carry a valid <code>[src:N]</code> citation pointing to a real <code>sources_read</code> entry</td><td><span class="score-pass">&ge; 95%</span></td></tr>
+    <tr><td><strong>2. Hallucination rate</strong></td><td>Hard</td><td>% of claims containing values not supported by any cited source. Scored by human eval reviewer comparing narrative_output to sources_read.</td><td><span class="score-pass">&le; 2%</span> (hard)</td></tr>
+    <tr><td><strong>3. Staleness recognition</strong></td><td>Hard</td><td>For questions with deliberately stale fixture data: did the brain surface staleness in the narrative AND set <code>data_staleness_acknowledged = TRUE</code>?</td><td><span class="score-pass">100%</span> (hard &mdash; no exceptions)</td></tr>
+    <tr><td><strong>4. Diagnosis accuracy</strong></td><td>Soft</td><td>Did the brain's top-2 identified causes match the retrospective ground truth? Scored 1.0 if both match, 0.5 if one matches, 0.0 if neither.</td><td><span class="score-pass">&ge; 0.70</span> mean across questions</td></tr>
+    <tr><td><strong>5. Lever-mapping correctness</strong></td><td>Hard (AGT-902 only)</td><td>Every <code>proposed_actions[].action_type</code> must be in the AGT-902 enum (<code>pull_qbr_forward</code>, <code>open_expansion_play</code>, <code>brief_new_ae_or_csm</code>, <code>customer_communication</code>, <code>escalate_to_slm</code>, <code>recommend_human_query</code>, <code>none</code>). Trigger-enforced at write, validated at eval.</td><td><span class="score-pass">100%</span> (hard)</td></tr>
+    <tr><td><strong>6. Confidence calibration</strong></td><td>Soft</td><td>Distribution of confidence flags across claims. Healthy: ~60% high_confidence, ~25% inference, &le;10% speculation. Unhealthy: 100% high_confidence with errors (dishonest), or 50%+ speculation (over-cautious).</td><td><span class="score-pass">Distribution within 15pp of healthy bands</span></td></tr>
+    <tr><td><strong>7. Narrative coherence</strong></td><td>Soft</td><td>Human reviewer rating: does the narrative make sense, follow from the cited sources, lead to the proposed actions? Scored 1&ndash;5 per question.</td><td><span class="score-pass">&ge; 4.0</span> mean across questions</td></tr>
+  </table>
+  <div class="alert-box alert-red">Any hard-criterion failure (hallucination &gt; 2%, staleness recognition &lt; 100%, lever-mapping &lt; 100%) is an automatic harness fail regardless of soft-criterion performance. The brain does not go to production with hard failures &mdash; eval gates that out.</div>
+</div>
+
+<!-- ── PASS/FAIL DECISION ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Pass/fail decision logic</div>
+  <table>
+    <tr><th>Condition</th><th>Outcome</th></tr>
+    <tr><td>All hard criteria pass + all soft criteria pass</td><td><span class="score-pass">PASS</span> &mdash; brain approved for production</td></tr>
+    <tr><td>All hard criteria pass + 5 of 4 soft criteria pass + no soft criterion is &gt;15pp below threshold</td><td><span class="score-pass">PASS-WITH-NOTES</span> &mdash; production approved, calibration items logged for next iteration</td></tr>
+    <tr><td>All hard criteria pass + soft criteria significantly below thresholds</td><td><span class="score-warn">CONDITIONAL</span> &mdash; brain may run in shadow mode (outputs logged, not surfaced) for a calibration period; re-eval before promotion to user-facing</td></tr>
+    <tr><td>Any hard criterion fails</td><td><span class="score-fail">FAIL</span> &mdash; brain blocked from production. Diagnose root cause, fix, re-run full harness.</td></tr>
+  </table>
+</div>
+
+<!-- ── HUMAN REVIEW ROLE ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Human review &mdash; what's automated vs. what isn't</div>
+  <p class="prose" style="margin-bottom:10px">The harness combines automated checks and human judgment. Both are required for a defensible eval.</p>
+  <table>
+    <tr><th>Dimension</th><th>Automated</th><th>Human required</th></tr>
+    <tr><td>Source citation rate</td><td>Yes &mdash; regex parse <code>[src:N]</code>, validate against sources_read</td><td>No</td></tr>
+    <tr><td>Hallucination rate</td><td>Partial &mdash; can flag claims without citations automatically</td><td>Yes &mdash; reviewer compares cited claims to source values, validates support</td></tr>
+    <tr><td>Staleness recognition</td><td>Yes &mdash; check <code>data_staleness_acknowledged</code> flag and presence of staleness phrase in narrative</td><td>No</td></tr>
+    <tr><td>Diagnosis accuracy</td><td>No</td><td>Yes &mdash; reviewer compares brain's top-2 causes to retrospective ground truth (provided in question template)</td></tr>
+    <tr><td>Lever-mapping correctness</td><td>Yes &mdash; enum validation</td><td>No</td></tr>
+    <tr><td>Confidence calibration</td><td>Yes &mdash; distribution math</td><td>Sometimes &mdash; flagged outputs reviewed for honest calibration</td></tr>
+    <tr><td>Narrative coherence</td><td>No</td><td>Yes &mdash; reviewer rates 1&ndash;5</td></tr>
+  </table>
+  <div class="note">Reviewer should be a RevOps team member familiar with the underlying GTM context but not the person who tuned the brain prompt. Independence matters &mdash; the reviewer is the auditor for this exercise.</div>
+</div>
+
+<!-- ── RUN MECHANICS ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Run mechanics</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Snapshot Tier 1 source data</strong> at the time-of-question state for each of the 30 questions. Snapshots persist in the question catalog as part of the fixture.</li>
+    <li><strong>Invoke the brain</strong> with the question and the snapshotted brain-ready views as context. Capture the full BrainAnalysisLog row.</li>
+    <li><strong>Auto-score</strong> dimensions 1, 3, 5, 6 (and partially 2). Output: per-question auto-score JSON.</li>
+    <li><strong>Human review</strong> for dimensions 2 (full), 4, 7. Reviewer reads the brain's narrative + sources_read + retrospective ground truth, scores per dimension, leaves comments.</li>
+    <li><strong>Aggregate</strong> per-dimension scores across the 30 questions. Apply the pass/fail decision logic.</li>
+    <li><strong>Write</strong> a BrainEvalLog row capturing the run: harness version, brain version, model, prompt hash, per-question scores, aggregated scores, pass/fail decision, reviewer identity, run timestamp.</li>
+    <li><strong>Surface results</strong> in a RevOps dashboard. Track quarterly trend.</li>
+  </ol>
+  <div class="note">Run cadence target: 1 business day end-to-end for a quarterly run with one reviewer. Pre-launch may take 2&ndash;3 days because the catalog itself is being constructed alongside.</div>
+</div>
+
+<!-- ── DRIFT DETECTION ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Drift detection &mdash; what to watch for over time</div>
+  <table>
+    <tr><th>Drift signal</th><th>Likely cause</th><th>Action</th></tr>
+    <tr><td>Source citation rate falling</td><td>Brain producing more inference, less direct citation. May correlate with prompt changes that emphasized synthesis over fidelity.</td><td>Review recent prompt diffs. Re-emphasize citation requirement in system prompt.</td></tr>
+    <tr><td>Hallucination rate rising</td><td>Model failure mode, or brain-ready view contract drift (brain receiving incomplete data and filling gaps)</td><td>Audit recent BrainAnalysisLog. Check brain-ready view definitions vs. current Tier 1 schema. Consider model swap.</td></tr>
+    <tr><td>Diagnosis accuracy falling</td><td>GTM context shift (new product, new ICP) that the brain hasn't been retuned for. Brain is still smart on yesterday's questions but wrong on today's.</td><td>Refresh question catalog with newer questions. Update system prompt with current ICP / product context.</td></tr>
+    <tr><td>Confidence calibration becoming more high-confidence</td><td>Prompt nudged toward "decisive" output style. Often correlates with rising hallucination.</td><td>Pull back. Honest calibration beats decisive calibration.</td></tr>
+    <tr><td>Narrative coherence falling</td><td>System prompt accumulation &mdash; too many instructions, brain losing focus</td><td>Prompt simplification pass. Trim; reorganize.</td></tr>
+  </table>
+  <p class="prose" style="margin-top:8px">Quarterly trend on each dimension is plotted in the RevOps eval dashboard. Sustained drift over 2 consecutive quarters in any dimension triggers a brain calibration sprint.</p>
+</div>
+
+<!-- ── COST OF EVAL ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost of running the eval</div>
+  <p class="prose" style="margin-bottom:10px">Eval is itself a cost line. Sized to be small enough to absorb easily.</p>
+  <table>
+    <tr><th>Component</th><th>Cost</th></tr>
+    <tr><td>30 brain calls per run, ~30K input + ~3K output, Sonnet pricing</td><td>~$3 per full run</td></tr>
+    <tr><td>Quarterly cadence + 2&ndash;3 ad-hoc runs per year</td><td>~$25/yr in token cost</td></tr>
+    <tr><td>Human reviewer time</td><td>~6 hours per quarterly run for 30 questions = ~24 hours/year &asymp; 0.012 FTE</td></tr>
+    <tr><td>Catalog maintenance</td><td>~4 hours per quarter to add/refresh questions = ~16 hours/year</td></tr>
+  </table>
+  <div class="alert-box alert-green">Total: under $50/yr token + ~40 hours of analyst time. Cheaper than a single bad brain output that loses a deal.</div>
+</div>
+
+<!-- ── FAILURE MODES OF EVAL ITSELF ───────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval failure modes &mdash; what to watch for in the eval itself</div>
+  <table>
+    <tr><th>Symptom</th><th>Cause</th><th>Action</th></tr>
+    <tr><td>Eval consistently passes; production users complain</td><td>Eval over-fits to easy questions; doesn't span actual use case distribution</td><td>Refresh catalog with questions sourced from production complaints. Review use case taxonomy coverage.</td></tr>
+    <tr><td>Eval consistently fails; users report the brain works fine</td><td>Eval too strict, or ground truth in catalog is wrong</td><td>Audit specific failing questions. Validate ground truth with second reviewer.</td></tr>
+    <tr><td>Reviewer disagrees with their prior-quarter scores on the same outputs</td><td>Reviewer drift, or the rubric is too vague</td><td>Tighten rubric definitions. Calibrate reviewers periodically with golden-set questions.</td></tr>
+    <tr><td>Brain "memorizes" the eval (suspicious if same questions show consistently top scores)</td><td>System prompt or fine-tune leaked eval questions</td><td>Audit prompt for eval contamination. Rotate question wording in catalog. Hold out a small private set for spot checks.</td></tr>
+    <tr><td>Eval takes too long to run, gets skipped</td><td>Process burden too high</td><td>Streamline auto-scoring. Reduce reviewer cognitive load. Don't compromise on hard criteria; consider thinning soft criteria if real burden.</td></tr>
+  </table>
+</div>
+
+<!-- ── PRE-LAUNCH CHECKLIST ───────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Pre-launch checklist &mdash; before either brain goes live</div>
+  <ul class="checklist">
+    <li>Question catalog populated to 30 questions (10 AGT-901 + 20 AGT-902) with full templates: question, source fixture, retrospective ground truth, expected output framing, pass criteria.</li>
+    <li>At least 5 of the 30 questions deliberately use stale fixture data to test staleness recognition.</li>
+    <li>Auto-scoring script for dimensions 1, 3, 5, 6 written and tested against 3 sample brain outputs.</li>
+    <li>Reviewer rubric document (this doc + the catalog) reviewed by RevOps team for clarity.</li>
+    <li>BrainEvalLog schema deployed.</li>
+    <li>RevOps dashboard for eval results scaffolded (per-dimension trends + per-question breakdown).</li>
+    <li>First full harness run completed against the proposed brain config (model + prompt + brain-ready views).</li>
+    <li>Pass/fail decision documented; if PASS or PASS-WITH-NOTES, brain approved for production.</li>
+    <li>If CONDITIONAL or FAIL, root cause analysis + fix + re-run before any launch consideration.</li>
+    <li>Quarterly cadence scheduled in the RevOps calendar (e.g., end of each fiscal quarter).</li>
+  </ul>
+</div>
+
+<div class="footer">
+  Brain Eval Harness &middot; Methodology &amp; Rubric &middot; Layer 9 &middot; Schema v28<br>
+  Owner: RevOps. Reviewer pool: RevOps team members who did not tune the brain prompts (independence required).<br>
+  Companion documents: <a href="Brain_Eval_Question_Catalog.html">Brain Eval Question Catalog</a> &middot; <a href="../schema/BrainEvalLog_Schema.html">BrainEvalLog production schema</a><br>
+  Pre-launch gate for AGT-901 + AGT-902. Quarterly cadence + on-demand triggers (material prompt change, new model version, operator suspicion).<br>
+  This harness is the CFO defense. When asked about brain cost, point at measurable accuracy + the absence of recurring incidents from the gated launches.
+</div>
+</body>
+</html>

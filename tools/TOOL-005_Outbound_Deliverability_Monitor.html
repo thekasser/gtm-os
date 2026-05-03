@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-005 — Outbound Deliverability Monitor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>TOOL-005 &mdash; Outbound Deliverability Monitor</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Reads outbound sequence performance signals, characterizes deliverability health, flags reputation risks &middot; Closes Domain 4 gap from v26 architecture eval</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v31</span>
+  <span class="badge badge-domain">Domain 4 · AI-native outbound</span>
+  <span class="badge badge-model">Haiku</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">Reads outbound sequence performance data (bounce rates, reply quality, suppression patterns, sender reputation signals from email providers) and produces a deliverability health characterization with specific risk flags. Used by AGT-302 Cadence Coordinator to detect quality degradation before it cascades into reputation damage, and by AGT-303 Cadence Intelligence to inform sequence pause/throttle recommendations.</p>
+  <div class="alert-box alert-gold">Closes Domain 4 gap from v26 eval. Today AGT-301/302/303 cover sequence generation, execution, and pattern analysis — but no component owns deliverability health specifically. This tool is the missing observability layer for outbound quality.</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "scope": "global" | "sender_domain" | "sequence_template" | "rep",
+  "scope_id": "string",                    // domain/template_id/rep_id per scope
+  "time_window": {
+    "start": "ISO 8601",
+    "end": "ISO 8601"
+  },
+  "performance_signals": {
+    "total_emails_sent": 0,
+    "hard_bounce_rate": 0.0,               // % of total
+    "soft_bounce_rate": 0.0,
+    "spam_complaint_rate": 0.0,
+    "unsubscribe_rate": 0.0,
+    "reply_rate": 0.0,
+    "open_rate": 0.0,                      // optional — pixel-tracking signal
+    "auto_reply_rate": 0.0                 // out-of-office / not-here patterns
+  },
+  "reputation_signals": {                  // from email service provider APIs
+    "google_postmaster_score": 0.0,        // 0-100 if available
+    "microsoft_snds_status": "string",     // green/yellow/red
+    "blacklist_check_results": [
+      { "blacklist_name": "string", "listed": true | false }
+    ]
+  },
+  "suppression_signals": {                 // from CadenceEventLog suppressed_reason
+    "top_suppression_reasons": [
+      { "reason": "string", "count": 0, "pct_of_sends": 0.0 }
+    ]
+  },
+  "trailing_baseline": {                   // 30-day baseline for comparison
+    "hard_bounce_rate": 0.0,
+    "spam_complaint_rate": 0.0,
+    "reply_rate": 0.0
+  }
+}</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "deliverability_health": {
+    "overall_status": "green" | "yellow" | "red" | "critical",
+    "primary_concern": "string | null",    // top concern in one sentence
+    "concern_severity": "low" | "medium" | "high" | "critical"
+  },
+  "risk_flags": [                          // ordered by severity
+    {
+      "flag_type": "high_hard_bounce" | "spam_complaint_spike" |
+                   "blacklist_listing" | "reply_rate_collapse" |
+                   "auto_reply_spike" | "list_quality_degraded" |
+                   "sender_reputation_decline" | "suppression_pattern_anomaly",
+      "severity": "low" | "medium" | "high" | "critical",
+      "evidence": "string",                // what specifically triggered the flag
+      "recommended_action": "throttle_sends" | "pause_sequence" |
+                            "warm_up_sender" | "investigate_list_source" |
+                            "review_template_content" | "manual_review",
+      "supporting_metric": { "name": "string", "value": 0.0, "baseline": 0.0 }
+    }
+  ],
+  "comparison_to_baseline": {
+    "bounce_rate_delta": 0.0,
+    "spam_complaint_delta": 0.0,
+    "reply_rate_delta": 0.0,
+    "is_meaningful_deviation": true | false  // statistical not just numerical
+  },
+  "interpretation_for_caller": "string",   // 2-3 sentence narrative summary
+  "ungrounded_assumptions": ["string"],
+  "tool_metadata": {
+    "model": "claude-haiku-4-5",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+  <div class="alert-box alert-amber"><strong>Hard rule:</strong> The tool never recommends an action it doesn't have evidence for. Recommended actions must trace to specific risk_flags + supporting metrics. No "general advice" output.</div>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-302 Cadence Coordinator</td><td>Daily batch on global + per-sender-domain scope. Output drives auto-throttle decisions when severity is high or critical (with RevOps notification, not silent action).</td></tr>
+    <tr><td>AGT-303 Cadence Intelligence</td><td>Weekly batch on per-sequence-template scope. Output feeds AGT-303's risk-classified recommendations to AGT-302 (3-business-day veto window applies).</td></tr>
+    <tr><td>RevOps direct (workspace UI)</td><td>Investigative — when reply rates drop or bounce rates spike, RevOps drops in the metrics, gets a structured diagnosis with recommended actions.</td></tr>
+    <tr><td>AGT-901 Pipeline Brain</td><td>For "is outbound quality a bottleneck?" diagnostic queries when investigating soft pipeline.</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Numerical work in code, characterization in LLM.</strong> Same pattern as TOOL-004. Statistical significance tests, baseline comparison, deviation calculations — all in code. The LLM reads the structured numerical input and produces interpretation + recommended action mapping.</li>
+    <li><strong>Severity drives recommendation, not just metric value.</strong> A 1% spam complaint rate is critical (industry threshold). A 4% hard bounce rate is high but not critical if list source explains it. Severity calibration considers context.</li>
+    <li><strong>Throttling, not pausing, on yellow.</strong> Pausing a sequence has real cost (broken pipeline). Reduce send volume first; pause only on critical flags.</li>
+    <li><strong>Reputation signals weighted heavily.</strong> ESP-reported reputation (Google Postmaster, Microsoft SNDS) is a leading indicator; reply-rate decline is a lagging one. Tool weights leading indicators higher.</li>
+  </ol>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>8K tokens</td></tr>
+    <tr><td>Per-call output budget</td><td>2K tokens</td></tr>
+    <tr><td>Default model</td><td>Haiku — pattern matching + flag generation; no synthesis-heavy reasoning</td></tr>
+    <tr><td>Per-call cost estimate</td><td>~$0.01 per call</td></tr>
+    <tr><td>Monthly cap</td><td>$150/mo (~7,500 calls)</td></tr>
+    <tr><td>Frequency expectation</td><td>Daily batch from AGT-302 + weekly batch from AGT-303 + ad-hoc. Most monthly usage is the daily batch.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>100% (hard)</td></tr>
+    <tr><td>Recommendation grounding</td><td>100% — every recommended_action traces to a specific risk_flag (hard)</td></tr>
+    <tr><td>Severity calibration</td><td>15 retrospective cases (known reputation incidents); &ge; 80% correctly identified as critical/high before reputation damage</td></tr>
+    <tr><td>False positive rate on green periods</td><td>&le; 10% — over-flagging green periods creates alert fatigue and undermines the tool</td></tr>
+    <tr><td>P95 latency</td><td>&le; 2s</td></tr>
+  </table>
+</div>
+
+<!-- ── FAILURE MODES ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Action</th></tr>
+    <tr><td>Tool flags false-positive on small-volume periods (variance noise)</td><td>Statistical significance check before flag generation; minimum send volume threshold (e.g., 1000 sends in window) before recommending throttle/pause.</td></tr>
+    <tr><td>Tool misses critical reputation event</td><td>Eval catches via the 15-case set. Tighten reputation_signals weighting; add the missed pattern as a few-shot example.</td></tr>
+    <tr><td>Recommendations conflict (throttle vs. pause)</td><td>Severity hierarchy enforced in output — only one primary recommendation per call. Multiple flags coexist; only one drives the action.</td></tr>
+    <tr><td>ESP reputation API offline</td><td>Tool degrades gracefully — returns output flagged with <code>data_quality = 'low'</code> on reputation dimension. Other dimensions unaffected.</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  TOOL-005 Outbound Deliverability Monitor &middot; Tier 3 Specialist Tool &middot; Schema v31<br>
+  Stateless. Numerical work in code, characterization in LLM. Default Haiku.<br>
+  Per-call: 8K input + 2K output. Monthly cap: $150/mo (~7,500 calls).<br>
+  Closes: Domain 4 gap (AI-native outbound deliverability) from v26 architecture evaluation.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-302_Cadence_Coordinator.html">AGT-302</a> &middot; <a href="../specs/AGT-303_Cadence_Intelligence_Agent.html">AGT-303</a>
+</div>
+</body>
+</html>

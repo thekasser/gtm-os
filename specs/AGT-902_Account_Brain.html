@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-902 — Account Brain</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-green{background:#E1F5EE;border-left:3px solid #5DCAA5;color:#085041}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.intro-banner{background:linear-gradient(135deg,#FAEEDA 0%,#FCF5E5 100%);border:1px solid #D4A84C;color:#7A4A0E;font-size:12px;padding:14px 16px;border-radius:10px;line-height:1.7;margin-bottom:24px}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-902 &mdash; Account Brain</h1>
+<div class="subtitle">Layer 9: Reasoning &middot; Tier 2 Brain Agent &middot; Per-account synthesis &middot; LLM-native &middot; Reads Tier 1 services &middot; Never writes canonical data &middot; Operator-invoked or AGT-704-invoked</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L9 &middot; Agent 02</span>
+  <span class="badge badge-status">Specced &middot; v27</span>
+  <span class="badge badge-tier">Tier 2 &middot; Brain Agent</span>
+  <span class="badge badge-owner">RevOps + Account Teams</span>
+</div>
+
+<div class="intro-banner">
+  <strong>Per-account counterpart to AGT-901.</strong> Where AGT-901 reasons across pipeline-wide signals (segment / period / coverage), AGT-902 reasons across the full L4 + L5 + L6 picture for a <em>single account</em>. Same architectural commitments: LLM-native, reads brain-ready views, writes only to BrainAnalysisLog and SalesPlayLibrary drafts, never writes canonical account data, operator-invoked &mdash; never on cadence. The account team owns the relationship; the brain assembles cross-functional context faster than a human can.
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-902 answers per-account, cross-functional questions: <em>what's actually going on with this customer?</em>, <em>what's the next move?</em>, <em>are the signals across deal health, customer health, usage, conversation intelligence, and renewal proximity telling us something the AM/AE hasn't yet pieced together?</em> It reads the union of Tier 1 service tables relevant to that account and produces a synthesized read with proposed next actions that map to existing levers (AGT-503 expansion play, AGT-504 customer comm, AGT-603 QBR pull-forward, AGT-405 deal recovery brief). The brain proposes; the human owning the account decides.</p>
+</div>
+
+<!-- ── SCOPE ──────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Scope &mdash; what AGT-902 answers, what it doesn't</div>
+  <table>
+    <tr><th>In scope</th><th>Out of scope</th></tr>
+    <tr><td>"What's the play on Acme HR? Usage up 60%, AE rotated 3 weeks ago, no QBR in 5 months."</td><td>Re-scoring health (AGT-501 owns)</td></tr>
+    <tr><td>"Is this account's churn risk actually about payment health, or is something else driving it?"</td><td>Computing churn risk (AGT-502 owns)</td></tr>
+    <tr><td>"Should we pull QBR forward and brief the new AE on the expansion signal?" (proposes existing levers)</td><td>Sending QBR invites (AGT-603 owns) or executing customer comms (AGT-504 owns)</td></tr>
+    <tr><td>Drafting a per-account expansion play for human review</td><td>Activating the play (requires human gate; AGT-302/AGT-503 execute)</td></tr>
+    <tr><td>Synthesizing cross-functional context for an account hand-off (AE rotation, CSM change)</td><td>Performing the hand-off (humans + tooling)</td></tr>
+    <tr><td>Per-account section of QBR prep narrative (called by AGT-603 narrative path)</td><td>Computing health/churn/expansion numbers shown in QBR (Tier 1 services)</td></tr>
+  </table>
+  <div class="alert-box alert-amber"><strong>The hard line.</strong> AGT-902 never writes <code>CustomerHealthLog</code>, <code>ChurnRiskLog</code>, <code>ExpansionLog</code>, or any other canonical Tier 1 table. If a Tier 1 service's view is stale, AGT-902 surfaces the staleness in its narrative and refuses to estimate. The human reading the output sees both the synthesis and the data freshness limits.</div>
+</div>
+
+<!-- ── READ CONTRACT ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Read contract &mdash; Tier 1 services consumed (per-account scoped)</div>
+  <p class="prose" style="margin-bottom:10px">AGT-902 reads <em>per-account</em> brain-ready views. The query scope is always <code>WHERE account_id = ?</code> &mdash; the brain never reads cross-account aggregates. This bounds context size and keeps queries cheap.</p>
+  <table>
+    <tr><th>Tier 1 service</th><th>Brain-ready view (account-scoped)</th><th>Used for</th></tr>
+    <tr><td>AGT-501 Customer Health Monitor</td><td>CustomerHealthLog.account_brain_view &mdash; current score + 90-day trend + dimension breakdown + payment modifier</td><td>Health diagnosis: which dimension is moving?</td></tr>
+    <tr><td>AGT-502 Churn Risk Detector</td><td>ChurnRiskLog.account_brain_view &mdash; current tier + renewal proximity + drivers</td><td>Renewal risk synthesis</td></tr>
+    <tr><td>AGT-503 Expansion Trigger</td><td>ExpansionLog.account_brain_view &mdash; open plays + signal sources + suppression history</td><td>Expansion opportunity assessment</td></tr>
+    <tr><td>AGT-804 Revenue Recognition (via UsageMeteringLog)</td><td>UsageMeteringLog.account_brain_view &mdash; trailing 90d consumption + seat utilization + overage events</td><td>Usage trajectory; consumption forecasting (calls Tier 3 tool when available)</td></tr>
+    <tr><td>AGT-401 Deal Health Monitor</td><td>Opportunities.account_brain_view &mdash; open opps + health trend per opp</td><td>Active deals on the account, deal-level risks</td></tr>
+    <tr><td>AGT-407 Conversation Intelligence</td><td>ConvIntelligence.account_brain_view &mdash; trailing 90d, filterable by call_owner_role (per v23 ripple)</td><td>Sentiment trajectory, objection patterns, next-step quality &mdash; CSM calls vs AE calls</td></tr>
+    <tr><td>AGT-603 QBR Prep</td><td>QBRLog.account_brain_view &mdash; QBR history + outcomes + open commitments</td><td>"When was the last QBR and what was promised?"</td></tr>
+    <tr><td>AGT-601 Onboarding Orchestrator</td><td>OnboardingLog.account_brain_view &mdash; current onboarding stage + MAP status + comp hold</td><td>For accounts still onboarding: identifying activation friction</td></tr>
+    <tr><td>AGT-602 Technical Implementation</td><td>TechnicalMilestoneLog.account_brain_view &mdash; milestones + customer sign-off status</td><td>Services-attached deals: technical risk view</td></tr>
+    <tr><td>AGT-803 Payment Health</td><td>PaymentEventLog.account_brain_view &mdash; payment state + retry history</td><td>Distinguish "amber for behavioral reasons" from "amber for payment reasons"</td></tr>
+    <tr><td>Accounts (root)</td><td>Accounts.account_brain_view &mdash; territory, tier, AE/CSM assignment, AE rotation history, contract terms summary</td><td>Relationship context: who owns this account, when did that change</td></tr>
+  </table>
+  <div class="note">The account-brain view is a <em>composite</em> read: a single query call returns a structured per-account snapshot pre-joined across the eleven sources above. This is the brain-ready view contract for AGT-902 specifically &mdash; not a separate per-service call sequence. Owned by Data Engineering; refresh cadence matches the slowest input (typically daily). Stale composite forces staleness flag in BrainAnalysisLog.</div>
+</div>
+
+<!-- ── WRITE CONTRACT ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Write contract &mdash; what AGT-902 may write</div>
+  <table>
+    <tr><th>Target</th><th>What's written</th><th>Canonical?</th></tr>
+    <tr><td><code>BrainAnalysisLog</code></td><td>Every account query: question, account_id, sources read with timestamps, narrative, proposed actions, confidence flags, model used, token cost</td><td>No &mdash; brain's own log</td></tr>
+    <tr><td><code>SalesPlayLibrary</code> (status: <code>draft</code>, scope: <code>account-specific</code>)</td><td>Per-account expansion or retention plays: hypothesis, target account, suggested action sequence, success criteria</td><td>No &mdash; drafts only. Per-account plays go through the same promotion gate as segment-level plays from AGT-901.</td></tr>
+    <tr><td>QBR prep narrative (per-account)</td><td>Per AGT-603 charter extension (v27): the brain may draft per-account narrative sections for QBR prep documents. AGT-603 still owns the artifact and gates publication.</td><td>No &mdash; written into QBRLog narrative fields, not metric fields.</td></tr>
+    <tr><th colspan="3" style="background:#712B13">What AGT-902 may NEVER write</th></tr>
+    <tr><td><code>CustomerHealthLog</code> / <code>ChurnRiskLog</code> / <code>ExpansionLog</code></td><td>Anything &mdash; canonical post-sales data is Tier 1 only (AGT-501/502/503)</td><td>n/a</td></tr>
+    <tr><td><code>Opportunities</code> health/forecast fields</td><td>Anything &mdash; deal data is L4 owned</td><td>n/a</td></tr>
+    <tr><td><code>Accounts</code> tier or scoring fields</td><td>Anything &mdash; account-level scoring is L2 owned (AGT-201)</td><td>n/a</td></tr>
+    <tr><td><code>UsageMeteringLog</code></td><td>Anything &mdash; ingestion service is the only writer per L8 production schema</td><td>n/a</td></tr>
+  </table>
+</div>
+
+<!-- ── USE CASE PATTERNS ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Use case patterns</div>
+  <table>
+    <tr><th>Pattern</th><th>Trigger</th><th>Example</th><th>Output</th></tr>
+    <tr><td><strong>"What's the move?"</strong></td><td>AM/CSM/RevOps query naming an account</td><td>"Acme HR &mdash; expansion signal fired, AE rotated, no QBR in 5 months."</td><td>BrainAnalysisLog: synthesis across 11 sources + 1&ndash;3 proposed actions mapped to existing AGT-503/603/405 levers + 0&ndash;1 draft play in SalesPlayLibrary</td></tr>
+    <tr><td><strong>Account hand-off briefing</strong></td><td>AE/CSM rotation event (manual trigger by RevOps)</td><td>"New AE taking over Northwind. What does she need to know?"</td><td>BrainAnalysisLog hand-off summary: relationship history, open commitments from QBR/MAP, recent ConvIntelligence sentiment trajectory, current open plays, known objections</td></tr>
+    <tr><td><strong>Renewal risk diagnosis</strong></td><td>Triggered by RevOps after AGT-502 surfaces a Critical or High account</td><td>"Why is GlobalCorp Critical &mdash; what's actually driving it, and what's the recovery path?"</td><td>BrainAnalysisLog with dimension-level decomposition + 1&ndash;2 candidate recovery plays + escalation recommendation if warranted</td></tr>
+    <tr><td><strong>Expansion qualification</strong></td><td>AGT-503 fires; AM wants synthesized context</td><td>"AGT-503 says Acme is +40 pts on consumption overage &mdash; is this real expansion or a one-time spike?"</td><td>BrainAnalysisLog with consumption trajectory analysis (calls Tier 3 forecasting tool when available), historical pattern context, qualification recommendation</td></tr>
+    <tr><td><strong>QBR prep narrative</strong></td><td>AGT-603 invokes for per-account QBR prep narrative section</td><td>QBR scheduled, AGT-603 calls for the narrative section</td><td>Narrative content written to QBRLog narrative fields per AGT-603 v27 charter (parallels the AGT-704 narrative model)</td></tr>
+    <tr><td><strong>Cross-account pattern at a single moment</strong></td><td>Operator query: "Which of my T1 accounts have a usage drop &gt; 20% MoM AND no scheduled QBR?"</td><td>This is a list query, not a single-account synthesis</td><td><strong>Out of scope.</strong> Route to AGT-901 or to a Tier 1 service report. AGT-902 is per-account-scoped by design.</td></tr>
+  </table>
+</div>
+
+<!-- ── OUTPUT STRUCTURE ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output structure &mdash; per-account BrainAnalysisLog row</div>
+  <p class="prose" style="margin-bottom:10px">Same structure as AGT-901 outputs, with two additions:</p>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>account_id</strong> &mdash; populated. (AGT-901 outputs leave this NULL because they're cross-account.)</li>
+    <li><strong>account_synthesis_signature</strong> &mdash; a hash of (account_id, source_freshness_timestamps). Two queries within the same composite-view freshness window on the same account return cached results &mdash; saves cost on repeat queries while a meeting is happening.</li>
+  </ol>
+  <p class="prose">All other fields match the BrainAnalysisLog schema. See <a href="../schema/BrainAnalysisLog_Schema.html">BrainAnalysisLog production schema</a>.</p>
+</div>
+
+<!-- ── PROPOSED-ACTION TAXONOMY ───────────────────────────── -->
+<div class="section">
+  <div class="section-title">Proposed-action taxonomy</div>
+  <p class="prose" style="margin-bottom:10px">AGT-902's proposed actions always map to <em>existing</em> Tier 1 levers. The brain does not invent new levers; it routes context to where humans can act on it through the established system.</p>
+  <table>
+    <tr><th>Proposed action</th><th>Maps to lever</th><th>Human approval gate</th></tr>
+    <tr><td><code>pull_qbr_forward</code></td><td>AGT-603 QBR Prep dual-trigger (internal)</td><td>AM accepts; AGT-603 schedules</td></tr>
+    <tr><td><code>open_expansion_play</code></td><td>AGT-503 Expansion Trigger entry already exists; brain confirms qualification or proposes new play in SalesPlayLibrary</td><td>SLM + RevOps if new draft play; AM if existing ExpansionLog entry</td></tr>
+    <tr><td><code>brief_new_ae_or_csm</code></td><td>AGT-405 Meeting Opp Prep (deal-active) or AGT-603 (post-sale)</td><td>Receiving AE/CSM accepts</td></tr>
+    <tr><td><code>customer_communication</code></td><td>AGT-504 Customer Communications</td><td>Always human approval per AGT-504 spec</td></tr>
+    <tr><td><code>escalate_to_slm</code></td><td>Existing AGT-502 escalation chain</td><td>None in addition; AGT-502's existing chain handles</td></tr>
+    <tr><td><code>recommend_human_query</code></td><td>n/a &mdash; the brain is saying "this needs a human's call, here's the framing"</td><td>Human picks it up or doesn't</td></tr>
+    <tr><td><code>none</code></td><td>n/a &mdash; the brain found nothing actionable; output is informational only</td><td>n/a</td></tr>
+  </table>
+  <div class="note">No proposed action ever bypasses an existing approval gate. If AGT-504's spec requires human approval for any customer communication, AGT-902's <code>customer_communication</code> proposal does not weaken that &mdash; it just routes context to the human who has to approve.</div>
+</div>
+
+<!-- ── COST GUARDRAILS ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost guardrails</div>
+  <p class="prose" style="margin-bottom:10px">AGT-902 is the higher-volume brain &mdash; per-account queries happen during meetings, hand-offs, and renewal-prep cycles. Sizing matters more here than for AGT-901.</p>
+  <table>
+    <tr><th>Tactic</th><th>Implementation</th></tr>
+    <tr><td>Default model</td><td>Claude Sonnet. Account-level synthesis fits Sonnet's window comfortably with brain-ready views.</td></tr>
+    <tr><td>Composite view, not 11 separate calls</td><td>Per-account composite view returns the full cross-source snapshot in one read. ~30K input tokens typical.</td></tr>
+    <tr><td>Account synthesis signature caching</td><td>Within a freshness window, repeat queries on the same account return cached results. Saves cost on iterative meeting-prep workflows.</td></tr>
+    <tr><td>Prompt caching</td><td>System prompt + composite view cached per Anthropic prompt-cache TTL (5 min). Iterative follow-up questions on the same account pay the diff only.</td></tr>
+    <tr><td>Per-query budget cap</td><td>Hard limit: 35K input + 4K output per query. Account synthesis should not need more.</td></tr>
+    <tr><td>Monthly tier budget alert</td><td>Alert at 75% of monthly budget (default $1,000/mo &mdash; higher than AGT-901 because volume is higher). Hard stop at 100% requires manual override.</td></tr>
+    <tr><td>Sizing ballpark</td><td>30 queries/day at 30K input + 3K output, Sonnet pricing &asymp; $4/day &asymp; $120/month. See v26 architecture eval cost section.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Measurement</th><th>Pass threshold</th></tr>
+    <tr><td>Source citation rate</td><td>% of numerical claims with valid source citation pointing to a real Tier 1 row</td><td>&ge; 95%</td></tr>
+    <tr><td>Hallucination rate</td><td>% of outputs containing claims not supported by cited sources</td><td>&le; 2%</td></tr>
+    <tr><td>Staleness recognition</td><td>When a source is stale, % of outputs that surface the staleness</td><td>100% &mdash; hard requirement</td></tr>
+    <tr><td>Lever-mapping correctness</td><td>% of proposed actions that map to a real existing Tier 1 lever (no invented actions)</td><td>100% &mdash; hard requirement; eval enforces</td></tr>
+    <tr><td>Per-account synthesis quality</td><td>30 historical accounts where retrospective ground truth exists (e.g., known churn outcomes, known expansion outcomes); % where brain's diagnosis matches</td><td>&ge; 70%</td></tr>
+    <tr><td>Action acceptance rate</td><td>% of proposed actions accepted by the human owning the account (AM/CSM/AE)</td><td>&ge; 40% &mdash; calibration signal more than quality signal; if too high, brain may be reading leadership preference; if too low, brain may be missing context humans have</td></tr>
+    <tr><td>Outcome lift on accepted actions</td><td>Cohort comparison: accounts where brain-proposed actions were accepted + executed, vs control accounts</td><td>Track quarterly; positive lift expected by Q+2 after launch</td></tr>
+  </table>
+</div>
+
+<!-- ── FAILURE MODES ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Likely cause</th><th>Action</th></tr>
+    <tr><td>Brain proposes an action with no mapping to a real Tier 1 lever</td><td>Hallucinated action type</td><td>Hard fail. Eval catches in pre-prod. Flag in BrainAnalysisLog. Action taxonomy is enumerated &mdash; brain output validated against enum.</td></tr>
+    <tr><td>Brain reads a stale composite view without flagging</td><td>Staleness check bypassed</td><td>Hard fail. Sev-2 incident treatment. Source-trace integrity is non-negotiable.</td></tr>
+    <tr><td>Brain output disagrees with human owning the account &gt; 60% of the time</td><td>Brain over-fitting on signals the AM has more context on (e.g., relationship dynamics not in any Tier 1 system)</td><td>Brain may need to lower confidence and surface "this is a hypothesis, you have ground context" framing more aggressively. Tune system prompt; gather acceptance feedback.</td></tr>
+    <tr><td>Brain output accepted often but outcomes worse than control</td><td>Brain reading existing leadership/AM bias and reinforcing it</td><td>Quarterly retrospective. May indicate the brain is amplifying a pattern that doesn't perform. Investigate cohort lift directly &mdash; acceptance is not outcome.</td></tr>
+    <tr><td>Composite view stale and refusal blocks ops use</td><td>Upstream Tier 1 service offline or degraded</td><td>RevOps triages upstream per AGT-704 staleness model. Brain stays offline for that account dimension; other accounts unaffected.</td></tr>
+    <tr><td>Cost spiking</td><td>Likely cause: uncached repeated queries during planning sprint, or composite view bypassed for full-table reads</td><td>Audit recent BrainAnalysisLog rows for token usage. Enforce composite view requirement. Account synthesis signature caching should cap intra-meeting cost.</td></tr>
+  </table>
+</div>
+
+<!-- ── INVOCATION ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Invocation paths</div>
+  <table>
+    <tr><th>Path</th><th>Frequency</th><th>Initiated by</th></tr>
+    <tr><td>Account-named operator query</td><td>Ad-hoc &mdash; meeting prep, hand-off, renewal prep</td><td>AM, CSM, AE, RevOps</td></tr>
+    <tr><td>QBR prep narrative job</td><td>Per AGT-603 cadence; AGT-603 calls AGT-902 for per-account narrative</td><td>AGT-603</td></tr>
+    <tr><td>Account hand-off briefing</td><td>Triggered on AE/CSM rotation events</td><td>RevOps (manual trigger)</td></tr>
+    <tr><td>Renewal-prep batch</td><td>Optional weekly batch over T-90 day renewal cohort</td><td>RevOps (manual or scheduled trigger if RevOps opts in)</td></tr>
+  </table>
+  <div class="note">Like AGT-901, AGT-902 does not run continuously across all accounts on cadence. Operator-driven invocation keeps cost bounded and aligns with the human-in-the-loop approval model. The optional renewal-prep batch is a deliberate exception &mdash; bounded to a small cohort (accounts within 90 days of renewal), explicitly opted into by RevOps.</div>
+</div>
+
+<div class="footer">
+  AGT-902 Account Brain &middot; Layer 9 &middot; Tier 2 Brain Agent &middot; RevOps + Account Teams &middot; Schema v27<br>
+  New tables: none owned. Writes to <a href="../schema/BrainAnalysisLog_Schema.html">BrainAnalysisLog</a> (own log) and <a href="../schema/SalesPlayLibrary_Schema.html">SalesPlayLibrary</a> (account-specific drafts; promotion is human-gated).<br>
+  Triggered by: account-named operator query · AGT-603 narrative job · AE/CSM rotation hand-off · optional renewal-prep batch. <strong>Never on cadence across all accounts.</strong><br>
+  Reads from: per-account composite brain-ready view spanning CustomerHealthLog, ChurnRiskLog, ExpansionLog, UsageMeteringLog, Opportunities, ConvIntelligence, QBRLog, OnboardingLog, TechnicalMilestoneLog, PaymentEventLog, Accounts<br>
+  Writes to: BrainAnalysisLog (own log) · SalesPlayLibrary (drafts only) · QBRLog narrative fields (per AGT-603 v27 charter)<br>
+  Promotion gate: same as AGT-901 &mdash; drafts &rarr; <code>under_review</code> requires human pickup; <code>under_review</code> &rarr; <code>active</code> requires SLM + RevOps joint approval; hard volume cap on active plays per segment.<br>
+  Companion to AGT-901 &mdash; cross-account synthesis lives there; per-account synthesis lives here.
+</div>
+</body>
+</html>

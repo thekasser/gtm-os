@@ -55,8 +55,15 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 
 <div class="meta-row">
   <span class="badge badge-layer">L7 · Agent 03</span>
-  <span class="badge badge-status">Specced · v21</span>
-  <span class="badge badge-schema">Schema adds: WinLossLog, ForecastAccuracyLog, CalibrationSignalLog</span>
+  <span class="badge badge-status">Built · v31</span>
+  <span class="badge badge-schema">Owns: WinLossLog, ForecastAccuracyLog, CalibrationSignalLog</span>
+</div>
+
+<!-- ── v31 PROMOTION BANNER ────────────────────────────────── -->
+<div class="section">
+  <div style="background:#E1F5EE;border:1px solid #5DCAA5;color:#085041;font-size:12px;padding:10px 14px;border-radius:8px;line-height:1.6">
+    <strong>v31 — promoted from Specced to Built.</strong> AGT-703 produces the calibration signals that propagate back into AGT-101 (quota), AGT-201 (ICP), AGT-402 (forecast), AGT-403 (competitive), AGT-404 (top-down forecast). Without AGT-703 Built, the OS has no closed-loop learning &mdash; plays are designed and forecasts produced but bias and pattern signal don't return upstream. AGT-703 is read by both AGT-704 (business review synthesis) and AGT-901 (pipeline brain) via the WinLossLog brain-ready view defined in the v30 contract.
+  </div>
 </div>
 
 <!-- ── PURPOSE ─────────────────────────────────────────────── -->

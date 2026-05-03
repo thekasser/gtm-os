@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-004 — Consumption Forecasting / Runway Predictor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.pattern-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;font-family:monospace}
+.p-linear{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.p-exp{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.p-seasonal{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.p-cliff{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5}
+.p-flat{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+</style>
+</head>
+<body>
+
+<h1>TOOL-004 &mdash; Consumption Forecasting / Runway Predictor</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Reads UsageMeteringLog trailing 90&ndash;180 days for one account+SKU, predicts overage timing + trend characterization &middot; Closes UBB-specific gap from v26 eval</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v29</span>
+  <span class="badge badge-domain">UBB · Post-sales</span>
+  <span class="badge badge-model">Haiku</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">Reads UsageMeteringLog trailing 90&ndash;180 day pattern for one (account_id, sku_id) pair and produces: predicted overage date (or "no overage in next 60 days"), confidence interval, and trend characterization (linear / exponential / seasonal / cliff / flat). Used by the Account Brain when answering "is this real expansion or a one-time spike?", by AGT-503 to augment expansion trigger sensitivity, and by AGT-402 to weight expansion ACV probability in forecasting.</p>
+  <div class="alert-box alert-gold">Closes UBB-specific gap from the v26 eval. Today the system can detect overage <em>has happened</em> (AGT-503 fires on threshold breach) but cannot predict <em>when</em> overage will happen or distinguish trend from spike. For a Checkr-style usage-based business, this is the difference between proactive expansion conversation and reactive damage control.</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "account_id": "uuid",
+  "sku_id": "string",
+  "sku_type": "consumption" | "seat" | "hybrid",
+  "metering_history": [                    // from UsageMeteringLog brain-ready view
+    {
+      "period_start": "ISO 8601",
+      "period_end": "ISO 8601",
+      "units_consumed": 0.0,
+      "commit_units": 0.0,                 // null if pure pay-as-you-go
+      "overage_units": 0.0,
+      "active_seats": 0,                   // for seat/hybrid
+      "licensed_seats": 0,
+      "audit_status": "verified" | "pending_recon"
+    }
+    // ... 90 to 180 days of period rows
+  ],
+  "context": {
+    "contract_start_date": "ISO 8601",
+    "contract_end_date": "ISO 8601",
+    "renewal_date": "ISO 8601",
+    "current_commit_total_period": 0.0,    // current period's commit
+    "trailing_overage_count": 0            // how many prior periods had overage
+  },
+  "forecast_horizon_days": 60              // default 60; max 180
+}</div>
+  <div class="note">All metering_history rows must have <code>audit_status</code> in (verified, pending_recon). Disputed rows are excluded by the calling agent before invocation. The tool refuses if &lt; 30 days of history is provided &mdash; insufficient signal for trend characterization.</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "account_id": "uuid",
+  "sku_id": "string",
+  "forecast_summary": {
+    "predicted_overage": true | false,
+    "predicted_overage_date": "ISO 8601 | null",
+    "predicted_overage_amount_units": 0.0,
+    "confidence_low_units": 0.0,           // lower 10th percentile of forecast
+    "confidence_high_units": 0.0,          // upper 90th percentile
+    "horizon_evaluated_days": 60
+  },
+  "trend_characterization": {
+    "primary_pattern": "linear" | "exponential" | "seasonal" | "cliff" | "flat",
+    "growth_rate_per_period": 0.0,         // unit-time normalized
+    "volatility_score": 0.0,               // 0-1, period-over-period variance
+    "seasonality_detected": true | false,
+    "seasonality_period_days": 0,          // if detected
+    "anomalies_detected": [                // standout periods worth flagging
+      { "period_start": "ISO 8601", "deviation_pct": 0.0, "characterization": "string" }
+    ]
+  },
+  "interpretation_for_caller": {
+    "is_likely_real_expansion": true | false,
+    "is_likely_one_time_spike": true | false,
+    "is_likely_seasonal_recurrence": true | false,
+    "rationale": "string"                  // 1-2 sentence interpretation grounded in the trend
+  },
+  "data_quality": {
+    "history_periods_provided": 0,
+    "missing_periods_detected": 0,
+    "pending_recon_periods": 0,
+    "quality_assessment": "high" | "medium" | "low"
+  },
+  "ungrounded_assumptions": ["string"],
+  "tool_metadata": {
+    "model": "claude-haiku-4-5",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+  <div class="alert-box alert-red"><strong>Hard rule:</strong> when <code>data_quality.quality_assessment = 'low'</code>, the tool returns the forecast but with confidence intervals so wide that downstream callers know to discount it. The tool never produces a confident forecast on bad data &mdash; better to surface low confidence than fabricate certainty. AGT-503 reading a low-quality forecast should not bypass its own scheduled cycle.</div>
+</div>
+
+<!-- ── PATTERN TAXONOMY ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Trend pattern taxonomy</div>
+  <table>
+    <tr><th>Pattern</th><th>What it looks like</th><th>Implication for caller</th></tr>
+    <tr><td><span class="pattern-pill p-linear">linear</span></td><td>Steady period-over-period growth at a consistent rate</td><td>Real expansion. Forecast overage date is reliable. Open expansion play with confidence.</td></tr>
+    <tr><td><span class="pattern-pill p-exp">exponential</span></td><td>Accelerating growth — each period grows faster than the last</td><td>Often new use case ramping. Strong expansion signal. Forecast may underestimate; confidence intervals widen accordingly.</td></tr>
+    <tr><td><span class="pattern-pill p-seasonal">seasonal</span></td><td>Repeating period-over-period pattern aligned with a detected cycle (monthly, quarterly, annual)</td><td>Don't confuse for expansion. May not require a play; may require renewal-timing adjustment.</td></tr>
+    <tr><td><span class="pattern-pill p-cliff">cliff</span></td><td>Sudden discontinuous step (up or down) in a recent period without preceding ramp</td><td>Spike or churn signal, not expansion. AM should investigate cause &mdash; M&A, infrastructure migration, contract event.</td></tr>
+    <tr><td><span class="pattern-pill p-flat">flat</span></td><td>No directional trend; period-over-period variance within normal volatility</td><td>No expansion signal. No churn signal. Account is in steady state.</td></tr>
+  </table>
+  <div class="note">When multiple patterns are present (e.g., seasonal pattern with linear underlying growth), <code>primary_pattern</code> identifies the dominant one and <code>anomalies_detected</code> captures the rest. The interpretation field disambiguates for the caller.</div>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-902 Account Brain</td><td>Most common caller. "Is this real expansion or a spike?" is a core AGT-902 use case (per spec EVAL-Q19, EVAL-Q20, EVAL-Q22). Brain reads UsageMeteringLog.account_brain_view, calls TOOL-004 for forecast + characterization, integrates into BrainAnalysisLog narrative.</td></tr>
+    <tr><td>AGT-503 Expansion Trigger</td><td>As augment to existing 5-signal scoring. When AGT-503 fires on consumption overage, it may call TOOL-004 to characterize the trend before deciding play eligibility &mdash; spike vs. trend matters for whether an expansion play opens.</td></tr>
+    <tr><td>AGT-402 Forecast Adjuster</td><td>For expansion ACV probability weighting in the bottoms-up forecast. AGT-402's third forecast component (expansion, added v23) uses TOOL-004 trend characterization to weight probability by trend strength, not just by ExpansionLog presence.</td></tr>
+  </table>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Prediction, not extrapolation.</strong> The tool produces forecasts with confidence intervals, not point estimates. A point estimate masquerading as prediction is dishonest given the noisiness of consumption data.</li>
+    <li><strong>Pattern first, magnitude second.</strong> The tool's most-valuable output is the <em>characterization</em> (linear vs. spike vs. seasonal). Calibrating the magnitude is secondary &mdash; getting the shape right is what determines play activation. A wrong shape with right magnitude is worse than right shape with conservative magnitude.</li>
+    <li><strong>Honest about data quality.</strong> 30 days of history with 5 missing periods is not the same as 180 days of clean data. The tool reports quality honestly; downstream callers are responsible for discounting low-quality forecasts.</li>
+    <li><strong>No external data.</strong> Tool reads only UsageMeteringLog input passed by the caller. Does not query external systems, does not enrich with industry benchmarks. Keeps the audit trail clean &mdash; every forecast traces to specific input rows.</li>
+    <li><strong>Numerical model, not LLM gut feel.</strong> The LLM portion is for pattern characterization and interpretation. The actual numerical forecasting uses standard time-series math (exponential smoothing, linear regression with seasonality decomposition). Output is the LLM's structured summary of the math, not the LLM's vibe-based prediction.</li>
+  </ol>
+  <div class="alert-box alert-amber"><strong>Implementation note for go-live</strong>: principle 5 means the tool is partly numerical (pattern-detection algorithms running in code) and partly LLM (interpretation + structured output). The LLM does not invent the forecast number. This is enforceable in the implementation but not in the spec alone.</div>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>15K tokens (180 days &times; daily granularity is typically 5&ndash;8K tokens; bounded at 15K for hybrid SKUs)</td></tr>
+    <tr><td>Per-call output budget</td><td>2K tokens (structured forecast + interpretation)</td></tr>
+    <tr><td>Default model</td><td>Haiku &mdash; pattern characterization + interpretation; numerical forecasting runs in code, not in the LLM</td></tr>
+    <tr><td>Per-call cost estimate</td><td>~$0.02 per call at Haiku pricing</td></tr>
+    <tr><td>Monthly cap (default)</td><td>$400/mo &mdash; bounds usage to ~20,000 calls/month</td></tr>
+    <tr><td>Frequency expectation</td><td>Highest of the four tools. Called per-account during meeting prep, on AGT-503 fires, in AGT-402 forecast cycles. Most monthly usage will come from AGT-402 batch invocations during weekly forecast snapshots.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Measurement</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>Output validates against output schema</td><td>100% (hard)</td></tr>
+    <tr><td>Pattern characterization accuracy</td><td>20 historical (account, SKU) cases with known retrospective trend; % where <code>primary_pattern</code> matches</td><td>&ge; 75%</td></tr>
+    <tr><td>Spike-vs-trend differentiation</td><td>5 historical cases that were spikes (didn't repeat) and 5 that were trends (continued); % correctly classified</td><td>&ge; 80% &mdash; this is the most operationally important dimension</td></tr>
+    <tr><td>Forecast calibration</td><td>For 20 cases with known overage outcomes within the forecast horizon: % where actual outcome fell within the [confidence_low, confidence_high] interval</td><td>&ge; 80%</td></tr>
+    <tr><td>Low-quality data handling</td><td>For cases with deliberately gappy or short history, % where <code>data_quality</code> is correctly assessed as <code>low</code> or <code>medium</code> (not <code>high</code>)</td><td>100% (hard)</td></tr>
+    <tr><td>Hallucinated patterns</td><td>% of outputs claiming <code>seasonality_detected = TRUE</code> without sufficient periods to detect seasonality (need &ge; 2 full cycles)</td><td>0% (hard)</td></tr>
+    <tr><td>P95 latency</td><td>End-to-end tool call (numerical forecast + LLM interpretation)</td><td>&le; 3s</td></tr>
+  </table>
+</div>
+
+<!-- ── FAILURE MODES ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Cause</th><th>Action</th></tr>
+    <tr><td>Tool calls a spike "exponential growth"</td><td>Pattern detection algorithm tuned too aggressively</td><td>Hard fail in eval. Tighten cliff-detection threshold. Spikes often have a single-period cliff signature distinct from genuine ramp.</td></tr>
+    <tr><td>Tool produces high-confidence forecast on 30 days of data</td><td>Confidence intervals too narrow at low data volumes</td><td>Confidence intervals must scale with history length. With 30 days of data, intervals should be wide enough that any reasonable outcome falls inside.</td></tr>
+    <tr><td>Seasonality false positive</td><td>Tool claims seasonal pattern after 60 days of history (insufficient cycles)</td><td>Hard rule: seasonality_detected requires &ge; 2 full cycles of history. Eval enforces.</td></tr>
+    <tr><td>Predicts overage that never materializes</td><td>Pattern characterization right, magnitude calibration off</td><td>Track via quarterly retrospective. If systematic over-prediction, recalibrate magnitude bias in the numerical forecaster.</td></tr>
+    <tr><td>AGT-402 forecast destabilizes after TOOL-004 integration</td><td>Tool's expansion ACV probability weights are too volatile period-over-period</td><td>AGT-402 should smooth its TOOL-004 inputs (rolling average), not use raw output directly. Caller responsibility, not TOOL-004's.</td></tr>
+    <tr><td>Cost spike</td><td>AGT-402 calling TOOL-004 per-account-per-week across the full customer base</td><td>Cost cap blocks. Audit: AGT-402 should batch and cache. Per-account forecast doesn't change much week-to-week; weekly recalc is overkill.</td></tr>
+  </table>
+</div>
+
+<!-- ── INTERACTION WITH AGT-503 / AGT-402 / AGT-902 ──────── -->
+<div class="section">
+  <div class="section-title">Interaction with consuming services and brains</div>
+  <p class="prose"><strong>AGT-503 Expansion Trigger</strong>: existing v25 spec fires immediately on consumption overage threshold. Optional augment: AGT-503 calls TOOL-004 to confirm the overage is part of a trend before the +40 pts signal is locked in. If TOOL-004 returns <code>cliff</code> pattern with <code>is_likely_one_time_spike = TRUE</code>, AGT-503 may downgrade the signal weight. This is opt-in &mdash; the existing AGT-503 behavior continues to work without TOOL-004.</p>
+  <p class="prose" style="margin-top:8px"><strong>AGT-402 Forecast Adjuster</strong>: existing v23 spec includes expansion as a third forecast component. TOOL-004 augments by providing trend-strength weighting on each open expansion play in ExpansionLog. Plays anchored by <code>linear</code> or <code>exponential</code> trend get higher probability weights; plays anchored by <code>cliff</code> get lower.</p>
+  <p class="prose" style="margin-top:8px"><strong>AGT-902 Account Brain</strong>: most direct caller. Brain integrates TOOL-004 output into BrainAnalysisLog narrative for "real expansion or spike" questions. Quote-able output is the <code>interpretation_for_caller.rationale</code> field; the brain adds source-trace metadata to the BrainAnalysisLog row.</p>
+</div>
+
+<div class="footer">
+  TOOL-004 Consumption Forecasting / Runway Predictor &middot; Tier 3 Specialist Tool &middot; Schema v29<br>
+  Stateless. Reads UsageMeteringLog input only. Logged via caller's BrainAnalysisLog or service log.<br>
+  Default model: Haiku (LLM for characterization + interpretation; numerical forecasting in code).<br>
+  Per-call budget: 15K input + 2K output. Monthly cap: $400/mo (~20,000 calls).<br>
+  Closes: UBB-specific gap (consumption forecasting / runway prediction) from the v26 architecture evaluation.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902 Account Brain</a> &middot; <a href="../specs/AGT-503_Expansion_Trigger.html">AGT-503 Expansion Trigger</a> &middot; <a href="../schema/UsageMeteringLog_Production_Schema.html">UsageMeteringLog Production Schema</a>
+</div>
+</body>
+</html>

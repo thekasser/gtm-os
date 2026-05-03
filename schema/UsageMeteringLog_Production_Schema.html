@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>UsageMeteringLog — Production Schema</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-status{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.badge-schema{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-owner{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-green{background:#E1F5EE;border-left:3px solid #5DCAA5;color:#085041}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.checklist{list-style:none;padding:0;margin:8px 0}
+.checklist li{font-size:12px;color:#333;line-height:1.7;padding-left:22px;position:relative;margin-bottom:4px}
+.checklist li:before{content:"☐";position:absolute;left:0;color:#888;font-size:14px}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.req{color:#712B13;font-weight:700;font-size:10px}
+.opt{color:#888;font-weight:600;font-size:10px}
+</style>
+</head>
+<body>
+
+<h1>UsageMeteringLog &mdash; Production Schema</h1>
+<div class="subtitle">Layer 8: Revenue Operations &middot; Canonical product telemetry source for ASC 606 recognition, consumption billing, and usage-driven GTM signals &middot; Single-writer: ingestion service &middot; Multi-reader</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L8 &middot; Schema</span>
+  <span class="badge badge-status">Production &middot; v26</span>
+  <span class="badge badge-schema">Owns: UsageMeteringLog</span>
+  <span class="badge badge-owner">Finance + Data Eng (jointly owned)</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">UsageMeteringLog is the single canonical metering source for the OS. Product telemetry (consumption units, seat utilization) lands here, and every downstream agent that needs usage data reads from this table &mdash; never from the product system directly. This concentrates the external integration risk in one place (the ingestion service that writes UsageMeteringLog), keeps consumers source-agnostic, and gives Finance and the auditor exactly one place to validate ASC 606 source data.</p>
+  <div class="alert-box alert-blue">Single-writer invariant. The ingestion service is the only writer. AGT-804, AGT-802, AGT-503, AGT-501 are read-only. No agent writes back to this table.</div>
+</div>
+
+<!-- ── DEPENDENCIES ────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Why this is production-critical</div>
+  <table>
+    <tr><th>Dependent</th><th>Read pattern</th><th>What breaks if data is wrong</th></tr>
+    <tr><td><strong>AGT-804 Revenue Recognition</strong></td><td>Monthly batch on period close, plus intra-period for consumption SKUs</td><td>ASC 606 recognized revenue is wrong &rarr; Magic Number wrong &rarr; board reporting wrong &rarr; audit finding</td></tr>
+    <tr><td><strong>AGT-802 Billing &amp; Invoicing</strong></td><td>End-of-period batch for consumption invoice generation</td><td>Customer is over- or under-billed &rarr; credit memo storm, customer trust loss</td></tr>
+    <tr><td><strong>AGT-503 Expansion Trigger</strong></td><td>Event-driven on consumption-overage and seat-util &ge; 80% threshold breach</td><td>Expansion plays fire late or incorrectly &rarr; missed renewal/expansion revenue</td></tr>
+    <tr><td><strong>AGT-501 Customer Health</strong></td><td>Daily batch on per-account max(seat_utilization_pct)</td><td>Health scores miscalibrated &rarr; AGT-502 churn risk wrong &rarr; AM intervention wrong</td></tr>
+  </table>
+  <div class="note">Because four agents depend on this table for materially different decisions (recognition vs. billing vs. expansion vs. health), data quality on UsageMeteringLog is the single highest-leverage data quality investment in L8.</div>
+</div>
+
+<!-- ── SCHEMA DEFINITION ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema definition</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+    <tr><td><code>usage_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>Primary key. Generated at ingestion.</td></tr>
+    <tr><td><code>account_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>FK to Accounts. Indexed.</td></tr>
+    <tr><td><code>sku_id</code></td><td>VARCHAR(64)</td><td><span class="req">REQ</span></td><td>FK to PricingConfig.skus. Indexed.</td></tr>
+    <tr><td><code>sku_type</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td><code>consumption</code> / <code>seat</code> / <code>hybrid</code>. Drives downstream branching.</td></tr>
+    <tr><td><code>period_start</code></td><td>TIMESTAMPTZ</td><td><span class="req">REQ</span></td><td>First instant of metering period (inclusive).</td></tr>
+    <tr><td><code>period_end</code></td><td>TIMESTAMPTZ</td><td><span class="req">REQ</span></td><td>Last instant of metering period (exclusive). Partition key.</td></tr>
+    <tr><td><code>period_granularity</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td><code>hourly</code> / <code>daily</code> / <code>weekly</code> / <code>monthly</code>. Most consumption SKUs are monthly; AGT-503 may need daily for near-real-time overage.</td></tr>
+    <tr><td><code>units_consumed</code></td><td>NUMERIC(20,4)</td><td><span class="req">REQ</span></td><td>&ge; 0. Units consumed in the period (API calls, GB-hours, background checks, etc.). Hard reject on negative.</td></tr>
+    <tr><td><code>commit_units</code></td><td>NUMERIC(20,4)</td><td><span class="opt">opt</span></td><td>Committed amount per OrderLineItems for this SKU/period. NULL if no commit (pure pay-as-you-go).</td></tr>
+    <tr><td><code>overage_units</code></td><td>NUMERIC(20,4)</td><td><span class="req">REQ</span></td><td>DEFAULT 0. <code>MAX(0, units_consumed - commit_units)</code> when commit_units present, else 0. CHECK constraint enforces.</td></tr>
+    <tr><td><code>unit_price_usd</code></td><td>NUMERIC(12,4)</td><td><span class="opt">opt</span></td><td>In-commit unit price at metering time. Captured for billing/recognition reproducibility &mdash; audit-critical.</td></tr>
+    <tr><td><code>overage_unit_price_usd</code></td><td>NUMERIC(12,4)</td><td><span class="opt">opt</span></td><td>Overage tier price (often differs from in-commit price). Audit-critical.</td></tr>
+    <tr><td><code>overage_amount_usd</code></td><td>NUMERIC(14,4)</td><td><span class="opt">opt</span></td><td><code>overage_units &times; overage_unit_price_usd</code>. Computed at ingest, persisted for audit reproducibility.</td></tr>
+    <tr><td><code>active_seats</code></td><td>INTEGER</td><td><span class="opt">opt</span></td><td>For sku_type IN (seat, hybrid). Distinct active users in the period.</td></tr>
+    <tr><td><code>licensed_seats</code></td><td>INTEGER</td><td><span class="opt">opt</span></td><td>For sku_type IN (seat, hybrid). Licensed quantity per OrderLineItems.</td></tr>
+    <tr><td><code>seat_utilization_pct</code></td><td>NUMERIC(5,2)</td><td><span class="opt">opt</span></td><td>Computed: <code>active_seats / licensed_seats &times; 100</code>. Range [0, 100]. CHECK constraint.</td></tr>
+    <tr><td><code>source_system</code></td><td>VARCHAR(64)</td><td><span class="req">REQ</span></td><td>Product system identifier (e.g., <code>product-prod-us-east-1</code>). Enables multi-region telemetry without ambiguity.</td></tr>
+    <tr><td><code>ingest_event_id</code></td><td>VARCHAR(128)</td><td><span class="req">REQ</span></td><td>Idempotency key from source. UPSERT key. Re-ingest = no-op.</td></tr>
+    <tr><td><code>ingest_batch_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>Batch identifier for the ingestion run. Enables batch-level rollback.</td></tr>
+    <tr><td><code>received_at</code></td><td>TIMESTAMPTZ</td><td><span class="req">REQ</span></td><td>When row landed in UsageMeteringLog.</td></tr>
+    <tr><td><code>effective_at</code></td><td>TIMESTAMPTZ</td><td><span class="req">REQ</span></td><td>When the measurement was taken at source. Distinct from period_end &mdash; effective_at is the wall clock of measurement, period_end is the measurement window boundary.</td></tr>
+    <tr><td><code>record_version</code></td><td>INTEGER</td><td><span class="req">REQ</span></td><td>DEFAULT 1. Increments on correction. Consumers read MAX(record_version) per natural key.</td></tr>
+    <tr><td><code>prior_version_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Points to the row this one supersedes. NULL on initial insert.</td></tr>
+    <tr><td><code>correction_reason</code></td><td>TEXT</td><td><span class="opt">opt</span></td><td>Required (NOT NULL) when record_version &gt; 1. Free text from source or Finance.</td></tr>
+    <tr><td><code>audit_status</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td>DEFAULT <code>pending_recon</code>. Values: <code>pending_recon</code> / <code>verified</code> / <code>disputed</code>. Verified after monthly reconciliation pass.</td></tr>
+    <tr><td><code>created_at</code></td><td>TIMESTAMPTZ</td><td><span class="req">REQ</span></td><td>DEFAULT NOW().</td></tr>
+    <tr><td><code>updated_at</code></td><td>TIMESTAMPTZ</td><td><span class="req">REQ</span></td><td>DEFAULT NOW(). Updated only on audit_status transitions; usage data itself is append-only via record_version model.</td></tr>
+  </table>
+</div>
+
+<!-- ── KEYS & CONSTRAINTS ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Keys, constraints, partitioning</div>
+  <table>
+    <tr><th>Element</th><th>Definition</th><th>Why</th></tr>
+    <tr><td>Primary key</td><td><code>usage_id</code></td><td>Surrogate. Stable across corrections.</td></tr>
+    <tr><td>Unique constraint</td><td><code>(account_id, sku_id, period_start, period_end, source_system, ingest_event_id, record_version)</code></td><td>Enforces idempotent ingest + correction lineage.</td></tr>
+    <tr><td>Idempotency UPSERT key</td><td><code>(source_system, ingest_event_id)</code></td><td>Source replay cannot create duplicates.</td></tr>
+    <tr><td>Partition</td><td>By <code>period_end</code>, monthly</td><td>Most reads filter by period range. Partition pruning is large.</td></tr>
+    <tr><td>Index 1</td><td><code>(account_id, period_end DESC)</code></td><td>AGT-501/503 lookups by account.</td></tr>
+    <tr><td>Index 2</td><td><code>(sku_id, period_end DESC)</code></td><td>AGT-804 batch processing by SKU.</td></tr>
+    <tr><td>Index 3</td><td><code>(audit_status, period_end)</code></td><td>Reconciliation jobs scan unverified rows.</td></tr>
+    <tr><td>Index 4</td><td><code>(received_at)</code></td><td>Ingestion lag monitoring.</td></tr>
+    <tr><td>Foreign keys</td><td><code>account_id</code> &rarr; Accounts; <code>sku_id</code> &rarr; PricingConfig.skus; <code>prior_version_id</code> &rarr; UsageMeteringLog.usage_id (self)</td><td>Referential integrity.</td></tr>
+    <tr><td>CHECK: units_consumed</td><td><code>units_consumed &ge; 0</code></td><td>Negative consumption is a source-system bug. Reject.</td></tr>
+    <tr><td>CHECK: period bounds</td><td><code>period_end &gt; period_start</code></td><td>Inverted period is an upstream bug. Reject.</td></tr>
+    <tr><td>CHECK: overage math</td><td><code>overage_units = GREATEST(0, units_consumed - COALESCE(commit_units, units_consumed))</code></td><td>Overage cannot drift from definition.</td></tr>
+    <tr><td>CHECK: seat util</td><td><code>seat_utilization_pct BETWEEN 0 AND 100</code> when not NULL</td><td>Out-of-range util is a source bug.</td></tr>
+    <tr><td>CHECK: correction lineage</td><td><code>(record_version = 1 AND prior_version_id IS NULL) OR (record_version &gt; 1 AND prior_version_id IS NOT NULL AND correction_reason IS NOT NULL)</code></td><td>Corrections must cite their predecessor and a reason.</td></tr>
+  </table>
+</div>
+
+<!-- ── IDEMPOTENCY & CORRECTION ───────────────────────────── -->
+<div class="section">
+  <div class="section-title">Idempotency &amp; correction model</div>
+  <p class="prose" style="margin-bottom:10px">UsageMeteringLog is append-only at the row level. Initial inserts and corrections both write new rows. The data is never destructively updated &mdash; the record_version + prior_version_id chain is the audit trail.</p>
+  <table>
+    <tr><th>Scenario</th><th>Behavior</th></tr>
+    <tr><td>Source emits same event twice (replay)</td><td>UPSERT on <code>(source_system, ingest_event_id)</code> matches existing row. No new row written. No double-count.</td></tr>
+    <tr><td>Source emits correction for a prior period</td><td>New row written with <code>record_version = prior + 1</code>, <code>prior_version_id = original_usage_id</code>, <code>correction_reason = '...'</code>. Original row preserved.</td></tr>
+    <tr><td>Consumers reading historical data</td><td>Always filter to <code>(MAX(record_version)) per (account_id, sku_id, period_start, period_end, source_system)</code>. View <code>UsageMeteringLog_current</code> exposes this filter as a default read path.</td></tr>
+    <tr><td>Late-arriving data (data for July arrives in August)</td><td>Row inserted with <code>received_at &gt; period_end + threshold</code>. Monitoring alert at &gt;24h late. Consumers tolerant; AGT-804 may need to amend a closed period &rarr; emits ASC 606 prior-period adjustment.</td></tr>
+    <tr><td>Out-of-order replay (correction arrives before original)</td><td>Hard reject. record_version must be monotonic. If the source system has weak ordering, the ingestion service must buffer until the original arrives.</td></tr>
+  </table>
+  <div class="alert-box alert-amber">ASC 606 implication: prior-period corrections are reportable. AGT-804 must distinguish current-period activity from prior-period adjustments in RevenueRecognitionLog. The correction flow here exists specifically so AGT-804 can do that cleanly.</div>
+</div>
+
+<!-- ── QUALITY CHECKS ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Quality checks at ingestion</div>
+  <table>
+    <tr><th>Rule</th><th>Severity</th><th>Action</th></tr>
+    <tr><td><code>units_consumed &ge; 0</code></td><td>HARD</td><td>Reject to DLQ. Page Finance + DataEng on first occurrence.</td></tr>
+    <tr><td><code>period_end &gt; period_start</code></td><td>HARD</td><td>Reject to DLQ. Source-system bug.</td></tr>
+    <tr><td><code>period_end &le; NOW() + 1 hour</code></td><td>HARD</td><td>Reject. Future-dated data is a clock skew or source bug.</td></tr>
+    <tr><td><code>ingest_event_id NOT NULL AND length &gt; 0</code></td><td>HARD</td><td>Reject. Without an idempotency key, replay safety is gone.</td></tr>
+    <tr><td><code>account_id, sku_id resolve to active rows</code></td><td>HARD</td><td>Reject. Orphan FK is a config drift.</td></tr>
+    <tr><td><code>seat_utilization_pct BETWEEN 0 AND 100</code> when not NULL</td><td>HARD</td><td>Reject. Out-of-range value.</td></tr>
+    <tr><td><code>record_version monotonic per natural key</code></td><td>HARD</td><td>Reject. Buffer or fail loudly.</td></tr>
+    <tr><td><code>received_at &le; period_end + 24h</code></td><td>SOFT</td><td>Accept. Emit late-arrival warning to monitoring.</td></tr>
+    <tr><td><code>effective_at within [period_start, period_end + 1h]</code></td><td>SOFT</td><td>Accept. Emit drift warning.</td></tr>
+    <tr><td><code>units_consumed within 10x of trailing 30d median for (account_id, sku_id)</code></td><td>SOFT</td><td>Accept. Emit anomaly warning. Likely customer activity, but may be a source system bug worth a human look.</td></tr>
+  </table>
+  <div class="note">HARD failures land in <code>UsageMeteringDLQ</code> with full payload + rejection reason. DLQ has its own monitoring; entries pending &gt;1 hour escalate to oncall. SOFT warnings emit to a monitoring topic; they do not block ingestion.</div>
+</div>
+
+<!-- ── RECONCILIATION ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Reconciliation against source-of-truth</div>
+  <p class="prose" style="margin-bottom:10px">Ingestion can drop or duplicate rows for any number of reasons (network failure, deployment race, source-system event-emission gap). The defense is a periodic reconciliation pass that compares UsageMeteringLog totals to a separate source-of-truth query on the product database.</p>
+  <table>
+    <tr><th>Cadence</th><th>What's compared</th><th>Tolerance</th></tr>
+    <tr><td>Daily</td><td>Per-account-per-SKU sum(units_consumed) for prior day, UsageMeteringLog vs product DB</td><td>&plusmn; 0.1% or &le; 1 unit, whichever is greater</td></tr>
+    <tr><td>Monthly</td><td>Per-account-per-SKU sum(units_consumed) for closed month</td><td>&plusmn; 0.01%. Stricter because feeds AGT-804 recognition.</td></tr>
+    <tr><td>Quarterly</td><td>Full UsageMeteringLog vs source-of-truth, all SKUs, all accounts</td><td>&plusmn; 0.001%. Audit-grade.</td></tr>
+  </table>
+  <div class="alert-box alert-red">If monthly reconciliation exceeds tolerance, AGT-804's monthly recognition close holds until reconciliation passes. AGT-704's MBR pulls AGT-702 metrics that derive from AGT-804 &mdash; monthly close gate cascades into business review staleness.</div>
+  <p class="prose" style="margin-top:10px">On reconciliation pass, all in-window rows transition <code>audit_status: pending_recon &rarr; verified</code>. On reconciliation failure, RevOps + Finance + DataEng triage; rows may transition to <code>disputed</code> pending resolution.</p>
+</div>
+
+<!-- ── RETENTION ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Retention &amp; cold storage</div>
+  <table>
+    <tr><th>Tier</th><th>Window</th><th>Access pattern</th></tr>
+    <tr><td>Hot (operational)</td><td>0 to 13 months</td><td>All consumers (AGT-501/503/802/804) read freely. SLA-bound queries.</td></tr>
+    <tr><td>Warm (recent history)</td><td>13 to 36 months</td><td>Reporting and analyst queries. AGT-702 trend lookback. Slower SLA.</td></tr>
+    <tr><td>Cold (audit retention)</td><td>36 months to 7 years</td><td>Audit queries only. Restored on demand. ASC 606 + tax retention requirement.</td></tr>
+    <tr><td>Purge</td><td>&gt; 7 years</td><td>Hard delete subject to legal hold checks. Documented in retention runbook.</td></tr>
+  </table>
+  <div class="note">Tier transitions are automated. Tier transitions never modify usage data &mdash; they move bytes, not values. record_version chains preserved across tiers.</div>
+</div>
+
+<!-- ── WRITE PATH ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Write path</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Source emit</strong> &mdash; product system emits a metering event to the ingestion queue (Kafka / Kinesis / SQS, whichever is operational). Event includes natural key (account_id, sku_id, period_start, period_end, source_system, ingest_event_id) and measured values.</li>
+    <li><strong>Ingestion service</strong> &mdash; consumes from queue, runs hard quality checks, performs UPSERT on idempotency key. On hard failure, writes to <code>UsageMeteringDLQ</code> and emits alert.</li>
+    <li><strong>Soft-warning emit</strong> &mdash; soft failures persisted but emitted to a monitoring topic for human review.</li>
+    <li><strong>Threshold subscription</strong> &mdash; the ingestion service additionally publishes to a <code>UsageThresholdEvents</code> topic when consumption-overage or seat-utilization thresholds are crossed. AGT-503 subscribes here for near-real-time expansion triggers (bypassing scheduled cycles per spec v25).</li>
+    <li><strong>Reconciliation jobs</strong> &mdash; daily/monthly/quarterly reconciliation jobs read UsageMeteringLog + source DB, write reconciliation results, transition audit_status.</li>
+    <li><strong>Tier transitions</strong> &mdash; nightly job moves rows older than 13/36 months to warm/cold tiers.</li>
+  </ol>
+</div>
+
+<!-- ── CONSUMER REGISTRY ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Consumer registry</div>
+  <table>
+    <tr><th>Consumer</th><th>Read path</th><th>Refresh</th><th>What they extract</th></tr>
+    <tr><td><strong>AGT-804</strong> Revenue Recognition</td><td>Filter by record_version = MAX per natural key. Filter by audit_status IN (verified, pending_recon).</td><td>Monthly batch on period close. Intra-period for consumption SKUs.</td><td>units_consumed, overage_units, overage_amount_usd, prior-period corrections.</td></tr>
+    <tr><td><strong>AGT-802</strong> Billing &amp; Invoicing</td><td>Same view. audit_status = verified preferred; pending_recon acceptable for non-final invoices.</td><td>End-of-period batch.</td><td>units_consumed, overage_amount_usd for invoice line generation.</td></tr>
+    <tr><td><strong>AGT-503</strong> Expansion Trigger</td><td>Subscribes to <code>UsageThresholdEvents</code>. Falls back to scheduled poll for daily aggregates.</td><td>Event-driven on threshold breach. Daily aggregate poll for trailing pattern.</td><td>overage_units &gt; 0 &rarr; +40 expansion pts. seat_utilization_pct &ge; 80 for 2+ periods &rarr; +30 expansion pts.</td></tr>
+    <tr><td><strong>AGT-501</strong> Customer Health</td><td>Daily aggregate per account: max(seat_utilization_pct) over trailing 30 days.</td><td>Daily batch.</td><td>Seat utilization dimension (18 pts max in health model).</td></tr>
+  </table>
+  <div class="note">All consumers read from the same canonical row set. There is no per-consumer projection table by design &mdash; that would create reconciliation surface area. Materialized views per consumer are acceptable as performance optimizations but they must be rebuildable from the canonical table.</div>
+</div>
+
+<!-- ── FAILURE MODES ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes &amp; runbook hints</div>
+  <table>
+    <tr><th>Symptom</th><th>Likely cause</th><th>Action</th></tr>
+    <tr><td>DLQ depth growing</td><td>Source system schema drift, or quality rule too strict</td><td>Inspect rejected payloads. If schema drift, ingestion service needs version handling. If rule false-positive, tune.</td></tr>
+    <tr><td>Reconciliation tolerance breached</td><td>Dropped events in queue, source DB lag, or genuine source bug</td><td>Re-run reconciliation against source DB at multiple offsets. If reproducible, hold AGT-804 monthly close + notify Finance.</td></tr>
+    <tr><td>Duplicate rows for same natural key</td><td>UPSERT bypass &mdash; either ingestion service bug or two services writing</td><td>Stop secondary writer. Data fix: delete duplicates keeping highest record_version.</td></tr>
+    <tr><td>Late-arrival warnings spike</td><td>Source system event-emission lag</td><td>Investigate source. If chronic, adjust soft-threshold; document in runbook.</td></tr>
+    <tr><td>AGT-503 not firing on overage</td><td>UsageThresholdEvents publisher offline OR threshold rule wrong</td><td>Check publisher health first. Then validate threshold rule. AGT-503 daily fallback should still catch within 24h.</td></tr>
+    <tr><td>AGT-804 month close holding</td><td>Reconciliation incomplete or disputed rows present</td><td>Triage disputed rows. If timing only, override gate with documented Finance approval. If data-integrity, do not override.</td></tr>
+  </table>
+</div>
+
+<!-- ── PRODUCTION CHECKLIST ───────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Go-live checklist</div>
+  <p class="prose" style="margin-bottom:8px">Schema is "production" only when all of these are true. Until then, this document describes the target state.</p>
+  <ul class="checklist">
+    <li>Source system instrumented to emit per-period metering events with stable <code>ingest_event_id</code> on every event.</li>
+    <li>Ingestion service deployed with all HARD quality checks enforcing.</li>
+    <li>DLQ + monitoring in place. Oncall paged at &gt;1h DLQ depth.</li>
+    <li>UsageThresholdEvents publisher live; AGT-503 subscribed; end-to-end test passes (synthetic overage event &rarr; AGT-503 expansion trigger fires within 60s).</li>
+    <li>AGT-804 reading real (not synthetic) data for at least one full close cycle, RevenueRecognitionLog tied out to billing data.</li>
+    <li>Daily reconciliation report passing for 7 consecutive days.</li>
+    <li>Monthly reconciliation passing within tolerance for 3 consecutive months.</li>
+    <li>Audit trail validated by external auditor (SOC 2 / ASC 606 review). Audit-status state machine documented and tested.</li>
+    <li>Retention tiers configured. 7-year cold storage path tested with a sample restore.</li>
+    <li>Runbook reviewed by oncall rotation. Failure modes simulated in staging.</li>
+  </ul>
+  <div class="alert-box alert-green">Until every box is ticked, the brain layer (Tier 2 in the architecture plan) reads from this table at its own risk &mdash; and should default to "telemetry not yet trusted" guardrails when used in operational decisions.</div>
+</div>
+
+<div class="footer">
+  UsageMeteringLog &middot; Production Schema &middot; Layer 8 &middot; Schema v26<br>
+  Owners: Finance + Data Engineering (joint). Single-writer: ingestion service.<br>
+  Consumers: AGT-804 (recognition, primary) &middot; AGT-802 (billing) &middot; AGT-503 (expansion signals) &middot; AGT-501 (seat utilization)<br>
+  Related: <a href="../specs/AGT-804_Revenue_Recognition.html">AGT-804 Revenue Recognition spec</a> &middot; <a href="GTM_OS_Schema_v25.xlsx">GTM_OS_Schema_v25.xlsx</a> (canonical schema database) &middot; <a href="GTM_OS_Changelog.html">Changelog</a><br>
+  Status: published as production target spec at v26. Go-live gated on checklist above.
+</div>
+</body>
+</html>
