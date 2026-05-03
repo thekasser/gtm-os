@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>GTM OS — Agent Changelog</title>
+<title>GTM OS — Services Changelog</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
@@ -54,14 +54,16 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
 .lt-l4{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
 .lt-l5{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
 .lt-l7{background:#EAF3DE;color:#27500A;border:1px solid #97C459}
+.lt-l8{background:#D8F3F1;color:#0F4C49;border:1px solid #5AC4C0}
+.lt-l9{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
 .footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
 </style>
 </head>
 <body>
 
-<div class="doc-title">GTM OS — Agent changelog</div>
-<div class="doc-sub">All agent delta changes tracked by schema version. Each entry records: what changed, why, what triggered it, and downstream impact.</div>
-<div class="doc-note"><strong>How to read this:</strong> Entries are grouped by schema version. Change types: <strong>New agent</strong> — net new agent added. <strong>Update</strong> — behavioral or logic change to existing agent. <strong>Schema</strong> — table or field addition/extension. <strong>Prompt</strong> — system prompt delta. <strong>Ripple</strong> — change triggered by another agent or layer being added. Click any entry to expand the full detail.</div>
+<div class="doc-title">GTM OS — Services changelog</div>
+<div class="doc-sub">All service delta changes tracked by schema version. Each entry records: what changed, why, what triggered it, and downstream impact.<br><span style="font-size:11px;color:#888">Naming: the 40 components in L1–L8 are <em>GTM Services</em>. <em>Agents</em> is reserved for the forthcoming Tier 2 reasoning layer. Historical entries below predate this convention; new entries from v25→v26 forward use the updated terminology.</span></div>
+<div class="doc-note"><strong>How to read this:</strong> Entries are grouped by schema version. Change types: <strong>New service</strong> — net new service added. <strong>New artifact</strong> — production schema or supporting artifact added. <strong>Update</strong> — behavioral or logic change to existing service. <strong>Status promotion</strong> — service moved from Specced to Built. <strong>Schema</strong> — table or field addition/extension. <strong>Prompt</strong> — system prompt delta. <strong>Ripple</strong> — change triggered by another service or layer being added. Click any entry to expand the full detail.</div>
 
 <div class="controls">
   <button class="filter-btn active" style="--c:#aaa;--bg:#f5f5f5;--fg:#333" onclick="filterAll()">All changes</button>
@@ -72,12 +74,936 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
   <button class="filter-btn" style="--c:#F0997B;--bg:#FAECE7;--fg:#712B13" onclick="filterLayer('L5')">L5</button>
   <button class="filter-btn" style="--c:#AFA9EC;--bg:#EEEDFE;--fg:#3C3489" onclick="filterLayer('L6')">L6</button>
   <button class="filter-btn" style="--c:#97C459;--bg:#EAF3DE;--fg:#27500A" onclick="filterLayer('L7')">L7</button>
+  <button class="filter-btn" style="--c:#5AC4C0;--bg:#D8F3F1;--fg:#0F4C49" onclick="filterLayer('L8')">L8</button>
+  <button class="filter-btn" style="--c:#D4A84C;--bg:#FAEEDA;--fg:#7A4A0E" onclick="filterLayer('L9')">L9</button>
   <button class="filter-btn" style="--c:#5DCAA5;--bg:#E1F5EE;--fg:#085041" onclick="filterType('new')">New agents only</button>
   <button class="filter-btn" style="--c:#F0997B;--bg:#FAECE7;--fg:#712B13" onclick="filterType('ripple')">Ripples only</button>
   <span class="count" id="cnt"></span>
 </div>
 
 <div id="log">
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v32→v33: Brain Prototype Wave — AGT-901/902 + TOOL-004/008 prototyped   -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L9">
+  <div class="version-hdr">
+    <span class="version-pill">v32 → v33</span>
+    <span class="version-date">Brain Prototype Wave: AGT-901 + AGT-902 + TOOL-004 + TOOL-008 prototyped against synthetic corpus</span>
+    <span class="version-summary">First end-to-end prototype of the L9 Reasoning layer running against synthetic GTM data. Both Brain Agents and two Tier 3 tools have working runtimes with passing eval harnesses. Status enum extended with <code>prototyped</code> to capture this state. Bridge document added for migration to corporate data.</span>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-902<span class="layer-tag lt-l9">L9 · Tier 2</span></span>
+      <span class="agent-name">Account Brain — status promotion: specced → prototyped</span>
+      <div class="change-type"><span class="ct ct-update">Status promotion</span></div>
+      <span class="entry-summary">Runtime at <code>prototype/agt902.py</code>. 11-fixture eval (EVAL-Q01–Q11) at 11/11 pass. Multi-turn tool-use loop calls TOOL-004 and TOOL-008. Brain-ready view extractor compresses per-account composite to ~5–10K tokens for the Sonnet brain.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Status: <code>specced</code> → <code>prototyped</code>. Runtime exists, evals pass, not yet wired to canonical Tier 1 tables in production.</div>
+        <div class="detail-lbl">Eval coverage</div><div class="detail-val">11 fixtures across question types: churn_diagnosis (Q01, Q02, Q09), expansion_qualification (Q04, Q05, Q11), handoff_briefing (Q06), qbr_narrative (Q08), diagnosis_on_stale_data (Q07, Q10), stalled_onboarding (Q03). All 11 pass at $1.16/run.</div>
+        <div class="detail-lbl">Action taxonomy</div><div class="detail-val"><code>pull_qbr_forward / open_expansion_play / brief_new_ae_or_csm / customer_communication / escalate_to_slm / recommend_human_query / none</code>. Enforced by validator at eval time.</div>
+        <div class="detail-lbl">max_tokens</div><div class="detail-val">4096 — sufficient for per-account narratives. (Cohort brains require 8192; see AGT-901 entry.)</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Three-tier architecture validated end-to-end on synthetic data.</span> Brain-ready view contract works as the seam between Tier 1 (deterministic) and Tier 2 (LLM-native).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-901<span class="layer-tag lt-l9">L9 · Tier 2</span></span>
+      <span class="agent-name">Pipeline Brain — status promotion: specced → prototyped</span>
+      <div class="change-type"><span class="ct ct-update">Status promotion</span></div>
+      <span class="entry-summary">Runtime at <code>prototype/agt901.py</code>. 3-fixture eval (EVAL-P01 SMB diagnosis, P02 expansion ranking, P03 vertical coverage) at 3/3 pass. Cross-account aggregate view extractor + cohort-shaped action taxonomy. Drills into specific accounts via TOOL-004/TOOL-008 — proves cross-tier orchestration works.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Status: <code>specced</code> → <code>prototyped</code>. New aggregate view extractor at <code>prototype/aggregates.py</code> rolls up segment / vertical / ICP-tier dimensions plus top-K drill-down anchors.</div>
+        <div class="detail-lbl">Eval coverage</div><div class="detail-val">3 fixtures across question types: cohort_diagnosis (P01), expansion_prioritization (P02), coverage_gap (P03). All 3 pass at $0.32/run. New criterion <code>must_cite_source</code> verifies the brain cites the specific rollup table its claims came from.</div>
+        <div class="detail-lbl">Action taxonomy</div><div class="detail-val"><code>draft_play / flag_coverage_gap / recommend_query_for_human / none</code>. Distinct from AGT-902 — pipeline-shaped (cohort actions), not per-account.</div>
+        <div class="detail-lbl">max_tokens</div><div class="detail-val">8192 — cohort narratives are longer than per-account. First smoke test failed three retries at 4096 with consistent JSON truncation around char 12K. Captured as a calibration learning: per-account brains run on 4K, cohort/multi-source brains require 8K+.</div>
+        <div class="detail-lbl">Tool drill-down</div><div class="detail-val">Brain calls TOOL-004 / TOOL-008 with <code>account_id</code> from <code>top_expansion_candidates</code> / <code>top_churn_risks</code> / <code>stalled_onboardings</code> drill-down anchors. Validates cohort hypotheses against per-account evidence — proves the cross-tier pattern.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Two-brain architecture validated.</span> AGT-901 (cohort) and AGT-902 (per-account) operate as complements, not duplicates.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-004<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Consumption Forecasting — status promotion: specced → prototyped</span>
+      <div class="change-type"><span class="ct ct-update">Status promotion</span></div>
+      <span class="entry-summary">Runtime at <code>prototype/tools/tool_004.py</code>. Deterministic time-series core (linreg, log-linear, cliff/seasonality detection) + Haiku characterization. Wired into AGT-902 via Anthropic tool-use; called on expansion-qualification questions.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Status: <code>specced</code> → <code>prototyped</code>. Implementation matches the spec: deterministic numerical core in code, narrow LLM characterization for pattern label + interpretation.</div>
+        <div class="detail-lbl">Wiring</div><div class="detail-val">Registered in <code>prototype/tools/registry.py</code> as <code>tool_004_consumption_forecast</code>. Schema in <code>TOOL_DEFINITIONS</code>; handler in <code>TOOL_HANDLERS</code>; corpus augmentation in <code>dispatch_tool</code> reads UsageMeteringLog from the synth corpus.</div>
+        <div class="detail-lbl">Validated by</div><div class="detail-val">EVAL-Q04 (real expansion confirmed), EVAL-Q05 (spike-then-crash trap), EVAL-Q11 (siloed expansion qualification). Brain consistently cites tool output as canonical source via <code>[src:N]</code>.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">UBB-specific cognition gap closed in prototype.</span> Pattern: numerical work in code, characterization in LLM — applies to TOOL-008 and future tools.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-008<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Product Adoption Pattern Recognizer — status promotion: specced → prototyped</span>
+      <div class="change-type"><span class="ct ct-update">Status promotion</span></div>
+      <span class="entry-summary">Runtime at <code>prototype/tools/tool_008.py</code>. Gini concentration index, breadth metrics, abandonment counts + Haiku classification across 5 patterns (deeply_integrated / surface_only / siloed_by_team / declining / activating). Onboarding-aware: &lt;60d into contract → activating regardless of breadth. Wired into both AGT-901 and AGT-902.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Status: <code>specced</code> → <code>prototyped</code>. Required new corpus extension: 23-feature engagement telemetry per account (5 categories: core / advanced / integration / admin / experimental — modeled on a Checkr-style background-check API product).</div>
+        <div class="detail-lbl">Smoke test</div><div class="detail-val">8/8 archetypes correctly classified including the spec's hard onboarding-aware rule. Deeply_integrated (ideal_power_user) and siloed_by_team (expansion_ready) discriminated by Gini concentration threshold; activating (stalled_onboarding) preserved for &lt;60d accounts.</div>
+        <div class="detail-lbl">Validated by</div><div class="detail-val">EVAL-Q11 with new <code>must_cite_tool_008</code> criterion. Brain consistently uses tool output for adoption-depth diagnosis when consumption-volume signals are ambiguous.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Post-sales feature-level adoption gap closed in prototype.</span> Three-tool post-sales activation stack (TOOL-008 + TOOL-009 + TOOL-012) now has its first member operational.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Status enum<span class="layer-tag lt-l9">All layers</span></span>
+      <span class="agent-name">Status enum extended: built / prototyped / specced</span>
+      <div class="change-type"><span class="ct ct-new">Schema</span></div>
+      <span class="entry-summary">Third value <code>prototyped</code> added to capture the runtime-exists-evals-pass state between specced (design only) and built (production-deployed). Gold/amber palette in explainer matches L9 theme. Tools_Index uses the same convention with per-tool prototyped badges on TOOL-004 and TOOL-008.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">CSS rule <code>.status-prototyped</code> added to explainer (gold/amber: <code>#FAEEDA</code> bg, <code>#7A4A0E</code> fg, <code>#D4A84C</code> border). Tools_Index gets <code>.tool-status-prototyped</code> with same palette.</div>
+        <div class="detail-lbl">Why a new state</div><div class="detail-val">"Built" implies production deployment with real data, real users, real audit trail. The prototype runs against synthetic data and isn't wired to canonical Tier 1 tables. Calling it "built" would overstate readiness; calling it "specced" understates the work done. The third state captures the truth.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Documentation precision.</span> Forward changelog entries can promote incrementally: specced → prototyped → built.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Synthetic data layer<span class="layer-tag lt-l9">Prototype</span></span>
+      <span class="agent-name">synth/ — 8 archetypes, 50-account corpus, full Tier 1 telemetry</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span></div>
+      <span class="entry-summary">Generates a 50-account corpus with daily-granularity UsageMeteringLog, CustomerHealthLog, PaymentEventLog, conversation summaries (Haiku-generated, cached), and 23-feature engagement telemetry. 8 archetypes (ideal_power_user, activating, surface_only_adopter, champion_loss_decliner, expansion_ready, spike_then_crash, seasonal, stalled_onboarding) span the patterns the brain agents and tools must recognize.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Files</div><div class="detail-val"><code>synth/archetypes.py</code> (8 archetypes with usage/health/conversation/feature profiles), <code>synth/main.py</code> (corpus orchestrator), <code>synth/usage.py</code> / <code>health.py</code> / <code>payments.py</code> / <code>feature_engagement.py</code> (per-component generators), <code>synth/conversations.py</code> (LLM-generated call summaries with cache).</div>
+        <div class="detail-lbl">Determinism</div><div class="detail-val">Seed-driven for reproducibility. Feature-seed derived via <code>hashlib.sha256(account_id)</code> rather than consuming from the main RNG — invariant: corpus regen does not shift account UUIDs, conversation cache stays stable.</div>
+        <div class="detail-lbl">Throwaway in corporate</div><div class="detail-val">Per <code>prototype/PORT_TO_CORPORATE.md</code>: synth/ generators are throwaway when porting to a corporate environment. Real Tier 1 services replace them. The boundary is the brain-ready view extractor.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Substrate for solo prototyping without real corporate data.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Calibration findings<span class="layer-tag lt-l9">Eval discipline</span></span>
+      <span class="agent-name">Three calibration learnings captured in eval-design memory</span>
+      <div class="change-type"><span class="ct ct-new">Eval discipline</span></div>
+      <span class="entry-summary">(1) Tool retirement requires coordinated 3-way removal across schema/handler/system-prompt — schema-only disablement is leaky. (2) Cohort/multi-source brains need <code>max_tokens=8192</code>; per-account brains run fine on 4096; symptom of under-budgeting is silent JSON truncation around char 12K. (3) <code>tool_calls_made</code> is dispatch-side ground truth; <code>sources_read</code> is brain-authored narrative — future hardening: cross-check both.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Discovery</div><div class="detail-val">Calibration probe on EVAL-Q11: temporarily removed TOOL-008 from <code>TOOL_DEFINITIONS</code> only. The brain still emitted <code>tool_use</code> calls for TOOL-008 because the system prompt described it; dispatch found the handler (still registered) and ran the tool successfully. False-pass on what should have been a failing rule. Real probe required removing handler too.</div>
+        <div class="detail-lbl">Output-budget rule</div><div class="detail-val">First smoke test of AGT-901 failed three retries in a row with <code>Unterminated string at char 12383</code> (per-attempt). Bumping <code>max_tokens</code> from 4096 to 8192 fixed it on first try. The failure mode looks like a transient parser flake but it's actually a budget cap. First thing to check when a brain hits sudden JSON-decode errors.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-amber">Discipline for retiring tools and provisioning new brains.</span> Both findings preserved in user's eval-design memory and in <code>prototype/PORT_TO_CORPORATE.md</code>'s "risks worth flagging early" section.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Bridge doc<span class="layer-tag lt-l9">Migration</span></span>
+      <span class="agent-name">prototype/PORT_TO_CORPORATE.md — synth → real Checkr-style data checklist</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span></div>
+      <span class="entry-summary">Concrete migration plan for moving the prototype to a corporate environment. Phase 0–5 sequence (eval baseline → UsageMeteringLog → ConvIntelligence → CustomerHealthLog/ChurnRisk/Expansion → feature_engagement + TOOL-008 → Brain Agents go live). Risks flagged: real conversation transcript length, feature taxonomy mapping, PII handling, API cost monitoring, tool-retirement discipline.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Why now</div><div class="detail-val">Easier to write the bridge doc while the prototype is fresh than to reverse-engineer it from code later. Captures rationale, not just code.</div>
+        <div class="detail-lbl">Build sequence</div><div class="detail-val">Per the original architecture doc's recommendation: L8 first (UsageMeteringLog + AGT-804 revenue recognition), brain second. Brain reading from stub UsageMeteringLog produces fake-confident output — the worst possible failure mode for an audit-sensitive system.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Reduces friction when entering corporate environment.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v31→v32: Tier 3 third wave (TOOL-009/010/011/012) — catalog complete    -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L9">
+  <div class="version-hdr">
+    <span class="version-pill">v31 → v32</span>
+    <span class="version-date">Tier 3 third wave: TTV analyzer · Champion movement · Pricing sensitivity · Onboarding health predictor</span>
+    <span class="version-summary">12 tools across 3 waves. Tier 3 catalogue is broadly complete relative to v26 architecture eval gaps. Further additions are case-by-case based on operational signal.</span>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-009<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Activation / Time-to-Value Analyzer</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">Measures longitudinal TTV milestones for an account against expected timing benchmarks. Distinct from TOOL-008 (current snapshot) — this is timing analysis. Distinct from TOOL-012 (predictive) — this is delta-vs-benchmark for the milestones already-defined.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New tool: <a href="../tools/TOOL-009_Activation_Time_To_Value_Analyzer.html"><code>TOOL-009</code></a>. Haiku, 8K input + 1.5K output, $200/mo cap.</div>
+        <div class="detail-lbl">Distinct from TOOL-008</div><div class="detail-val">TOOL-008 is descriptive (current state of feature adoption). TOOL-009 is longitudinal (timing of milestone achievement vs benchmark). Both can be called for the same account; they answer different questions.</div>
+        <div class="detail-lbl">Distinct from TOOL-012</div><div class="detail-val">TOOL-009 measures observed delta vs benchmark on configured milestones. TOOL-012 (also v32) projects 6-month outcome from early signals. Three post-sales activation tools work as a stack: TOOL-008 (current state) + TOOL-009 (timing analysis) + TOOL-012 (outcome prediction).</div>
+        <div class="detail-lbl">Hard rules</div><div class="detail-val">Milestones configured in input (RevOps + Product define), tool measures against them &mdash; never invents milestones. Cohort-relative when baseline available, graceful degradation when not. Honest projection confidence (low/medium when activity signal is weak).</div>
+        <div class="detail-lbl">Called by</div><div class="detail-val">AGT-601 Onboarding Orchestrator (weekly batch on onboarding cohort), AGT-501 Customer Health (months 3&ndash;9 ramping accounts), AGT-902 Account Brain ("is this account activating on time?"), AGT-704 (cohort-level TTV trends for QBR retention section).</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes the timing-side of post-sales activation gap.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-010<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Champion Movement Detector</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">Detects champion role changes/departures/disengagement via multi-signal fusion (LinkedIn, email-bounce, AGT-407 attendance). High-leverage early-warning signal often missed by behavioral telemetry. External enrichment dependency for full effectiveness.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New tool: <a href="../tools/TOOL-010_Champion_Movement_Detector.html"><code>TOOL-010</code></a>. Haiku, 10K input + 2K output, $250/mo cap.</div>
+        <div class="detail-lbl">Multi-signal fusion</div><div class="detail-val">Single weak signals do not produce high-confidence movement classifications. Title change without engagement decline may just be a promotion. Email bounce alone could be OOO misconfig. Tool fuses LinkedIn signals, email-bounce signals, AGT-407 ConvIntelligence call attendance, email engagement &mdash; produces classification with explicit contributing signals listed.</div>
+        <div class="detail-lbl">Movement types</div><div class="detail-val">Five classifications: <code>left_company</code>, <code>role_changed_internal</code>, <code>stopped_engaging</code>, <code>engagement_declining</code>, <code>no_movement_detected</code>. Each maps to different intervention recommendations &mdash; champion who left vs. shifted internal role vs. disengaged are different problems.</div>
+        <div class="detail-lbl">Hard rules</div><div class="detail-val">Every classification stronger than <code>no_movement_detected</code> requires at least one contributing signal with strength &ge; moderate. Privacy-disciplined (only signals already in OS or from approved enrichment under signed data agreements). Single-signal restraint: weak single signals never produce high confidence.</div>
+        <div class="detail-lbl">Called by</div><div class="detail-val">AGT-502 Churn Risk (weekly batch on T-180 renewal cohort), AGT-401 Deal Health (when champion is economic buyer/strong influencer), AGT-902 Account Brain, AGT-501 Customer Health.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">High-leverage early-warning signal.</span> <span class="impact-amber">External enrichment required for full effectiveness</span> &mdash; without LinkedIn/email-bounce signals, tool degrades to internal-only mode with lower confidence ceilings.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-011<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Pricing Sensitivity Analyzer</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">Classifies deal-level pricing sensitivity from QuoteLog cohort patterns + ConvIntelligence price-objection signals + procurement engagement. Decision support for AGT-406 deal desk reviewer. Hard rule: never recommends specific discount magnitude — that remains a human decision.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New tool: <a href="../tools/TOOL-011_Pricing_Sensitivity_Analyzer.html"><code>TOOL-011</code></a>. Sonnet, 20K input + 2.5K output, $300/mo cap.</div>
+        <div class="detail-lbl">Sensitivity taxonomy</div><div class="detail-val">Four classifications: <code>low_sensitivity</code> (concession unnecessary &mdash; discount erodes margin without improving close), <code>moderate_sensitivity</code> (cohort-typical envelope), <code>high_sensitivity</code> (multiple revisions likely &mdash; consider non-price levers first), <code>highly_constrained_budget</code> (qualify out or reduce scope, don't discount to meet budget).</div>
+        <div class="detail-lbl">Hard rules</div><div class="detail-val"><strong>Output never contains specific discount percentages or unit prices</strong> &mdash; regex-enforced in eval. Tool produces classification + cohort context + observation patterns; human deal desk reviewer determines actual discount magnitude per AGT-406 spec. Cohort baseline degradation honest. Aggregate discount drift monitored quarterly &mdash; if pre-tool vs post-tool median discount drifts &gt; 2pp, calibration sprint triggered.</div>
+        <div class="detail-lbl">Anti-pattern flags</div><div class="detail-val"><code>do_not_concede_flags</code> at least as valuable as the sensitivity classification. Examples: <code>weak_qualifier</code> (champion not confirmed &mdash; don't discount until qualified), <code>discount_above_authority</code>, <code>contract_term_concession_higher_leverage</code> (term length / payment terms / multi-year may have higher leverage than equivalent price concession; preserves list-price baseline for renewals).</div>
+        <div class="detail-lbl">Called by</div><div class="detail-val">AGT-406 CPQ &amp; Deal Desk (every quote requiring approval &mdash; primary), AGT-401 Deal Health (proposal/negotiation stage), AGT-902 Account Brain, RevOps direct (pricing strategy work).</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Augments AGT-406 deal desk decision support.</span> Approval flow and discount authority remain unchanged. <span class="impact-amber">Calibration risk</span> &mdash; aggregate use of the tool must not produce monotonic discount drift over time.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-012<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Onboarding Health Predictor</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">From the first 30–60 days of telemetry, predicts 6-month outcome (sustained_adoption / surface_only / churn). Trajectory classification + early warning indicators + intervention recommendations sized to onboarding stage. Predictive complement to TOOL-008 (descriptive) and TOOL-009 (timing).</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New tool: <a href="../tools/TOOL-012_Onboarding_Health_Predictor.html"><code>TOOL-012</code></a>. Haiku, 10K input + 2K output, $200/mo cap.</div>
+        <div class="detail-lbl">Trajectory taxonomy</div><div class="detail-val">Five classifications: <code>strong_activation</code> (cohort-leading signals), <code>on_track_activation</code> (cohort-typical), <code>concerning_trajectory</code> (one or two weak signals), <code>early_stall_risk</code> (multiple weak indicators clustered &mdash; multi-pronged intervention warranted), <code>active_stall</code> (effectively stopped, escalate to SLM, may require contract-level intervention).</div>
+        <div class="detail-lbl">Three-tool post-sales activation stack</div><div class="detail-val">TOOL-008 (descriptive: current adoption pattern) + TOOL-009 (longitudinal: timing vs benchmark) + TOOL-012 (predictive: project 6-month outcome). Three different questions for the same account; AGT-501 / AGT-601 / AGT-902 may invoke any combination depending on the question being asked.</div>
+        <div class="detail-lbl">Hard rules</div><div class="detail-val">Cohort-anchored predictions (without cohort baseline, projection_confidence drops). Intervention-window-aware (same weak signal at day 14 vs. day 60 has different intervention implications). Honest about projection uncertainty &mdash; AGT-601 weights interventions by confidence so low-confidence predictions don't trigger heavy interventions.</div>
+        <div class="detail-lbl">Called by</div><div class="detail-val">AGT-601 Onboarding Orchestrator (weekly batch on first-90-day cohort, primary), AGT-501 Customer Health (early forward-looking signal), AGT-902 Account Brain, AGT-704 (cohort-level onboarding trajectory in QBR retention section).</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes predictive gap in post-sales activation toolkit.</span> Onboarding intervention window is the highest-leverage moment in the customer lifecycle &mdash; getting prediction right early matters more than getting any other post-sales signal right.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Tier 3 catalog<span class="layer-tag lt-l9">Tools</span></span>
+      <span class="agent-name">Tools_Index updated — 12 tools across 3 waves</span>
+      <div class="change-type"><span class="ct ct-update">Catalog refresh</span></div>
+      <span class="entry-summary">Tools_Index v32: 12 tools indexed, cost aggregation refreshed (~$4,800/mo total), future-candidates section replaces deferred third-wave-candidates section. Catalog broadly complete relative to v26 eval gaps.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Tools_Index header updated to "12 tools across 3 waves." Cost aggregation table extended with TOOL-009/010/011/012 budgets. Third-wave-candidates section replaced with future-candidates section listing 5 case-by-case ideas (Procurement Negotiation Pattern Recognizer, Multi-thread Quality Scorer, QBR Action-Item Outcome Tracker, Renewal Negotiation Risk Profiler, Industry-Specific Play Refiner) flagged for if/when operational signal warrants.</div>
+        <div class="detail-lbl">Aggregate cost</div><div class="detail-val">Tier 3 default budget: ~$4,800/mo across 12 tools. Combined with Tier 2 brain budgets ~$1,500/mo, reasoning + augmentation layer total ~$6,300/mo &mdash; roughly 1/3 of one RevOps analyst FTE. Bounded; trackable in single dashboard with per-tier 75% alerts.</div>
+        <div class="detail-lbl">Catalog discipline going forward</div><div class="detail-val">"Add tools when gaps emerge from operational signal, not when they emerge from theory." 12 tools is already substantial maintenance load alongside the eval harness. Further additions trade off against catalog maintenance.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Tier 3 catalogue broadly complete</span> relative to v26 architecture eval gaps. <span class="impact-neutral">Restraint over volume going forward</span> &mdash; the discipline is now to keep the catalog sharp, not to grow it.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v30→v31: Tier 3 second wave + L7 fully Built + AGT-107 + map polish     -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L7">
+  <div class="version-hdr">
+    <span class="version-pill">v30 → v31</span>
+    <span class="version-date">Tier 3 second wave (TOOL-005/006/007/008) · L7 fully Built (AGT-701/702/703/704) · AGT-107 Built · Connection Map polish</span>
+    <span class="version-summary">All Tier 1 deterministic backbone now Built across L1–L8. Tier 3 catalogue doubled to 8 tools. Domain 4 (deliverability) and Domain 2 (in-call + competitive narrative) gaps closed. Connection Map distinguishes brain reads visually.</span>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-005<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Outbound Deliverability Monitor</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">Reads outbound performance + reputation signals (bounce rates, spam complaints, ESP scores, blacklist status). Risk flags + recommended actions. Closes Domain 4 gap.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New tool: <a href="../tools/TOOL-005_Outbound_Deliverability_Monitor.html"><code>TOOL-005</code></a>. Haiku, 8K input + 2K output, $150/mo cap.</div>
+        <div class="detail-lbl">Hard rules</div><div class="detail-val">Recommendation grounding 100% (every recommended_action traces to a specific risk_flag). False positive rate on green periods &le; 10% (over-flagging undermines the tool). Statistical significance check before flag generation; minimum send volume threshold prevents variance noise.</div>
+        <div class="detail-lbl">Called by</div><div class="detail-val">AGT-302 (daily batch, drives auto-throttle decisions with RevOps notification), AGT-303 (weekly batch, feeds risk-classified recommendations), AGT-901 Pipeline Brain (diagnostic queries), RevOps direct (workspace UI investigation).</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes Domain 4 gap</span> &mdash; AGT-302/303 cover sequence generation/execution/optimization but no component owned deliverability health observability until now.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-006<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Real-time Call Guidance</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">Live-call assist via recording-platform integration. Streaming transcript chunks + full account context produce real-time guidance: objections, MEDDPICC gaps, next-step suggestions. Higher infra complexity than other tools. Closes Domain 2 (in-call) gap.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New tool: <a href="../tools/TOOL-006_Real_Time_Call_Guidance.html"><code>TOOL-006</code></a>. Sonnet (with Haiku fallback for low-stakes), 30K input + 1.5K output per invocation, ~30 invocations per customer call (60s cadence over 30 min) ≈ $3/call. Monthly cap $2,000/mo (~600 calls).</div>
+        <div class="detail-lbl">Hard rules</div><div class="detail-str">P95 latency &le; 3s (hard) &mdash; missed latency = unusable tool. Suggestion grounding 100% (every suggestion traces to account_context or recent transcript). Privacy compliance 0 instances of PII surfacing. Quality &gt;&gt; volume &mdash; tool returns silence (suppress=TRUE) when no high-quality guidance available.</div>
+        <div class="detail-lbl">Called by</div><div class="detail-val">Live-call sidecar UI (recording-platform integration with Gong / Zoom / Chorus). Rep can pause/resume during off-the-record moments. No auto-action; rep decides whether to use any specific suggestion.</div>
+        <div class="detail-lbl">Complement to AGT-407</div><div class="detail-val">AGT-407 retrospective + TOOL-006 live = full conversation intelligence loop. CallGuidanceLog (new schema) FK's to ConvIntelligence; AGT-701 reads both for full coaching picture.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes Domain 2 (in-call) gap</span>. <span class="impact-amber">Higher infrastructure complexity than other tools</span> &mdash; live audio integration + sidecar UI surface required. Implementation gated on recording-platform partnerships.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-007<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Competitive Narrative Writer</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">Composes deal-specific competitive narratives from CompetitiveKnowledgeBase + deal context. Hard rule: every talking point cites real KB section. Tool composes; AGT-403 maintains. Domain 2 quality lift.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New tool: <a href="../tools/TOOL-007_Competitive_Narrative_Writer.html"><code>TOOL-007</code></a>. Sonnet, 15K input + 2K output, $200/mo cap.</div>
+        <div class="detail-lbl">Hard rules</div><div class="detail-val">KB grounding 100% (every talking_point cites a real KB section). Hallucinated competitor claims 0% (cannot extend beyond what's in the KB). Stale KB recognition 100% (entries &gt; 90d old must surface staleness caveat).</div>
+        <div class="detail-lbl">Distinct from AGT-403</div><div class="detail-val">AGT-403 owns the canonical CompetitiveKnowledgeBase. TOOL-007 composes deal-specific narratives <em>from</em> it &mdash; never extends or corrects. KB updates remain AGT-403's responsibility.</div>
+        <div class="detail-lbl">Format-aware output</div><div class="detail-val">Talking points read differently from email copy from battlecard excerpts. Tool adapts tone + structure to <code>narrative_target</code>. Output includes a <code>do_not_say</code> field flagging anti-patterns specific to the competitor &mdash; equally important as the talking points.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Domain 2 quality lift</span> &mdash; the difference between "here's our positioning vs. X" and "for this prospect at this stage with these specific concerns, here's how to frame the X comparison." Quality lift, not gap-closer.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-008<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Product Adoption Pattern Recognizer</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">Recognizes feature-by-feature adoption patterns (deeply_integrated / surface_only / siloed_by_team / declining / activating). Different from TOOL-004 (volume) — this is which features get used and how broadly. Closes post-sales feature-level adoption gap.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New tool: <a href="../tools/TOOL-008_Product_Adoption_Pattern_Recognizer.html"><code>TOOL-008</code></a>. Haiku, 10K input + 1.5K output, $300/mo cap (high frequency &mdash; daily batch from AGT-501 across active accounts).</div>
+        <div class="detail-lbl">5-pattern taxonomy</div><div class="detail-val"><code>deeply_integrated</code> (broad breadth + high users-per-feature + integrations active &mdash; strong renewal + expansion signal); <code>surface_only</code> (core features only, low per-feature adoption &mdash; competitor swap risk); <code>siloed_by_team</code> (decent breadth concentrated in one team &mdash; cross-team expansion signal but champion-loss risk); <code>declining</code> (abandoned &gt; new &mdash; strong churn signal); <code>activating</code> (newly-onboarded with rapid breadth growth &mdash; onboarding success).</div>
+        <div class="detail-lbl">Hard rules</div><div class="detail-val">Onboarding-aware classification (account &lt; 60 days into contract not labeled "surface_only" &mdash; must be "activating" or pre-pattern, 100% eval-enforced). Cohort-baseline graceful degradation (returns medium/low data_completeness; doesn't fabricate cohort comparisons).</div>
+        <div class="detail-lbl">Called by</div><div class="detail-val">AGT-501 Customer Health (daily batch &mdash; augments feature engagement dimension), AGT-902 Account Brain ("is this account getting value?"), AGT-503 Expansion Trigger (qualification augment, deeply_integrated/siloed boosts expansion signal, declining suppresses), AGT-601 Onboarding Orchestrator.</div>
+        <div class="detail-lbl">Distinct from TOOL-004</div><div class="detail-val">TOOL-004 is consumption volume (will overage hit, when, what trend). TOOL-008 is feature engagement (which features are used and how broadly). Complementary &mdash; both used together for full post-sales picture.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes post-sales feature-level adoption gap</span> &mdash; AGT-501 had seat utilization but not feature engagement until now. That distinction predicts churn/expansion much earlier than seat metrics alone.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L7" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">L7 Layer<span class="layer-tag lt-l7">L7</span></span>
+      <span class="agent-name">L7 fully Built — AGT-701/702/703/704 promoted</span>
+      <div class="change-type"><span class="ct ct-update">Status promotion ×4</span></div>
+      <span class="entry-summary">All L7 measurement agents promoted from Specced to Built. Closes-loop learning is operational: AGT-703 calibration signals propagate back into AGT-101/201/402/404/403; AGT-704 assembles WBR/MBR/QBR with staleness gate.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">AGT-701</div><div class="detail-val">Rep Performance &amp; Coaching, Specced (v21) → Built (v31). Role-parameterized across AE/AM/CSM/SDR. Manager approval gate on coaching delivery preserved. Reads ConvIntelligence with v23 call_owner_role filter for role-specific signals.</div>
+        <div class="detail-lbl">AGT-702</div><div class="detail-val">GTM Health Monitor, Specced (v21) → Built (v31). Magic Number, NRR, GRR, R40, CAC Payback. Promotion follows L8 buildout because Magic Number's denominator separates billed (AGT-802) from recognized (AGT-804) revenue &mdash; AGT-702 cannot be Built until those distinctions are deterministic.</div>
+        <div class="detail-lbl">AGT-703</div><div class="detail-val">Win-Loss &amp; Forecast Accuracy, Specced (v21) → Built (v31). Produces calibration signals that propagate back into AGT-101 (quota), AGT-201 (ICP), AGT-402 (forecast), AGT-403 (competitive), AGT-404 (top-down). Without AGT-703 Built, OS had no closed-loop learning &mdash; this completes the loop.</div>
+        <div class="detail-lbl">AGT-704</div><div class="detail-val">Business Review Orchestrator, Specced (v21) → Built (v31). Closes L7. Reads from AGT-701/702/703 with hard staleness gates. v26 charter extension intact: brain narrative may write narrative sections of MBR/QBR but never metric sections. AGT-901 invokes for narrative jobs only.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closed-loop learning operational.</span> Calibration signals from AGT-703 → upstream services. Business reviews fully assembled with audit-grade source-trace. <span class="impact-neutral">L9 brains can read AGT-702 MetricsCalc.brain_view + AGT-703 WinLossLog.brain_view + AGT-701 RepCoachingLog with confidence</span> &mdash; the brain-ready view contracts on these sources are now backed by Built services.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L1" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-107<span class="layer-tag lt-l1">L1</span></span>
+      <span class="agent-name">Quota Plan Document — promoted Specced → Built</span>
+      <div class="change-type"><span class="ct ct-update">Status promotion</span></div>
+      <span class="entry-summary">Last L1 Specced agent promoted. L1 fully Built. Hiring → quota → comp → legally deployable plan document chain is closed loop.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">AGT-107 Quota Plan Document, Specced (v23) → Built (v31). E-signature gate, three output formats (HTML/PDF/JSON), amendment recommendation logic. AGT-104 reads QuotaPlanDocLog.signature_received as one of its 12 governance audit controls.</div>
+        <div class="detail-lbl">L1 closure</div><div class="detail-val"><strong>Every L1 agent now Built.</strong> AGT-101 quota → AGT-102 comp → AGT-103 attainment → AGT-104 governance → AGT-105 capacity → AGT-106 territory → AGT-107 plan document. Hiring-quota-comp cycle is a complete operational loop.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Combined with L7 closure: 36 of 40 services Built across L1-L8.</span> Remaining specced services: none. <span class="impact-neutral">L0 infrastructure remains config-only (no agents)</span>.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Map polish<span class="layer-tag lt-l9">UI</span></span>
+      <span class="agent-name">Connection Map — brain reads visually distinguished</span>
+      <div class="change-type"><span class="ct ct-update">UI polish</span></div>
+      <span class="entry-summary">Connection Map renderer now colors L9 → Tier 1 read edges in gold (#D4A84C) instead of generic blue "reads" color. Legend updated to 4 edge types. Brain layer's reach across the OS is visible at a glance.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">SVG edge color logic in <code>renderMap()</code> updated: edges with source agent ID starting with <code>AGT-9</code> render in <code>#D4A84C</code> (L9 layer color). All other edges render per existing type-color mapping (feeds=green, reads=blue, cross=orange).</div>
+        <div class="detail-lbl">Legend</div><div class="detail-val">Connection Map legend now lists 4 edge types: Feeds (Tier 1 → Tier 1), Reads (Tier 1 → Tier 1), Cross-layer (Tier 1 → Tier 1), Brain reads (L9 → Tier 1). Map instructions text updated to mention brain agents.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Cosmetic.</span> The reach of L9 brains across the Tier 1 layers is visible at a glance &mdash; previously brain edges rendered identically to service-to-service reads, obscuring the architectural distinction.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v29→v30: L8 fully Built + Brain-Ready Views Contract + AGT-302 ripple   -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L8">
+  <div class="version-hdr">
+    <span class="version-pill">v29 → v30</span>
+    <span class="version-date">L8 fully Built (AGT-801/802/803 promoted) · Brain-Ready Views Contract · AGT-302 v27 ripple captured</span>
+    <span class="version-summary">Deterministic backbone is now fully Built across L1–L8. Brain-Ready Views Contract closes the load-bearing gap that made L9 brains theory until this version. AGT-302 v27 ripple formalized in its own spec.</span>
+  </div>
+
+  <div class="entry" data-layer="L8" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-801<span class="layer-tag lt-l8">L8</span></span>
+      <span class="agent-name">Order Management — promoted Specced → Built</span>
+      <div class="change-type"><span class="ct ct-update">Status promotion</span><span class="ct ct-update">Hardened spec</span></div>
+      <span class="entry-summary">L8 entry-point promoted. Production controls (8) + edge cases (8) added. Two-track approval, amendment lineage, billing contact validation, SOW reference enforcement, 7-year retention.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">AGT-801 promoted from Specced (v25) to Built (v30). Spec hardened with Production Controls section (8 controls) + Edge Cases &amp; Failure Modes section (8 scenarios). Existing schema unchanged; ripple of v27 (originating_proposal_id) noted.</div>
+        <div class="detail-lbl">Production controls</div><div class="detail-val">Two-track approval enforced (Pricing track + Legal track tracked independently); pricing correction Finance Director floor; amendment lineage preserved (originals never overwritten); auto-renewal clauses surfaced explicitly (non-NULL required); TCV computed deterministically (no manual override); billing contact validated (non-NULL on activation); SOW reference required when services on order; 7-year retention parallels RevenueRecognitionLog.</div>
+        <div class="detail-lbl">Edge cases handled</div><div class="detail-val">Customer-rescinds-before-signature; mid-term seat expansion mid-billing-cycle; pricing correction post-invoice (forces AGT-804 prior-period adjustment); AGT-802 offline at activation; handwritten markup discrepancy; two-track approval mid-flight imbalance; SKU-add with conflicting payment terms; auto-renewal trigger.</div>
+        <div class="detail-lbl">Why now</div><div class="detail-val">L8 buildout sequence per v26 plan: AGT-804 first (recognition is audit-critical), then AGT-801 (orders source-of-truth) before AGT-802 (billing depends on orders + recognition guarantees). Cascade complete with this v30 promotion.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">L8 entry point Built.</span> Order data is now contractually-locked source of truth for every downstream finance agent. <span class="impact-amber">External integration still required for go-live</span> &mdash; spec is production target, not a deployed system.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L8" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-802<span class="layer-tag lt-l8">L8</span></span>
+      <span class="agent-name">Billing &amp; Invoicing — promoted Specced → Built</span>
+      <div class="change-type"><span class="ct ct-update">Status promotion</span><span class="ct ct-update">Hardened spec</span></div>
+      <span class="entry-summary">Promoted. Invoice traceability to OrderLog, MAX(record_version) discipline on UsageMeteringLog reads, customer sign-off gate on milestone billing, daily external reconciliation. 8 production controls + 8 edge cases.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">AGT-802 promoted from Specced (v25) to Built (v30). Production Controls + Edge Cases sections added.</div>
+        <div class="detail-lbl">Production controls</div><div class="detail-val">Invoice amounts traceable to OrderLog (every InvoiceLineItems carries order_line_item_id FK); consumption invoices read MAX(record_version) from UsageMeteringLog (corrections produce credit memos, not silent invoice updates); customer sign-off required for milestone billing (IE-only completion does not unlock); credit memo two-step gate for rep-submitted (manager + Finance Director); billing error → Finance Director floor; idempotent invoice generation (no duplicate billing on retry/replay); payment terms inherited not overridden (changes require AGT-801 amendment); daily external billing system reconciliation at &plusmn;$0.01 tolerance.</div>
+        <div class="detail-lbl">Edge cases handled</div><div class="detail-val">Customer disputes consumption invoice (UsageMeteringLog.audit_status = disputed flow); SOW partial completion (no partial billing); mid-cycle amendment pro-rated supplemental; annual upfront pre-payment (cash and recognition decoupled per ASC 606); external billing system offline (internal records held, retry on recovery); reconciliation discrepancy (AGT-803 holds payment tracking on affected invoices); externally-processed refund without AmendmentLog (forces back-fill); mid-period churn with prepaid balance.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Customer-facing invoice generation now production-spec'd.</span> <span class="impact-amber">External billing system integration required for go-live.</span> <span class="impact-neutral">Architectural invariants preserved</span> &mdash; AGT-802 doesn't decide what was sold or what's recognized; executes against AGT-801 + AGT-804.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L8" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-803<span class="layer-tag lt-l8">L8</span></span>
+      <span class="agent-name">Payment Health — promoted Specced → Built</span>
+      <div class="change-type"><span class="ct ct-update">Status promotion</span><span class="ct ct-update">Hardened spec</span></div>
+      <span class="entry-summary">Promoted. Closes L8 buildout. State transitions immutable, per-account aggregation, Suspended state Finance-only, retry-then-AM-notification discipline. 8 production controls + 9 edge cases.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">AGT-803 promoted from Specced (v25) to Built (v30). <strong>Closes L8 buildout — every L8 agent now Built.</strong></div>
+        <div class="detail-lbl">Production controls</div><div class="detail-val">State transitions logged immutably (PaymentEventLog append-only with prior_state/new_state/transition_reason); per-account state aggregation (worst-applicable wins across multiple invoices); Suspended state requires Finance director-level authorization (no automatic transition; CSM/AM cannot trigger); retry exhaustion before AM notification (prevents storms on transient failures); AGT-501 modifier is read-only feed (writes only payment_health_status, not other CustomerHealthLog fields); external failure events idempotent (dedupe key: invoice_id + attempt_number + external_event_id); auto-recovery on payment to Current state; 7-year retention.</div>
+        <div class="detail-lbl">Edge cases handled</div><div class="detail-val">Multi-invoice account with mixed states (worst-applicable wins); Failed-invoice paid same day new invoice goes Overdue (no re-notify); external billing system payment-confirmation gap (held by reconciliation); customer changes payment method during Overdue; alternate payment methods on file (Retry 2/3 may use); mid-cycle Suspended cascade to AGT-501/502/503/504; reactivation from Suspended; payment reversal/chargeback recorded as distinct event; AGT-803 offline during failure event (recovery preserves accuracy).</div>
+        <div class="detail-lbl">Cascade impact</div><div class="detail-val">Post-sales signal chain now fully Built end-to-end: UsageMeteringLog (production schema v26) → AGT-501 health (built) → AGT-502 churn (built) → AGT-503 expansion (built), with AGT-803 payment health gating the cap (built). The post-sales backbone is the strongest part of the OS &mdash; per the v26 architecture eval (95% domain coverage).</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">L8 fully Built.</span> Deterministic backbone complete L1–L8. <span class="impact-neutral">L9 brains can now read against trustworthy source data &mdash; the architectural prerequisite for production launch.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="schema">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Brain-Ready Views<span class="layer-tag lt-l9">Tier 1→2</span></span>
+      <span class="agent-name">Contract &amp; Catalog (new artifact) — 20 views formally specced</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">The load-bearing piece of the brain layer's read contract. AGT-901/AGT-902 specs referenced 20 brain-ready views; this artifact formally defines all of them: projection, filter, refresh, staleness threshold, token budget, owner.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New schema artifact: <a href="Brain_Ready_Views_Contract.html"><code>Brain_Ready_Views_Contract.html</code></a>. Defines the contract pattern + catalogues all 20 views (9 cross-population for AGT-901, 11 per-account components for AGT-902 composite).</div>
+        <div class="detail-lbl">Why this is load-bearing</div><div class="detail-val">Until v30, brain-ready views existed only as references in AGT-901 and AGT-902 specs. AGT-901 references 9 (MetricsCalc, Opportunities, ForecastLog, Accounts, AccountPriorityScore, CapacityPlan, WinLossLog, CadenceEventLog, VoCSynthesisLog). AGT-902 references 11 source views joined into a per-account composite. Without formal definitions, the brains were theory. Without compression discipline (10× typical), brain costs would explode.</div>
+        <div class="detail-lbl">Contract elements</div><div class="detail-val">Source table, owning service, projection rule, filter rule, refresh cadence, staleness threshold, token budget, used-by list, backwards compatibility rules. Every view in the catalogue has all 8 elements specified.</div>
+        <div class="detail-lbl">Compression discipline</div><div class="detail-val">Three patterns: top-N + aggregate (most cross-population views); time-windowed slice (time-series views like UsageMeteringLog, MetricsCalc); per-account composite (precomputed denormalized snapshot for AGT-902). The composite is the operationally critical pattern &mdash; constructing it at brain query time would blow latency and token budget.</div>
+        <div class="detail-lbl">Staleness model</div><div class="detail-val">Every view exposes <code>view_metadata.last_refresh_timestamp</code> + <code>staleness_threshold_hours</code> + <code>is_stale</code>. Brain reads <code>is_stale</code> first; if TRUE, sets <code>BrainAnalysisLog.data_staleness_acknowledged = TRUE</code> and surfaces in narrative_output. Per-component staleness for the composite (AGT-902 may proceed with fresh components, surface specific stale dimensions).</div>
+        <div class="detail-lbl">Backwards compatibility rules</div><div class="detail-val">Field additions: non-breaking. Field removals: breaking, requires coordinated brain prompt deploy. Projection rule changes: case-by-case. Refresh cadence faster: non-breaking (cost may rise). Cadence slower: possibly breaking (staleness threshold may need adjustment). Cadence + threshold changes logged in changelog.</div>
+        <div class="detail-lbl">Cost economics</div><div class="detail-val">Materialized view storage trivial. Daily refresh compute modest (piggybacks on existing AGT-XXX nightly jobs). Per-account composite refresh slightly higher (per active account, daily). View-driven brain cost reduction ~10× vs raw-table reads &mdash; saves &gt;~$200/month at expected volumes. Net: views save more than they cost.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">L9 brains have a real, formal read contract.</span> <span class="impact-amber">Implementation work substantial</span> &mdash; 10 materialized views + 1 composite refresh job. <span class="impact-neutral">Eval linkage</span>: BrainEvalLog.brain_view_contracts_hash detects view contract changes between runs; forces re-eval before brain promotion.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L3" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-302<span class="layer-tag lt-l3">L3</span></span>
+      <span class="agent-name">Cadence Coordinator — v27 ripple formalized in spec</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple</span><span class="ct ct-update">Charter update</span></div>
+      <span class="entry-summary">v27 SalesPlayLibrary execution + play_id/originating_proposal_id lineage now formalized in AGT-302's own spec (was only in changelog ripple entry). Wire 4 documented alongside Wire 3 (L2 ABM backstop).</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">AGT-302 spec gains "L9 wire item (v27)" section parallel to existing L2 wire item. Documents two integrations: (1) reading active plays from SalesPlayLibrary alongside existing AGT-301/AGT-203 sequence sources, (2) writing <code>play_id</code> and <code>originating_proposal_id</code> to CadenceEventLog for cohort retrospective lineage.</div>
+        <div class="detail-lbl">Why now</div><div class="detail-val">v27 ripple was logged in changelog but never written into AGT-302's own spec. AGT-302 is the highest-traffic execution service in the OS &mdash; its spec needs to reflect every coordination wire, including the L9 one. Spec drift is itself a failure mode; fixing it before more services build against AGT-302 documentation.</div>
+        <div class="detail-lbl">Existing behavior preserved</div><div class="detail-val">All AGT-302 v22 behavior unchanged: 3-touch/week cap, ABM backstop, suppression compliance gates. Brain-co-designed plays do not bypass coordination guards. Both new CadenceEventLog columns are nullable; existing rows have NULL on both; existing AGT-301/AGT-304/AGT-203 paths continue without writing the new fields.</div>
+        <div class="detail-lbl">Read by</div><div class="detail-val">AGT-303 Cadence Intelligence reads CadenceEventLog including new fields &mdash; brain-co-designed plays appear in cadence performance analytics with <code>play_id</code> grouping (per AGT-303 v27 brain-ready view extension referenced in Brain_Ready_Views_Contract).</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Documentation hygiene</span> &mdash; spec now matches what changelog claims is true. <span class="impact-green">Cohort retrospective is queryable</span> &mdash; the CadenceEventLog originating_proposal_id column was theoretical until AGT-302's spec confirmed write behavior.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v28→v29: Tier 3 Specialist Tools — first wave (4 tools)                 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L9">
+  <div class="version-hdr">
+    <span class="version-pill">v28 → v29</span>
+    <span class="version-date">Tier 3 Specialist Tools · 4 tools specced · Closes Domain 3 + Domain 1 gaps + UBB consumption forecasting</span>
+    <span class="version-summary">Tier 3 = stateless callable LLM functions. Not a layer (no schema ownership, no cadence). Functions an agent can call. First wave covers the largest cognition gaps from the v26 architecture eval: API-doc translation, dev-persona enrichment, play composition, consumption forecasting.</span>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Tier 3<span class="layer-tag lt-l9">Tools</span></span>
+      <span class="agent-name">New artifact category — Specialist Tools</span>
+      <div class="change-type"><span class="ct ct-new">New category</span></div>
+      <span class="entry-summary">Stateless callable LLM functions. Distinct from layered services and agents — no schema ownership, no cadence, no approval gates. Lighter governance than Tier 1/2; pure I/O contracts plus eval discipline.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New artifact category established. Tools live alongside the layered services and agents but follow different rules. Stored in <code>tools/</code> directory. Indexed by <a href="../tools/Tools_Index.html"><code>Tools_Index.html</code></a>.</div>
+        <div class="detail-lbl">Why category, not layer</div><div class="detail-val">Tools are pure functions: stateless, no table ownership, no cadence, no approval gates. Treating them as layered components creates wrong governance overhead; treating them as opaque LLM calls creates wrong audit posture. Tier 3 splits the difference — callable contracts with eval discipline, but no layer-integration burden. Per the v26 architecture eval recommendation.</div>
+        <div class="detail-lbl">Tool contract</div><div class="detail-val">Every Tier 3 tool spec must define: purpose (1 sentence), input schema (strict JSON), output schema (strict JSON; schema changes are breaking), model tier (Haiku default unless task demands otherwise), called-by list, cost ceiling (per-call + monthly), eval criteria, declared failure modes.</div>
+        <div class="detail-lbl">Invocation patterns</div><div class="detail-val">Brain calls tool during query (most common); service calls tool as enrichment (e.g., AGT-201/AGT-204 calling TOOL-002); operator calls tool directly via workspace UI; tool chains (brain orchestrating multiple tools in sequence).</div>
+        <div class="detail-lbl">Aggregate cost target</div><div class="detail-val">First-wave default budgets total ~$1,200/mo across the 4 tools. Combined with Tier 2 brain budgets (~$1,500/mo), reasoning layer total ~$2,700/mo. Tracked in single dashboard; alerts at 75% per tier.</div>
+        <div class="detail-lbl">Eval discipline</div><div class="detail-val">Tools have own eval criteria, lighter than brain harness — typically 10&ndash;15 questions per tool. Schema compliance is hard requirement (100%); hallucination/grounding metrics are tool-specific. Tool eval results land in BrainEvalLog with flag distinguishing tool runs from brain runs.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Lightweight extension mechanism for narrow cognition tasks.</span> <span class="impact-amber">New ongoing maintenance</span> &mdash; tool eval suites + per-tool model selection discipline. <span class="impact-neutral">No schema burden</span> &mdash; tools don't write tables, so adding/removing a tool has zero schema migration cost.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-001<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">API-doc → Sales-play Translator</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">Reads API documentation, produces 1–3 candidate sales play definitions for technical buyer personas. Output goes to SalesPlayLibrary as draft. Closes Domain 3 (API/dev-led GTM) gap.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New tool: <a href="../tools/TOOL-001_API_Doc_Play_Translator.html"><code>TOOL-001_API_Doc_Play_Translator.html</code></a>. Closes the largest single gap from the v26 architecture eval (Domain 3 was 20% covered).</div>
+        <div class="detail-lbl">Inputs</div><div class="detail-val">API doc (OpenAPI spec / markdown URL / raw markdown), product context, current ICP summary, current active plays (for de-duplication), optional buyer persona hint, max plays constraint.</div>
+        <div class="detail-lbl">Outputs</div><div class="detail-val">Up to 3 candidate plays with name, hypothesis, target_buyer_persona, api_capabilities_referenced (with doc citations), target_definition outline, suggested_cadence_outline, success_criteria_outline, confidence_self_rating, ungrounded_assumptions (hard requirement &mdash; assumptions must be separated from API-grounded claims).</div>
+        <div class="detail-lbl">Hard rules</div><div class="detail-val">No fabricated capabilities (eval enforces 0% hallucinated capability rate). Refuses if input docs too thin (returns 0 candidates with structured reason rather than fabricate). De-duplicates against current_active_plays.</div>
+        <div class="detail-lbl">Called by</div><div class="detail-val">AGT-901 Pipeline Brain (most common, after product launches), AGT-902 Account Brain (account-specific variant), RevOps direct via workspace UI.</div>
+        <div class="detail-lbl">Cost</div><div class="detail-val">Sonnet (synthesis-heavy; Haiku quality below threshold). 50K input + 5K output budget. ~$0.20-0.30 per call. Monthly cap $300/mo (~1,000 calls). Frequency expectation low.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">First mechanism in the OS for translating product capabilities into sales plays.</span> Often chains into TOOL-003 (Sales Play Composer) when a candidate is selected for refinement.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-002<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Dev-Persona ICP Enricher</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">Augments AGT-201 ICP scoring with developer-persona signals (job postings, GitHub activity, technographics, product telemetry). Bounded ±15pt adjustment on tech_stack and intent dimensions only. Closes dev-buyer side of Domain 3 gap.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New tool: <a href="../tools/TOOL-002_Dev_Persona_ICP_Enricher.html"><code>TOOL-002_Dev_Persona_ICP_Enricher.html</code></a>. AGT-201's 6-dimension scorer materially under-weights developer-buyer signal; this tool augments without replacing.</div>
+        <div class="detail-lbl">Inputs</div><div class="detail-val">Account basics, technical signals (job postings, GitHub org activity, technographic data from AGT-204, product telemetry from UsageMeteringLog), current ICP score breakdown.</div>
+        <div class="detail-lbl">Outputs</div><div class="detail-val">dev_persona_score (0&ndash;100 composite), dev_persona_tier, buyer_persona_classification (developer / platform_team / compliance_engineer / data_engineer / non_technical_buyer / unclear), signals_present breakdown, key_drivers with citations, agt_201_recommended_adjustment (capped &plusmn;15pt on tech_stack and intent dimensions only), data_completeness assessment.</div>
+        <div class="detail-lbl">Hard rules</div><div class="detail-val">Bounded magnitude (cannot single-handedly flip Tier 3 to Tier 1). Sparse-data graceful degradation (returns "low" or "medium" confidence on sparse inputs, not "high"). Honest "unclear" classification when signals conflict. Hallucinated signals = 0% (key_drivers must cite real input fields).</div>
+        <div class="detail-lbl">Called by</div><div class="detail-val">AGT-201 ICP Scorer (on account update events with technical signals); AGT-901 Pipeline Brain (cross-account dev-persona analysis); AGT-204 Lead Enrichment (as enrichment subroutine).</div>
+        <div class="detail-lbl">Cost</div><div class="detail-val">Haiku (classification task; Sonnet tested no measurable lift). 10K input + 1K output budget. ~$0.01-0.02 per call. Monthly cap $200/mo (~10,000 calls). Frequency expectation high &mdash; called on AGT-204 enrichment cadence.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Developer-led GTM motion finally has a system home.</span> AGT-201 keeps existing 6-dimension model; this is parallel signal stream. <span class="impact-neutral">Backwards-compatible</span> &mdash; accounts without enrichment scored exactly as before.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-003<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Sales Play Composer</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">Composes structured play definitions from a hypothesis + Tier 1 brain-ready views. Output is a draft for SalesPlayLibrary. Hard rule: must use existing levers only — never proposes capabilities AGT-302 doesn't support. Closes Domain 1 "create plays, not just execute" gap.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New tool: <a href="../tools/TOOL-003_Sales_Play_Composer.html"><code>TOOL-003_Sales_Play_Composer.html</code></a>. The lever that turns a brain proposal from "we should do something here" into "here's the candidate play, refine and approve."</div>
+        <div class="detail-lbl">Inputs</div><div class="detail-val">Hypothesis from calling brain, scope (segment / account_specific), context_views (ICP profile, win/loss pattern, account priority distribution, current active plays, VoC themes), constraints (must_use_existing_lever_only=true, max_touch_count per AGT-302 limits, optional anchor_to_tool_001_output for chain), originating_proposal_id from BrainAnalysisLog.</div>
+        <div class="detail-lbl">Outputs</div><div class="detail-val">draft_play (full SalesPlayLibrary draft schema: name, hypothesis, target_definition, suggested_cadence with step_outline, success_criteria with retire_signal), lever_grounding (every play element traces to existing agent spec section), duplication_check (overlap flagging vs current active plays), self_assessed_promotion_likelihood (calibrated honestly, not optimistically), ungrounded_assumptions.</div>
+        <div class="detail-lbl">Hard rules</div><div class="detail-val">100% lever-grounding required (ungrounded elements omitted, not fabricated). Schema compliance 100% (validates against SalesPlayLibrary draft schema). Must-use-existing-lever-only constraint non-negotiable; cannot propose capabilities AGT-302 doesn't support. Honest self-rated promotion likelihood &mdash; "low" rated drafts must actually have lower promotion rate than "high" by &gt;20pp.</div>
+        <div class="detail-lbl">Called by</div><div class="detail-val">AGT-901 Pipeline Brain (most common). AGT-902 Account Brain (for scope=account_specific). Chains from TOOL-001 when API-doc candidate gets selected for refinement. RevOps direct via workspace UI.</div>
+        <div class="detail-lbl">Cost</div><div class="detail-val">Sonnet (composition with structural constraints; Haiku tested but lever-grounding accuracy below threshold). 30K input + 4K output budget. ~$0.15 per call. Monthly cap $300/mo (~2,000 calls).</div>
+        <div class="detail-lbl">Stateless write contract</div><div class="detail-val">Tool is stateless &mdash; calling brain writes the SalesPlayLibrary draft row with the tool's output. Brain owns the write because brain owns the BrainAnalysisLog row anchoring lineage. Promotion gate (draft → under_review → active) unchanged from SalesPlayLibrary v27 spec.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes Domain 1 gap from v26 eval.</span> Brain proposals + TOOL-003 composition + human co-definition + AGT-302 execution = end-to-end "create plays, not just execute" pipeline.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-004<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Consumption Forecasting / Runway Predictor</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">Reads UsageMeteringLog trailing 90–180 days for one (account, SKU). Predicts overage timing with confidence interval, characterizes trend (linear / exponential / seasonal / cliff / flat). Closes UBB-specific gap. LLM for characterization; numerical forecasting in code (not LLM gut feel).</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New tool: <a href="../tools/TOOL-004_Consumption_Forecasting.html"><code>TOOL-004_Consumption_Forecasting.html</code></a>. Today the system can detect overage <em>has happened</em> (AGT-503 fires on threshold breach) but cannot predict <em>when</em> overage will happen or distinguish trend from spike.</div>
+        <div class="detail-lbl">Inputs</div><div class="detail-val">account_id, sku_id, sku_type, metering_history (90&ndash;180 days from UsageMeteringLog brain-ready view, audit_status filtered to verified+pending_recon), contract context (start/end/renewal dates, current period commit, trailing overage count), forecast_horizon_days (default 60, max 180).</div>
+        <div class="detail-lbl">Outputs</div><div class="detail-val">forecast_summary (predicted_overage_date with [low, high] confidence interval), trend_characterization (primary_pattern enum, growth_rate, volatility_score, seasonality_detected, anomalies_detected), interpretation_for_caller (is_likely_real_expansion / is_likely_one_time_spike / is_likely_seasonal_recurrence + rationale), data_quality assessment.</div>
+        <div class="detail-lbl">Pattern taxonomy</div><div class="detail-val">5 patterns enumerated: <code>linear</code> (steady growth), <code>exponential</code> (accelerating), <code>seasonal</code> (repeating cycle), <code>cliff</code> (sudden discontinuous step), <code>flat</code> (no trend). Pattern characterization is the most operationally important output &mdash; spike-vs-trend differentiation is the eval-targeted dimension at &ge; 80% threshold.</div>
+        <div class="detail-lbl">Hard rules</div><div class="detail-val">Refuses if &lt; 30 days of history. Seasonality requires &ge; 2 full cycles (eval enforces 0% false-positive seasonality). Confidence intervals scale with history length (no narrow intervals on short data). LLM does not invent forecast numbers &mdash; numerical forecasting runs in code (exponential smoothing + regression with seasonality decomposition); LLM produces structured summary + interpretation.</div>
+        <div class="detail-lbl">Called by</div><div class="detail-val">AGT-902 Account Brain (most common &mdash; "real expansion or spike?" use case). AGT-503 Expansion Trigger (optional augment to existing 5-signal scoring &mdash; downgrades signal weight on cliff/spike pattern). AGT-402 Forecast Adjuster (weights expansion ACV probability in bottoms-up forecast by trend strength).</div>
+        <div class="detail-lbl">Cost</div><div class="detail-val">Haiku (LLM portion is interpretation only; numerical work in code). 15K input + 2K output budget. ~$0.02 per call. Monthly cap $400/mo (~20,000 calls). Highest-frequency tool of the four.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes UBB-specific gap from v26 eval.</span> For Checkr-style usage-based business: the difference between proactive expansion conversation (timed before overage hits) and reactive damage control (overage already painful for customer).</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v27→v28: Brain Eval Harness — pre-launch gate for L9 brains             -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L9">
+  <div class="version-hdr">
+    <span class="version-pill">v27 → v28</span>
+    <span class="version-date">Brain Eval Harness · 30-question retrospective + scoring rubric + BrainEvalLog schema</span>
+    <span class="version-summary">Pre-launch gate for AGT-901 + AGT-902. Per the v26 architecture directive: eval before launch, eval forever. Quarterly drift detection + on-demand triggers. The CFO defense, written down.</span>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">EVAL Harness<span class="layer-tag lt-l9">L9</span></span>
+      <span class="agent-name">Methodology + Rubric (new artifact)</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span></div>
+      <span class="entry-summary">7-dimension scoring rubric with 3 hard criteria + 4 soft criteria. Pre-launch hard gate. Quarterly cadence + on-demand triggers. Independence-required reviewer. Decision logic computed via trigger.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New artifact: <a href="../eval/Brain_Eval_Harness.html"><code>Brain_Eval_Harness.html</code></a>. Established methodology, scoring rubric, run cadence, human review process, drift detection signals, and pre-launch checklist.</div>
+        <div class="detail-lbl">Scoring rubric</div><div class="detail-val"><strong>7 dimensions.</strong> 3 hard criteria (any failure = harness fail): hallucination rate &le; 2%, staleness recognition = 100%, lever-mapping correctness = 100% (AGT-902 only). 4 soft criteria: source citation rate &ge; 95%, diagnosis accuracy &ge; 0.70 mean, confidence calibration in healthy bands, narrative coherence &ge; 4.0/5.0 mean.</div>
+        <div class="detail-lbl">Pass/fail logic</div><div class="detail-val">Computed via trigger from aggregated_scores. <code>pass</code> (all hard + all soft) / <code>pass_with_notes</code> (all hard + most soft, no soft &gt; 15pp below threshold) / <code>conditional</code> (all hard but soft significantly below; brain may run shadow mode) / <code>fail</code> (any hard criterion fails). Decision is policy, not negotiation &mdash; manual override blocked.</div>
+        <div class="detail-lbl">Run cadence</div><div class="detail-val">Pre-launch (one time per brain, hard gate) · quarterly (drift detection) · material prompt change (hard gate) · new model promotion (comparison gate) · on-demand (operator suspicion, diagnostic only).</div>
+        <div class="detail-lbl">Reviewer independence</div><div class="detail-val">Hard requirement: human reviewer must not be the person who tuned the brain prompt. Trigger validates against an access-controlled prompt-tuner registry at write time. Independence preserves the eval as a measurement, not a target.</div>
+        <div class="detail-lbl">Cost of running</div><div class="detail-val">~$3/run in tokens (30 brain calls × Sonnet pricing). ~$25/yr token at quarterly cadence + 2&ndash;3 ad-hoc runs. ~24 reviewer-hours/year. Total &lt; $50/yr token + ~40 hours analyst time. Cheap insurance.</div>
+        <div class="detail-lbl">Failure modes of the eval itself</div><div class="detail-val">Documented: catalog over-fitting (eval easy questions); brain "memorization" of eval (rotate question wording, hold private spot-check set); reviewer drift (calibrate periodically with golden-set questions). The eval is an artifact that needs maintenance, not a static check.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Pre-launch gate established.</span> AGT-901 + AGT-902 cannot go to production without passing the harness. <span class="impact-amber">New ongoing operational burden</span> &mdash; quarterly run + catalog maintenance + reviewer independence enforcement. <span class="impact-neutral">Eval is the CFO defense</span> &mdash; when costs come up, point at measurable accuracy gains. When auditors ask how brain quality is maintained, point at the trend.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">EVAL Catalog<span class="layer-tag lt-l9">L9</span></span>
+      <span class="agent-name">30-question retrospective catalog (new artifact)</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span></div>
+      <span class="entry-summary">10 questions for AGT-901 + 20 for AGT-902 across 8 question types. 5 questions deliberately use stale fixture data to test staleness recognition. Anonymization discipline mandatory.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New artifact: <a href="../eval/Brain_Eval_Question_Catalog.html"><code>Brain_Eval_Question_Catalog.html</code></a>. Scaffolded with 6 detailed question templates and 24 one-line summaries. RevOps owns filling in the remaining detailed templates with real anonymized historical fixtures before pre-launch.</div>
+        <div class="detail-lbl">Question split</div><div class="detail-val"><strong>AGT-901 (10):</strong> 4 plan diagnosis · 3 coverage gap · 2 quarterly play retrospective · 1 forecast bias attribution. <strong>AGT-902 (20):</strong> 8 churn diagnosis · 6 expansion qualification · 4 hand-off briefing · 2 QBR narrative. Volume favors AGT-902 because per-account ground truth is easier to construct retrospectively and the brain is higher-volume in production.</div>
+        <div class="detail-lbl">Stale-fixture coverage</div><div class="detail-val">5 of 30 questions use deliberately stale Tier 1 source fixtures: EVAL-Q02 (forecast accuracy stale), Q07 (priority score stale), Q12 (composite view stale), Q24 (usage log stale), Q28 (conv intelligence stale during hand-off). All 5 must score 100% on staleness recognition for the harness to pass.</div>
+        <div class="detail-lbl">Question construction principles</div><div class="detail-val">4 properties of a good retrospective question: ground truth exists (knowable in retrospect); source data is reconstructible (Tier 1 tables can be replayed to time-of-question state); multiple defensible answers possible but some clearly better; spans the brain's actual use cases. Hard rule: if source state can't be reconstructed, the question is not eligible &mdash; otherwise the eval measures hindsight bias not brain quality.</div>
+        <div class="detail-lbl">Anonymization</div><div class="detail-val">Mandatory before catalog commit. Account names fictionalized with consistent placeholders (mapping in access-controlled separate file). ACV/consumption rounded within 10%. Personnel names removed/fictionalized. Verified by second reviewer. BrainEvalLog 7-year retention makes anonymization a privacy + contract requirement, not a polish step.</div>
+        <div class="detail-lbl">Catalog maintenance cadence</div><div class="detail-val">Quarterly: rotate 3&ndash;5 questions (retire aged ground truth, add questions sourced from recent operational complaints). On material GTM context shift: refresh to span new ICP / product / segment. On model promotion: spot-check 5 questions on the new model, expand to full harness if divergence material.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Concrete pre-launch artifact</span> &mdash; AGT-901 + AGT-902 launch is now blocked on a measurable, defined deliverable rather than vibes. <span class="impact-amber">Ongoing maintenance commitment</span> &mdash; ~16 hours/year refreshing questions. <span class="impact-neutral">Catalog is intentionally a scaffold, not finished</span> &mdash; structure is set; RevOps fills in the historical detail before the first run.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="schema">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">BrainEvalLog<span class="layer-tag lt-l9">L9</span></span>
+      <span class="agent-name">Production Schema (new) — 2 tables</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">BrainEvalLog (one row per run) + BrainEvalQuestionScore (one row per question per run). Append-only. Decision computed via trigger. Reviewer independence enforced. 7-year retention. Brain Agents have no read access by design.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New schema artifact: <a href="BrainEvalLog_Schema.html"><code>BrainEvalLog_Schema.html</code></a>. Two tables &mdash; one row per run (aggregated), many rows per question per run (drill-down).</div>
+        <div class="detail-lbl">BrainEvalLog fields</div><div class="detail-val">19 fields. Key: run_trigger, brain_under_test, model_id, system_prompt_hash (joinable to BrainAnalysisLog), brain_view_contracts_hash (detects view drift between runs), question_catalog_version, reviewer_user_id + reviewer_independence_verified (trigger checks against prompt-tuner registry), aggregated_scores (JSONB across 7 dimensions), hard_criteria_passed, decision (computed via trigger), decision_rationale, calibration_notes, token_cost_usd, reviewer_hours_spent.</div>
+        <div class="detail-lbl">BrainEvalQuestionScore fields</div><div class="detail-val">17 fields per (run, question). Key: brain_analysis_id (FK to actual BrainAnalysisLog row produced for this eval question &mdash; full drill-down), uses_stale_fixture flag, citation_rate (auto-scored), hallucinations_detected + total_claims (human-reviewed), staleness_correctly_recognized (NULL if not stale-fixture; T/F otherwise), diagnosis_accuracy_score, lever_mapping_violations (AGT-902 only), confidence_distribution, narrative_coherence_rating (1&ndash;5), reviewer_comments.</div>
+        <div class="detail-lbl">Triggers</div><div class="detail-val">Reviewer independence trigger: validates reviewer_user_id is not in the prompt-tuner registry at write. Decision logic trigger: computes BrainEvalLog.decision from aggregated_scores via the rubric &mdash; manual override blocked. Append-only enforcement: UPDATE blocked except for completed_at; DELETE blocked.</div>
+        <div class="detail-lbl">Brain Agents have no read access</div><div class="detail-val">Deliberate. The brain should not learn what the eval expects &mdash; the eval is a measurement of general capability, not a target the brain optimizes for. RLS blocks Brain Agent read access to both eval tables. RevOps + auditors + the eval harness runner service are the only readers.</div>
+        <div class="detail-lbl">Dashboard queries enabled</div><div class="detail-val">Per-brain quarterly trend; most-failing questions across runs; stale-fixture pass rate audit; reviewer calibration distribution; cost per run; production-vs-eval prompt drift (join on system_prompt_hash). All readable from the two tables without expensive joins.</div>
+        <div class="detail-lbl">Retention</div><div class="detail-val">7 years. Hot 0&ndash;24mo, cold 24mo&ndash;7yr. Parallels BrainAnalysisLog and UsageMeteringLog &mdash; eval results that informed brain-influenced decisions need the same retention floor.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Eval results are durable, queryable, auditable.</span> <span class="impact-amber">New triggers to maintain</span> &mdash; reviewer-independence trigger requires keeping the prompt-tuner registry accurate. <span class="impact-neutral">Production-vs-eval drift detection</span> becomes a real query, not a hope &mdash; system_prompt_hash joins detect when production is using a prompt that the eval hasn't validated.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v26→v27: L9 Reasoning Layer created — first true Agents in the OS       -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L9">
+  <div class="version-hdr">
+    <span class="version-pill">v26 → v27</span>
+    <span class="version-date">L9 Reasoning Layer · AGT-901 Pipeline Brain + AGT-902 Account Brain · 2 new schemas + Tier 1 ripples</span>
+    <span class="version-summary">First true Agents in the OS. LLM-native, operator-invoked, read Tier 1 services, never write canonical data. Brain proposes, humans co-define and approve, services execute.</span>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">L9 Layer<span class="layer-tag lt-l9">L9</span></span>
+      <span class="agent-name">Reasoning · Tier 2 Agents</span>
+      <div class="change-type"><span class="ct ct-new">New layer</span></div>
+      <span class="entry-summary">New layer concept distinct from L1–L8 services. Hosts LLM-native Brain Agents. Operator-invoked, never on cadence. Strict no-write-to-canonical contract.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New layer L9 — Reasoning. First time the system has agents in the LLM-native sense (distinct from the 40 GTM Services in L1–L8). L9 components are <em>operator-invoked</em>, not cadenced; they read Tier 1 service tables via brain-ready views and produce analysis with full source-trace metadata. No canonical writes from L9 — ever. The architectural commitment from the v26 evaluation made concrete.</div>
+        <div class="detail-lbl">Why now</div><div class="detail-val">Per the v26 architecture eval: brains require trustworthy Tier 1 data. L8 was promoted to Built first (UsageMeteringLog production schema + AGT-804 v26) so L9 reads from a real foundation rather than a stub. With L8 anchored, L9 can be specced without producing fake-confident output.</div>
+        <div class="detail-lbl">Layer color + position</div><div class="detail-val">Color #D4A84C (gold) — chosen to visually distinguish L9 from the eight service layers. Positioned in the layer stack as the topmost layer, reading from L1–L8 below.</div>
+        <div class="detail-lbl">Naming</div><div class="detail-val">Components in L9 are <strong>Brain Agents</strong>, not GTM Services. The renaming from v26 reserved "Agents" specifically for this layer. The renderer labels L9 cards with "agents" while L0–L8 cards remain "services."</div>
+        <div class="detail-lbl">Cadence policy</div><div class="detail-val">No L9 component runs on cadence by default. Invocation paths: operator query (chat-style), narrative jobs (called by AGT-704 / AGT-603 for narrative sections of MBR/QBR/QBR-prep), explicit batch triggers (quarterly play refresh, AE/CSM rotation hand-off, optional renewal-prep batch over T-90 cohort).</div>
+        <div class="detail-lbl">Cost containment</div><div class="detail-val">Default model: Sonnet tier. Opus reserved for explicit deep-analysis opt-in. Haiku for narrow Tier 3 tools (forthcoming). Prompt caching enabled. Brain-ready views (10× input compression typical) instead of full table dumps. Per-query budget caps + monthly tier alerts at 75%.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Open-ended operator queries become tractable.</span> "Why is Q3 commercial soft?" no longer requires a 4-day RevOps analyst project. <span class="impact-amber">New audit surface.</span> BrainAnalysisLog must demonstrate source-trace integrity to the auditor — a new capability but a known one. <span class="impact-neutral">Tier 1 services unaffected at execution time.</span> If L9 is offline, L1–L8 continues to run normally.</div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Step 3 of the four-step build sequence in the v26 architecture plan: deterministic backbone first (L8), framing rename second, Tier 2 agents third, eval harness fourth.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-901<span class="layer-tag lt-l9">L9</span></span>
+      <span class="agent-name">Pipeline Brain</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span></div>
+      <span class="entry-summary">Cross-functional pipeline reasoning. Diagnoses plan-vs-actual, drafts segment-targeted plays. Reads 9 Tier 1 brain-ready views. Operator-invoked.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">First Brain Agent in L9. Answers cross-functional pipeline questions: <em>why</em> a segment is off plan, <em>what</em> play would close the gap, <em>which</em> existing levers apply. Reads brain-ready views from AGT-702 (MetricsCalc), AGT-401 (Opportunities), AGT-402 (ForecastLog), AGT-201 (Accounts), AGT-206 (AccountPriorityScore), AGT-105 (CapacityPlan), AGT-703 (WinLossLog), AGT-303 (CadenceEventLog), AGT-604 (VoCSynthesisLog).</div>
+        <div class="detail-lbl">Use cases</div><div class="detail-val">Plan diagnosis (operator query: "Why is segment X off plan?"); coverage gap proposal; quarterly play refresh; WBR/MBR narrative job (AGT-704 invokes); anomaly explanation after AGT-702 breach alert.</div>
+        <div class="detail-lbl">Write contract</div><div class="detail-val">BrainAnalysisLog (own log) and SalesPlayLibrary (drafts only — never <code>active</code>). May write WBR/MBR/QBR narrative sections per AGT-704 v26 charter. Never writes Opportunities, ForecastLog, MetricsCalc, QuotaStore, CompPlans, RevenueRecognitionLog, ABMPlaybook directly.</div>
+        <div class="detail-lbl">Promotion gate</div><div class="detail-val"><code>draft</code> → <code>under_review</code>: human pickup. <code>under_review</code> → <code>active</code>: SLM + RevOps joint approval. Hard volume cap: 3–8 active plays per segment per quarter (configurable, default 5). Cap enforced at write time on transition to active.</div>
+        <div class="detail-lbl">Eval criteria</div><div class="detail-val">Source citation rate ≥ 95%; hallucination rate ≤ 2%; staleness recognition 100% (hard requirement); diagnosis accuracy ≥ 70% on 30-question retrospective harness; play survival rate ≥ 30%; cohort outcome lift tracked quarterly.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes Domain 1 gap from v26 eval</span> — system can now <em>create</em> sales plays for human co-definition, not only execute them. <span class="impact-neutral">No behavioral change to Tier 1 services</span> until a brain-drafted play is promoted to active by humans, at which point AGT-302 executes per its existing v25 spec.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-902<span class="layer-tag lt-l9">L9</span></span>
+      <span class="agent-name">Account Brain</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span></div>
+      <span class="entry-summary">Per-account synthesis across L4+L5+L6. Reads 11-source composite brain-ready view. Maps proposed actions to existing levers — never invents new ones.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Per-account counterpart to AGT-901. Where AGT-901 reasons across pipeline-wide signals, AGT-902 reasons across the full L4 + L5 + L6 picture for a <em>single account</em>. Reads a composite per-account brain-ready view spanning 11 Tier 1 sources (CustomerHealthLog, ChurnRiskLog, ExpansionLog, UsageMeteringLog, Opportunities, ConvIntelligence, QBRLog, OnboardingLog, TechnicalMilestoneLog, PaymentEventLog, Accounts).</div>
+        <div class="detail-lbl">Use cases</div><div class="detail-val">"What's the move?" account queries; AE/CSM hand-off briefing on rotation; renewal risk diagnosis after AGT-502 surfaces a Critical/High account; expansion qualification after AGT-503 fires; QBR prep narrative section (AGT-603 invokes).</div>
+        <div class="detail-lbl">Proposed-action taxonomy</div><div class="detail-val">All actions map to existing Tier 1 levers — no invented actions. Enum: <code>pull_qbr_forward</code>, <code>open_expansion_play</code>, <code>brief_new_ae_or_csm</code>, <code>customer_communication</code>, <code>escalate_to_slm</code>, <code>recommend_human_query</code>, <code>none</code>. Eval enforces 100% taxonomy compliance.</div>
+        <div class="detail-lbl">Account synthesis signature caching</div><div class="detail-val">Within a freshness window, repeat queries on the same account hit cache. Saves cost on iterative meeting-prep workflows where someone asks 3+ follow-ups about the same account.</div>
+        <div class="detail-lbl">Cost sizing</div><div class="detail-val">Conservative: 30 queries/day, 30K input + 3K output per query, Sonnet ≈ $4/day ≈ $120/mo. Per the v26 cost model.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Cross-source per-account synthesis becomes routine.</span> Today this requires the AM/CSM to mentally union 11 source systems. <span class="impact-amber">Acceptance rate is a calibration signal, not a quality signal</span> — too high suggests reading leadership/AM bias, too low suggests missing context. Track outcome lift cohort-wise.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="schema">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">BrainAnalysisLog<span class="layer-tag lt-l9">L9</span></span>
+      <span class="agent-name">Production Schema (new)</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Canonical log of every Brain Agent query. Source-trace metadata for audit-grade reasoning. Append-only. Single-writer-per-row. proposal_id lineage anchor.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New schema artifact: <a href="BrainAnalysisLog_Schema.html"><code>BrainAnalysisLog_Schema.html</code></a>. The mechanism by which L9 earns audit-grade reasoning out of a non-deterministic substrate.</div>
+        <div class="detail-lbl">Field highlights</div><div class="detail-val">22 fields. Key: <code>proposal_id</code> (lineage anchor for cohort retrospective), <code>writer_agent_id</code> (single-writer enforced), <code>sources_read</code> (JSONB array with last_refresh_timestamp per source), <code>narrative_output</code> (with inline <code>[src:N]</code> citations), <code>confidence_flags</code> (high_confidence / multi_source / inference / speculation), <code>data_staleness_acknowledged</code> (hard CHECK requires staleness disclosure phrase in narrative when TRUE), <code>cost_usd_estimate</code> (audit-stable).</div>
+        <div class="detail-lbl">Triggers enforced</div><div class="detail-val">Staleness disclosure trigger (stale + no disclosure phrase = reject); source citation trigger (every <code>[src:N]</code> must reference a real source_index); action enum trigger (proposed_actions[].action_type must be in taxonomy). Append-only via row-level security — UPDATE and DELETE blocked.</div>
+        <div class="detail-lbl">proposal_id lineage</div><div class="detail-val">Every brain output gets a stable <code>proposal_id</code>. Downstream actions (promoted plays, executed sequences, scheduled QBRs, sent comms) inherit it. At quarter end, cohort retrospective filters Tier 1 records on <code>WHERE originating_proposal_id IS NOT NULL</code> for the brain-influenced cohort. Pattern-level analysis, not per-deal attribution — per the v26 evaluation's "cohort-level retrospective" model.</div>
+        <div class="detail-lbl">Retention</div><div class="detail-val">7 years. Hot 0–90d, warm 90d–18mo, cold 18mo–7yr. Parallels UsageMeteringLog and RevenueRecognitionLog.</div>
+        <div class="detail-lbl">Access</div><div class="detail-val">Brain Agents read own writes only. RevOps full read. Auditors full read on audit windows. AM/CSM/AE: own queries + assigned accounts. Tier 1 services intentionally have no read access — preserves the auditability invariant that canonical metrics never depend on brain outputs.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Audit reproducibility</span> — given any row, auditor can re-fetch cited sources at cited timestamps and re-evaluate defensibility. <span class="impact-amber">New trigger maintenance burden</span> — staleness disclosure trigger and source citation trigger must be kept aligned with prompt evolution. <span class="impact-neutral">Eval ground truth</span> — the 30-question retrospective harness reads BrainAnalysisLog directly.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="schema">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">SalesPlayLibrary<span class="layer-tag lt-l9">L9</span></span>
+      <span class="agent-name">Production Schema (new)</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Workspace where Brain Agents draft sales plays for human co-definition. Promotion-gated state machine. Hard volume cap on active plays per segment.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New schema artifact: <a href="SalesPlayLibrary_Schema.html"><code>SalesPlayLibrary_Schema.html</code></a>. Operationalizes the v26 commitment: <em>brains propose, RevOps and sales leaders refine into a small curated set, AGT-302 executes</em>.</div>
+        <div class="detail-lbl">State machine</div><div class="detail-val">4 states with enforced transitions. <code>draft</code> (Brain writes) → <code>under_review</code> (human pickup) → <code>active</code> (SLM + RevOps joint approval) → <code>retired</code> (terminal). No backward transitions. Trigger validates allowed transitions only.</div>
+        <div class="detail-lbl">Volume cap</div><div class="detail-val">Hard cap enforced at trigger level on transition to <code>active</code>. Default 3–8 per segment per quarter (configurable per segment via <code>SalesPlayLibraryConfig</code> in L0; default 5). Account-specific plays: 1 active per account, hard. Cap met → activation rejected with error suggesting retire-an-existing-play first. No silent overflow.</div>
+        <div class="detail-lbl">AGT-302 integration</div><div class="detail-val">AGT-302 reads <code>SalesPlayLibrary WHERE state = 'active'</code> at sequence-generation time. Drafts and under-review plays invisible to AGT-302 by design. AGT-302 writes <code>play_id</code> and <code>originating_proposal_id</code> to <code>CadenceEventLog</code> for every event generated under a brain-co-designed play. v27 ripple change to AGT-302's schema (two new fields).</div>
+        <div class="detail-lbl">Brain calibration feedback</div><div class="detail-val">Three signals: promotion rate (<code>active</code> / <code>draft</code> ratio per quarter per brain — eval target ≥ 30%), edits-during-review volume (light edits = brain calibrated; heavy edits = drafts are starting points), retrospective outcomes vs. success_criteria (cohort lift quarterly). Brain reads retrospective_outcomes in next play-refresh batch.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes Domain 1 "create plays, not just execute" gap</span> from the v26 evaluation. <span class="impact-amber">RevOps + SLM workflow change</span> — explicit promotion gate process, joint approval, quarterly retrospective on cohort outcomes. <span class="impact-neutral">AGT-302 v25 behavior preserved</span> — touch caps, suppression, ABM backstop still apply on top of any active play execution.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Tier 1 ripple<span class="layer-tag lt-l9">L9</span></span>
+      <span class="agent-name">originating_proposal_id columns added across 6 services</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">AGT-203 ABMPlaybook · AGT-302 CadenceEventLog · AGT-503 ExpansionLog · AGT-603 QBRLog · AGT-405 OpportunityBriefLog · AGT-504 CommBriefLog. All gain a nullable originating_proposal_id column for cohort retrospective lineage.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Six Tier 1 services gain a nullable <code>originating_proposal_id</code> column. Always nullable — actions taken without brain involvement carry NULL. Cohort retrospective queries filter on <code>WHERE originating_proposal_id IS NOT NULL</code> for the brain-influenced cohort. AGT-302 also gains a <code>play_id</code> column for direct play-to-event lineage.</div>
+        <div class="detail-lbl">Affected services</div><div class="detail-val"><strong>AGT-203</strong> ABMPlaybook (play promoted from SalesPlayLibrary carries proposal_id) · <strong>AGT-302</strong> CadenceEventLog (sequences executing under brain-co-designed plays carry proposal_id + play_id) · <strong>AGT-503</strong> ExpansionLog (expansion plays initiated via brain proposal) · <strong>AGT-603</strong> QBRLog (pull-forwards triggered by brain proposal) · <strong>AGT-405</strong> OpportunityBriefLog (briefs from brain-recommended meetings) · <strong>AGT-504</strong> CommBriefLog (comms approved after brain recommendation).</div>
+        <div class="detail-lbl">Backwards compatibility</div><div class="detail-val">Fully backwards-compatible. Existing rows have NULL <code>originating_proposal_id</code> — they predate L9 and were not brain-influenced. Existing service behavior unchanged. New rows populate the field only when triggered by a brain-promoted play or brain-proposed action.</div>
+        <div class="detail-lbl">Why</div><div class="detail-val">Per the v26 evaluation: in enterprise sales-led motion you cannot prove the brain caused a deal loss; what you can do is compare cohort outcomes between brain-influenced and non-brain-influenced actions over a quarter. The <code>originating_proposal_id</code> column is the load-bearing piece of that measurement.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-amber">Six service schemas updated.</span> Migration is straightforward (nullable add). <span class="impact-neutral">No reads change in those services.</span> Brain output never affects how Tier 1 services compute, only how RevOps reports retrospective outcomes.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L6" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-603<span class="layer-tag lt-l9">L6</span></span>
+      <span class="agent-name">Charter extension — narrative path called by AGT-902</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple</span><span class="ct ct-update">Charter update</span></div>
+      <span class="entry-summary">AGT-603 QBR Prep gains a narrative path: AGT-902 may write per-account narrative sections of QBR prep documents. AGT-603 still owns the artifact and gates publication. Metric sections remain off-limits to brains.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">AGT-603 charter extended (parallels the AGT-704 v26 charter extension): AGT-902 may write per-account <em>narrative</em> sections of QBR prep documents. AGT-603 still owns the artifact, gates publication, and pulls fresh from canonical Tier 1 metric tables for any number-bearing section.</div>
+        <div class="detail-lbl">What's permitted</div><div class="detail-val">AGT-902 may write narrative content describing account history, relationship dynamics, recent ConvIntelligence trajectory, open commitments — into designated QBRLog narrative fields. Always with source-trace metadata.</div>
+        <div class="detail-lbl">What's NOT permitted</div><div class="detail-val">AGT-902 may never write metric sections of QBR prep — health score, churn risk tier, expansion ACV, usage trends. Those pull fresh from AGT-501 / AGT-502 / AGT-503 / AGT-804 at QBR generation time. Same architectural commitment as AGT-704.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">QBR prep narrative quality lift</span> — synthesis across 11 sources is now automatic for AM/CSM consumption. <span class="impact-neutral">Metric integrity preserved</span> — every number in QBR still traces deterministically to Tier 1 service tables.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v25→v26: AGT-804 promoted to Built + UsageMeteringLog production schema -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L8">
+  <div class="version-hdr">
+    <span class="version-pill">v25 → v26</span>
+    <span class="version-date">AGT-804 promoted to Built · UsageMeteringLog production schema published</span>
+    <span class="version-summary">L8 begins its build phase. Per the architecture decision to ship the deterministic backbone before any reasoning/brain layer, AGT-804 (the audit-critical agent) and its UsageMeteringLog dependency are the first L8 promotion.</span>
+  </div>
+
+  <div class="entry" data-layer="L8" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-804<span class="layer-tag lt-l8">L8</span></span>
+      <span class="agent-name">Revenue Recognition</span>
+      <div class="change-type"><span class="ct ct-update">Status promotion</span><span class="ct ct-update">Hardened spec</span></div>
+      <span class="entry-summary">Specced → Built. Production controls + edge cases + restatement workflow added. ASC 606 source data contract now references the UsageMeteringLog production schema.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">AGT-804 promoted from Specced (v25) to Built (v26). Spec hardened with two new sections: <strong>Production controls &amp; audit</strong> (8 controls covering reconciliation, deferred-revenue tie-out, MAX(record_version) discipline, prior-period adjustment flagging, milestone sign-off gating, 7-year retention, restatement workflow) and <strong>Edge cases &amp; failure modes</strong> (8 scenarios: reconciliation failure, prior-period correction, mid-term amendment, customer dispute, SKU type change, mid-term churn, source replay, ingestion outage). UsageMeteringLog section rewritten to reference the new production schema document instead of duplicating field-level detail.</div>
+        <div class="detail-lbl">Why now</div><div class="detail-val">The architecture evaluation (May 2026) called L8 the gating dependency for any Tier 2 / brain layer. The brain reading from a stub UsageMeteringLog produces fake-confident output &mdash; the worst possible failure mode for audit-sensitive metrics like Magic Number, NRR, and CAC Payback. Building reasoning on top of an unbuilt L8 is incoherent. AGT-804 goes first within L8 because it is the audit-critical one: ASC 606 recognized revenue feeds AGT-702's MetricsCalcLog, which feeds AGT-704's MBR/QBR.</div>
+        <div class="detail-lbl">Production controls</div><div class="detail-val">Reconciliation against product DB (monthly tolerance &plusmn;0.01%); recognition method immutable within a period; deferred revenue ties to balance sheet within &plusmn;$1; MAX(record_version) discipline enforced in agent code; prior-period adjustments flagged distinctly so AGT-702 can sum them separately; milestone billing requires customer_sign_off = TRUE (IE-only completion does not unlock recognition); 7-year retention via cold storage tier; restatement workflow defined for auditor-driven closed-period changes.</div>
+        <div class="detail-lbl">Restatement workflow</div><div class="detail-val">If a closed-period figure must be restated, AGT-804 emits a RevenueRecognitionLog row with restatement_flag = TRUE and reason. AGT-702 surfaces restatements as a separate line in MBR/QBR rather than blending them into current-period activity. Preserves auditability + avoids polluting trend lines.</div>
+        <div class="detail-lbl">Failure mode: ingestion outage</div><div class="detail-val">If UsageMeteringLog ingestion is offline &gt;24h during a close period, AGT-804 holds the close pending data catch-up. No partial-data recognition. Cascades to AGT-702 staleness and AGT-704 MBR staleness gate per existing AGT-704 spec.</div>
+        <div class="detail-lbl">Schema</div><div class="detail-val">No schema additions to RevenueRecognitionLog or DeferredRevenueSchedule beyond the v25 spec. Two existing fields gain explicit semantics: <code>prior_period_adjustment</code> (BOOL, set TRUE on rows derived from UsageMeteringLog corrections to closed periods) and <code>restatement_flag</code> (BOOL, set TRUE on auditor-driven closed-period restatements). UsageMeteringLog itself is now governed by a separate production schema document &mdash; see related schema entry below.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">First L8 agent in Built status.</span> Magic Number, NRR, and CAC Payback now have a fully specced canonical source. <span class="impact-amber">AGT-704 staleness cascade gains a new branch</span> &mdash; UsageMeteringLog reconciliation failure now blocks AGT-702 metric recompute, which blocks AGT-704 MBR/QBR. <span class="impact-neutral">No behavioral changes for AGT-501 / AGT-503 / AGT-802 / AGT-402</span> &mdash; they continue to read UsageMeteringLog as before; the production schema doc formalizes contracts already in use.</div>
+        <div class="detail-lbl">Trigger</div><div class="detail-val">Architecture evaluation document (May 2026) explicitly directed L8 buildout before adding any reasoning/brain layer. Step 1 of the four-step build sequence in the architecture plan.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L8" data-type="schema">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">UsageMeteringLog<span class="layer-tag lt-l8">L8</span></span>
+      <span class="agent-name">Production Schema (new artifact)</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span><span class="ct ct-schema">Schema</span></div>
+      <span class="entry-summary">Standalone production schema document. Full field definitions, idempotency model, quality checks, reconciliation tolerances, retention tiers, go-live checklist.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">New schema artifact: <a href="UsageMeteringLog_Production_Schema.html"><code>UsageMeteringLog_Production_Schema.html</code></a>. Standalone document because the table is consumed by four agents (AGT-804 / AGT-802 / AGT-503 / AGT-501) for materially different decisions (recognition vs. billing vs. expansion vs. health), making data quality on this one table the highest-leverage data-quality investment in L8. Embedding the production contract inside any single agent spec would obscure the cross-cutting nature of the dependency.</div>
+        <div class="detail-lbl">Field definitions</div><div class="detail-val">26 fields with types, nullability, constraints. Natural key is <code>(account_id, sku_id, period_start, period_end, source_system, ingest_event_id, record_version)</code>. Surrogate PK is <code>usage_id</code>. New fields beyond the v25 spec: <code>sku_type</code> (consumption/seat/hybrid), <code>period_granularity</code>, <code>unit_price_usd</code> + <code>overage_unit_price_usd</code> (captured for audit reproducibility), <code>seat_utilization_pct</code> (computed), <code>source_system</code>, <code>ingest_event_id</code>, <code>ingest_batch_id</code>, <code>received_at</code>, <code>effective_at</code>, <code>record_version</code>, <code>prior_version_id</code>, <code>correction_reason</code>, <code>audit_status</code>.</div>
+        <div class="detail-lbl">Idempotency model</div><div class="detail-val">UPSERT on <code>(source_system, ingest_event_id)</code>. Source replay is a no-op. Corrections insert new rows with <code>record_version + 1</code> and <code>prior_version_id</code> pointing to the predecessor; original rows are preserved. Consumers always filter to MAX(record_version) per natural key. <code>UsageMeteringLog_current</code> view exposes this as the default read path.</div>
+        <div class="detail-lbl">Quality checks</div><div class="detail-val">9 rules at ingestion. HARD failures (reject to DLQ): negative units_consumed, inverted period bounds, future-dated period_end, missing ingest_event_id, FK orphan, out-of-range seat_utilization_pct, non-monotonic record_version. SOFT warnings (accept + emit): late arrival &gt;24h, effective_at drift, anomaly &gt;10x trailing 30d median.</div>
+        <div class="detail-lbl">Reconciliation</div><div class="detail-val">Daily &plusmn;0.1%, monthly &plusmn;0.01% (audit-grade), quarterly &plusmn;0.001%. Monthly failure holds AGT-804 close. audit_status state machine: <code>pending_recon</code> &rarr; <code>verified</code> on pass; transitions to <code>disputed</code> on customer challenge. Verified rows feed all consumers; disputed rows excluded from recognition.</div>
+        <div class="detail-lbl">Retention</div><div class="detail-val">Hot 0&ndash;13mo (operational), warm 13&ndash;36mo (reporting), cold 36mo&ndash;7yr (audit-only restored on demand), purge after 7yr with legal-hold check. ASC 606 + tax retention requirement. Tier transitions move bytes, never modify values; record_version chains preserved across tiers.</div>
+        <div class="detail-lbl">Write path</div><div class="detail-val">Source emits to ingestion queue (Kafka/Kinesis/SQS) &rarr; ingestion service deduplicates + validates + UPSERTs &rarr; threshold publisher emits to <code>UsageThresholdEvents</code> for AGT-503 real-time subscription &rarr; reconciliation jobs run daily/monthly/quarterly &rarr; nightly tier-transition job. DLQ for HARD failures with &gt;1h-depth pager.</div>
+        <div class="detail-lbl">Go-live checklist</div><div class="detail-val">10 gating items including: source system instrumentation, ingestion service deployment, DLQ + monitoring, UsageThresholdEvents end-to-end test, AGT-804 reading real (non-synthetic) data for one full close, daily reconciliation passing 7 consecutive days, monthly reconciliation within tolerance 3 consecutive months, external auditor sign-off (SOC 2 / ASC 606), 7-year retention path tested with sample restore, runbook reviewed by oncall.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">L8's data foundation is now formally specified.</span> Brain layer (planned Tier 2) can be built against a known contract rather than against ambient assumptions. <span class="impact-amber">Engineering work to make the schema operational is non-trivial</span> &mdash; the document is the production target, not a deployed table. Going forward, every L8 agent build references this schema for usage data; no agent queries the product system directly. <span class="impact-neutral">No behavioral changes to existing agents</span> &mdash; the production schema formalizes contracts already in use; field additions (source_system, record_version, etc.) are append-only against the v25 schema as documented in GTM_OS_Schema_v25.xlsx.</div>
+        <div class="detail-lbl">Owner</div><div class="detail-val">Joint: Finance + Data Engineering. Single-writer is the ingestion service. AGT-804 / AGT-802 / AGT-503 / AGT-501 are read-only consumers.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- v23→v24: AGT-107 — Quota Plan Document Agent                           -->
