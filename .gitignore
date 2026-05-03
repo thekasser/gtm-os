@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtualenvs (regeneratable from requirements)
+synth/venv/
+venv/
+.venv/
+
+# Synthetic corpus — regeneratable via `synth/main.py`; large (~130MB)
+synth/corpus/
+
+# LLM call cache for synthetic conversation generation — regeneratable
+synth/cache/
+
+# Brain run + eval logs — append-only artifacts of local runs
+prototype/brain_analysis_log.jsonl
+prototype/brain_eval_log.jsonl
+
+# Claude Code local state — personal allow rules + scheduled-task lock
+.claude/
+
+# Bash history if any
+.bash_history
