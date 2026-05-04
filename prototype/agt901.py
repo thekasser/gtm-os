@@ -296,7 +296,7 @@ def run_for_pipeline(corpus_dir: Path, question: str = DEFAULT_QUESTION,
     cost = _estimate_cost_usd(api_result["input_tokens"],
                               api_result["output_tokens"], api_result["model"])
 
-    return {
+    brain_row = {
         "analysis_id": str(uuid.uuid4()),
         "proposal_id": proposal_id,
         "writer_agent_id": WRITER_AGENT_ID,
@@ -324,3 +324,17 @@ def run_for_pipeline(corpus_dir: Path, question: str = DEFAULT_QUESTION,
         "_meta_view_corpus_size": view.get("corpus_size"),
         "_meta_view_snapshot_date": view.get("snapshot_date"),
     }
+
+    # SalesPlayLibrary draft writer — converts play-shaped proposed_actions
+    # (here: draft_play) into structured `draft` records keyed to
+    # brain_row.proposal_id. Drafts are non-canonical; promotion is human-only.
+    try:
+        from sales_play_library import write_drafts_from_brain_row
+        drafts = write_drafts_from_brain_row(brain_row)
+        brain_row["sales_play_library_drafts_written"] = len(drafts)
+    except Exception as e:
+        import sys as _sys
+        _sys.stderr.write(f"  warn: SalesPlayLibrary writer failed: {e!s}\n")
+        brain_row["sales_play_library_drafts_written"] = 0
+
+    return brain_row

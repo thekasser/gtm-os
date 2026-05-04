@@ -546,7 +546,7 @@ def run_for_account(corpus_path: Path, question: str = DEFAULT_QUESTION,
     proposal_id = str(uuid.uuid4())
     cost = _estimate_cost_usd(api_result["input_tokens"], api_result["output_tokens"], api_result["model"])
 
-    return {
+    brain_row = {
         "analysis_id": str(uuid.uuid4()),
         "proposal_id": proposal_id,
         "writer_agent_id": WRITER_AGENT_ID,
@@ -576,3 +576,18 @@ def run_for_account(corpus_path: Path, question: str = DEFAULT_QUESTION,
         "_meta_archetype_key": corpus_data.get("archetype_key"),
         "_meta_expected_outcome": corpus_data.get("expected_outcome_label"),
     }
+
+    # SalesPlayLibrary draft writer — converts play-shaped proposed_actions
+    # into structured `draft` records keyed to brain_row.proposal_id. Drafts
+    # are non-canonical; promotion through under_review → active is human-only.
+    try:
+        from sales_play_library import write_drafts_from_brain_row
+        drafts = write_drafts_from_brain_row(brain_row)
+        brain_row["sales_play_library_drafts_written"] = len(drafts)
+    except Exception as e:
+        # Writer failure must not fail the brain run. Log inline.
+        import sys as _sys
+        _sys.stderr.write(f"  warn: SalesPlayLibrary writer failed: {e!s}\n")
+        brain_row["sales_play_library_drafts_written"] = 0
+
+    return brain_row

@@ -20,6 +20,7 @@ synth/cache/
 # Brain run + eval logs — append-only artifacts of local runs
 prototype/brain_analysis_log.jsonl
 prototype/brain_eval_log.jsonl
+prototype/sales_play_library.jsonl
 
 # Claude Code local state — personal allow rules + scheduled-task lock
 .claude/
