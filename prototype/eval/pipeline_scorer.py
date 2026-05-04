@@ -93,6 +93,8 @@ def score_pipeline_fixture(fixture: dict, corpus_dir: Path) -> PipelineFixtureRe
             "confidence_flags":            brain_row["confidence_flags"],
             "data_staleness_acknowledged": brain_row["data_staleness_acknowledged"],
             "stale_sources":               brain_row["stale_sources"],
+            # Dispatch-side ground truth for tool-call cross-check.
+            "tool_calls_made":             brain_row.get("tool_calls_made", []),
         }
         # KEY DIFFERENCE FROM AGT-902 SCORER: pass the pipeline taxonomy
         result.validation = validate_all(validation_input, taxonomy=PIPELINE_TAXONOMY)

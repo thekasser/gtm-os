@@ -191,16 +191,47 @@ def _check_min_citation_count(narrative: str, threshold: int) -> CriterionResult
 
 
 def _check_must_cite_tool(brain_output: dict, tool_name: str) -> CriterionResult:
-    """Verify the brain called and cited the named tool — sources_read must
-    contain an entry whose table_name matches the tool's identifier."""
+    """Verify the brain ACTUALLY CALLED the named tool AND cited it.
+
+    Two checks (both required):
+      1. tool_calls_made (dispatch-side ground truth) contains the tool
+      2. sources_read (brain-authored narrative) contains the tool
+
+    The dual check prevents two failure modes:
+      - Brain fabricates a citation in sources_read for a tool it never called.
+        Found during calibration probe — when TOOL_DEFINITIONS hides a tool
+        but the system prompt still describes it, the brain may cite the tool
+        anyway. tool_calls_made would be empty in that case.
+      - Brain calls the tool but forgets to cite it in narrative. Less
+        dangerous but still wrong — the user can't trace the claim.
+    """
     sources = brain_output.get("sources_read", [])
-    cited = any(s.get("table_name") == tool_name for s in sources)
+    tool_calls = brain_output.get("tool_calls_made", []) or []
+
+    cited_in_sources = any(s.get("table_name") == tool_name for s in sources)
+    actually_called = any(tc.get("tool_name") == tool_name
+                          and tc.get("tool_result_status") == "ok"
+                          for tc in tool_calls)
+
+    passed = cited_in_sources and actually_called
+    if passed:
+        detail = f"called and cited {tool_name}"
+    elif actually_called and not cited_in_sources:
+        detail = (f"tool was called but NOT cited in sources_read — "
+                  f"narrative-side citation missing")
+    elif cited_in_sources and not actually_called:
+        detail = (f"sources_read claims to cite {tool_name} but tool_calls_made "
+                  f"shows no successful call — possible fabricated citation. "
+                  f"saw tool_calls: {[tc.get('tool_name') for tc in tool_calls]}")
+    else:
+        detail = (f"tool was neither called nor cited. "
+                  f"sources_read: {[s.get('table_name') for s in sources]}, "
+                  f"tool_calls_made: {[tc.get('tool_name') for tc in tool_calls]}")
+
     return CriterionResult(
         f"must_cite_tool({tool_name})",
-        passed=cited,
-        detail=(f"found {tool_name} in sources_read" if cited
-                else f"sources_read does not include {tool_name}; "
-                     f"saw {[s.get('table_name') for s in sources]}"),
+        passed=passed,
+        detail=detail,
     )
 
 
@@ -338,6 +369,10 @@ def score_fixture(fixture: dict, corpus_dir: Path,
             "confidence_flags":            brain_row["confidence_flags"],
             "data_staleness_acknowledged": brain_row["data_staleness_acknowledged"],
             "stale_sources":               brain_row["stale_sources"],
+            # Dispatch-side ground truth — used by _check_must_cite_tool to
+            # cross-check against narrative-side sources_read and catch
+            # fabricated citations.
+            "tool_calls_made":             brain_row.get("tool_calls_made", []),
         }
         result.validation = validate_all(validation_input)
 
