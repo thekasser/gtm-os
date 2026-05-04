@@ -30,20 +30,113 @@
 .map-container{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow-x:auto;padding:20px}.map-node{cursor:pointer;transition:opacity .2s}.map-node text{font-family:var(--mono)}.map-edge{transition:opacity .2s}.map-container.has-focus .map-node.dimmed{opacity:.12}.map-container.has-focus .map-edge.dimmed{opacity:.05}
 @media(max-width:1000px){.map-layout{grid-template-columns:1fr}.map-sidebar{max-height:300px;border-left:1px solid var(--border);border-radius:0 0 10px 10px}.map-svg-pane{border-radius:10px 10px 0 0}}
 .sim-layout{display:grid;grid-template-columns:380px 1fr;min-height:70vh;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}.sim-form-pane{padding:20px;border-right:1px solid var(--border);overflow-y:auto}.sim-pane-title{font-size:16px;font-weight:700;margin-bottom:4px}.sim-pane-sub{font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.5}.sim-output-pane{padding:20px;overflow-y:auto}.form-section-label{font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px}.form-group{margin-bottom:10px}.form-label{font-size:11px;color:var(--text2);display:block;margin-bottom:3px}.form-input,.form-select,.form-textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:12px;padding:7px 10px;border-radius:6px;font-family:var(--sans)}.form-textarea{min-height:60px;resize:vertical}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn-run{width:100%;padding:10px;background:var(--gold);color:#ffffff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;margin-top:12px;transition:opacity .15s}.btn-run:hover{opacity:.9}.btn-run:disabled{opacity:.5;cursor:not-allowed}
+/* Brain Outputs gallery */
+.brain-header{padding:24px 0 18px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.brain-headline{font-size:20px;font-weight:700;margin-bottom:6px}
+.brain-sub{font-size:13px;color:var(--text2);max-width:760px;line-height:1.6}
+.brain-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-top:14px}
+.brain-stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.brain-stat-num{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--gold)}
+.brain-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.brain-stat-sub{font-size:10px;color:var(--text2);margin-top:4px;font-family:var(--mono)}
+.brain-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.brain-filter-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-right:4px}
+.brain-filter-btn{background:var(--surface);border:1px solid var(--border);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:var(--sans);color:var(--text2);transition:all .15s}
+.brain-filter-btn:hover{color:var(--text);background:var(--surface2)}
+.brain-filter-btn.active{color:var(--gold);border-color:var(--gold);background:rgba(15,23,42,.04)}
+.brain-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:14px;padding-bottom:32px}
+.brain-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:border-color .15s}
+.brain-card:hover{border-color:var(--gold2)}
+.brain-card-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;color:var(--text3)}
+.brain-card-pill{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase}
+.bp-902{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.bp-901{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.bp-easy{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.bp-medium{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.bp-hard{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.bp-stale{background:#F1F5F9;color:#475569;border:1px solid #CBD5E1}
+.brain-card-q{font-size:13px;font-weight:600;color:var(--text);line-height:1.45}
+.brain-card-acct{font-size:11px;color:var(--text2);font-family:var(--mono)}
+.brain-card-narrative{font-size:11px;color:var(--text2);line-height:1.55;background:var(--surface2);border-left:3px solid var(--gold2);padding:8px 12px;border-radius:0 6px 6px 0;max-height:90px;overflow:hidden;position:relative}
+.brain-card-narrative::after{content:"";position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(to bottom,rgba(245,245,245,0),var(--surface2))}
+.brain-card-foot{display:flex;gap:14px;flex-wrap:wrap;font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:auto;padding-top:8px;border-top:1px solid var(--border)}
+.brain-card-foot-item{display:flex;align-items:center;gap:4px}
+.brain-card-foot-num{color:var(--text);font-weight:700}
+
+/* Follow a Lead walkthrough */
+.fl-header{padding:24px 0 18px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.fl-headline{font-size:20px;font-weight:700;margin-bottom:6px}
+.fl-sub{font-size:13px;color:var(--text2);max-width:760px;line-height:1.6;margin-bottom:14px}
+.fl-account-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:14px}
+.fl-account-stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.fl-account-num{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--gold)}
+.fl-account-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.fl-timeline{position:relative;padding-left:36px;padding-bottom:32px}
+.fl-timeline::before{content:"";position:absolute;left:11px;top:8px;bottom:8px;width:2px;background:var(--border)}
+.fl-step{position:relative;margin-bottom:14px}
+.fl-step-dot{position:absolute;left:-30px;top:18px;width:14px;height:14px;border-radius:50%;background:var(--surface);border:2px solid var(--brand2);z-index:1}
+.fl-step-brain .fl-step-dot{background:#FAEEDA;border-color:#D4A84C}
+.fl-step-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:default}
+.fl-step-brain .fl-step-card{border-left:3px solid #D4A84C;background:linear-gradient(to right,#FFFCF6 0%,var(--surface) 50%)}
+.fl-step-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.fl-step-day{font-family:var(--mono);font-size:11px;color:var(--gold);font-weight:700;min-width:62px}
+.fl-step-phase{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;background:var(--surface2);color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px}
+.fl-step-title{font-size:13px;font-weight:600;color:var(--text);flex:1;min-width:200px}
+.fl-step-services{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;font-family:var(--mono);font-size:10px}
+.fl-step-svc{background:rgba(15,23,42,.05);color:var(--text);border:1px solid var(--border);padding:1px 6px;border-radius:4px}
+.fl-step-svc-primary{background:rgba(15,23,42,.08);color:var(--text);border:1px solid var(--brand2);font-weight:700}
+.fl-step-changed{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px}
+.fl-step-evidence{font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--surface2);padding:8px 10px;border-radius:6px;line-height:1.6}
+.fl-step-evidence-row{padding:1px 0}
+.fl-brain-link{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:8px 12px;background:#FAEEDA;border:1px solid #D4A84C;border-radius:6px;cursor:pointer;font-size:12px;color:#7A4A0E;font-weight:600;transition:background .15s}
+.fl-brain-link:hover{background:#F5E2C0}
+.fl-brain-icon{font-family:var(--mono);font-weight:700;color:#7A4A0E}
+.fl-brain-framing{font-size:11px;color:var(--text2);font-style:italic;line-height:1.6;margin-top:6px;padding-left:14px;border-left:2px solid #D4A84C}
+
+/* Modal expand for full brain output */
+.brain-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;align-items:flex-start;justify-content:center;padding:40px 24px;overflow-y:auto}
+.brain-modal-overlay.open{display:flex}
+.brain-modal{background:var(--surface);border-radius:12px;max-width:920px;width:100%;padding:28px 32px;color:var(--text);max-height:90vh;overflow-y:auto}
+.brain-modal-close{float:right;background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:0;line-height:1}
+.brain-modal-title{font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text);padding-right:32px}
+.brain-modal-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;color:var(--text3)}
+.brain-modal-section{margin-top:20px}
+.brain-modal-section-label{font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.brain-narrative-rendered{font-size:13px;line-height:1.7;color:var(--text);background:var(--surface2);padding:14px 16px;border-radius:8px;white-space:pre-wrap}
+.brain-narrative-rendered .src{display:inline-block;font-family:var(--mono);font-size:10px;color:var(--gold);background:rgba(15,23,42,.06);padding:1px 5px;border-radius:3px;margin:0 1px;vertical-align:baseline;font-weight:700}
+.brain-sources-list{font-size:11px;color:var(--text2);font-family:var(--mono);line-height:1.7}
+.brain-source-row{padding:5px 0;border-bottom:1px dotted var(--border);display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline}
+.brain-source-idx{color:var(--gold);font-weight:700}
+.brain-source-name{color:var(--text)}
+.brain-source-meta{color:var(--text3);font-size:10px}
+.brain-actions-list{display:flex;flex-direction:column;gap:8px}
+.brain-action{background:var(--surface2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2);line-height:1.6}
+.brain-action-type{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--gold);background:rgba(15,23,42,.06);padding:2px 7px;border-radius:4px;margin-bottom:6px}
+.brain-action-target{color:var(--text);font-weight:600;font-size:12px}
+.brain-action-just{font-style:italic;margin-top:4px;color:var(--text2);font-size:11px}
+.brain-action-conf{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-left:6px}
+.brain-tools-list{display:flex;flex-direction:column;gap:6px}
+.brain-tool{font-size:11px;color:var(--text2);background:var(--surface2);padding:6px 10px;border-radius:6px;font-family:var(--mono);display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brain-tool-name{color:var(--text);font-weight:700}
+.brain-tool-status{font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.brain-criterion{font-size:11px;padding:4px 0;font-family:var(--mono);color:var(--text2);display:flex;gap:8px;align-items:baseline}
+.brain-criterion-pass{color:#085041}
+.brain-criterion-fail{color:#712B13}
+
 .output-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3)}.output-placeholder-icon{font-size:28px;margin-bottom:12px}.output-placeholder-text{font-size:13px;max-width:280px;text-align:center;line-height:1.5}.output-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px}.loading-spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}@keyframes spin{to{transform:rotate(360deg)}}.loading-text{font-size:12px;color:var(--text3)}.output-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:10px}.output-card-title{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.5px;margin-bottom:12px}.output-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.output-stat{background:var(--surface);border-radius:6px;padding:10px 12px}.output-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}.output-stat-val{font-family:var(--mono);font-size:18px;font-weight:700}.output-stat-sub{font-size:10px;color:var(--text2);margin-top:2px}.output-content{font-size:12px;color:var(--text2);line-height:1.6}.error-box{background:rgba(232,120,120,.08);border:1px solid rgba(232,120,120,.3);border-radius:8px;padding:16px;color:#E87878;font-size:13px}
 @media(max-width:900px){.sim-layout{grid-template-columns:1fr}.sim-form-pane{border-right:none;border-bottom:1px solid var(--border)}.arch-hero{padding:28px 20px 24px}.arch-headline{font-size:30px}.header-meta{display:none}.flow-strip{display:none}.principles{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header class="header">
-<div class="header-brand"><span class="header-title">GTM OS</span><span class="header-version">v34 · Schema</span><a href="schema/GTM_OS_Changelog.html" style="font-family:var(--mono);font-size:11px;color:var(--gold);text-decoration:none;margin-left:8px;padding:2px 8px;border:1px solid rgba(15,23,42,.3);border-radius:4px">Changelog</a></div>
+<div class="header-brand"><span class="header-title">GTM OS</span><span class="header-version">v35 · Schema</span><a href="schema/GTM_OS_Changelog.html" style="font-family:var(--mono);font-size:11px;color:var(--gold);text-decoration:none;margin-left:8px;padding:2px 8px;border:1px solid rgba(15,23,42,.3);border-radius:4px">Changelog</a></div>
 <nav class="nav">
 <button class="nav-btn active" onclick="switchTab('arch',this)">Architecture</button>
 <button class="nav-btn" onclick="switchTab('os',this)">The OS</button>
 <button class="nav-btn" onclick="switchTab('map',this)">Connection Map</button>
-<button class="nav-btn" onclick="switchTab('lead',this)">Lead Ingestion</button>
-<button class="nav-btn" onclick="switchTab('plan',this)">Planning Period</button>
-<button class="nav-btn" onclick="switchTab('forecast',this)">Forecast & WBR</button>
+<button class="nav-btn" onclick="switchTab('brain',this)">Brain Outputs</button>
+<button class="nav-btn" onclick="switchTab('followlead',this)">Follow a Lead</button>
+<button class="nav-btn" onclick="switchTab('lead',this)">ICP Scorer Demo</button>
 </nav>
 <div class="header-meta"><div class="meta-stat"><span class="meta-num">40</span><span class="meta-label">services (all built)</span></div><div class="meta-stat"><span class="meta-num">2</span><span class="meta-label">agents</span></div><div class="meta-stat"><span class="meta-num">12</span><span class="meta-label">tools</span></div><div class="meta-stat"><span class="meta-num">10</span><span class="meta-label">layers</span></div><div class="meta-stat"><span class="meta-num">L0→L9</span><span class="meta-label">full-cycle</span></div></div>
 </header>
@@ -51,11 +144,12 @@
 <div id="tab-arch" class="tab active"><div class="flow-strip" id="flow-strip"></div><div class="arch-hero"><div class="arch-eyebrow">Modular · Service-Driven · CRM-Agnostic</div><h1 class="arch-headline">A <em>complete</em> GTM<br>Operating System</h1><p class="arch-desc">40 GTM services + 2 Brain Agents across 10 layers — from market sizing through reasoning. Hybrid B2B SaaS. Click any layer to explore.</p><p class="arch-desc" style="font-size:12px;color:var(--text3);max-width:680px;margin:-12px auto 24px;line-height:1.6"><strong>Three tiers.</strong> 40 <em>GTM Services</em> in L1–L8 (deterministic, single-writer-per-table, audit-grade). 2 <em>Brain Agents</em> in L9 (LLM-native, operator-invoked, read Tier 1 services but never write canonical data; gated by 30-question eval harness — both prototyped, eval-passing). 12 <em>Specialist Tools</em> in <a href="tools/Tools_Index.html" style="color:#7A4A0E;text-decoration:underline">Tier 3</a> across 3 waves — stateless callable functions that brains and services invoke for narrow cognition tasks (TOOL-003, TOOL-004, TOOL-008 prototyped; remaining 9 specced). The distinction is deliberate; brains propose, humans co-define and approve, services execute. See <a href="schema/GTM_OS_Changelog.html" style="color:#7A4A0E;text-decoration:underline">changelog</a> for current state.</p><div class="principles" id="principles-wrap"></div></div><div class="layer-stack" id="layer-stack"></div></div>
 <div id="tab-os" class="tab"></div>
 <div id="tab-map" class="tab"><div class="map-wrap"><h2 style="font-size:18px;font-weight:700;margin-bottom:8px">Service Connection Map</h2><div class="map-instructions">Click any service or agent to highlight its connections and see wiring details in the sidebar. L9 brain agents (gold) read from L1–L8 services but never write canonical data.</div><div class="map-legend"><div class="map-legend-item"><div class="map-legend-swatch" style="background:#4EDBA8"></div>Feeds (Tier 1 → Tier 1)</div><div class="map-legend-item"><div class="map-legend-swatch" style="background:#5BA3E8"></div>Reads (Tier 1 → Tier 1)</div><div class="map-legend-item"><div class="map-legend-swatch" style="background:#E8A84C"></div>Cross-layer (Tier 1 → Tier 1)</div><div class="map-legend-item"><div class="map-legend-swatch" style="background:#D4A84C"></div>Brain reads (L9 → Tier 1)</div></div><div class="map-layout"><div class="map-svg-pane" id="map-container"></div><div class="map-sidebar" id="map-sidebar"><div class="map-sidebar-empty">Click a service or agent node to see its connections and wiring details</div></div></div></div></div>
-<div id="tab-lead" class="tab"><div class="sim-layout"><div class="sim-form-pane"><div class="sim-pane-title">Lead Ingestion</div><p class="sim-pane-sub">Simulates AGT-201 + AGT-202.</p><div class="form-section-label">Company</div><div class="form-group"><label class="form-label">Company</label><input class="form-input" id="l-company" value="Meridian Analytics"></div><div class="form-row"><div class="form-group"><label class="form-label">Employees</label><input class="form-input" id="l-employees" type="number" value="850"></div><div class="form-group"><label class="form-label">Revenue</label><input class="form-input" id="l-revenue" value="$120M"></div></div><div class="form-row"><div class="form-group"><label class="form-label">Vertical</label><select class="form-select" id="l-vertical"><option>FinTech</option><option selected>SaaS</option><option>HealthTech</option><option>RetailTech</option><option>HR Tech</option><option>EdTech</option><option>Cybersecurity</option><option>Logistics</option><option>Other</option></select></div><div class="form-group"><label class="form-label">Geo</label><select class="form-select" id="l-geo"><option selected>US - West</option><option>US - East</option><option>EMEA</option><option>APAC</option></select></div></div><div class="form-section-label">Signals</div><div class="form-row"><div class="form-group"><label class="form-label">Source</label><select class="form-select" id="l-source"><option>Inbound - Demo</option><option selected>Inbound - Content</option><option>PLG Signup</option><option>Outbound</option><option>Partner</option><option>Event</option></select></div><div class="form-group"><label class="form-label">Funding</label><select class="form-select" id="l-funding"><option>Seed</option><option>Series A</option><option selected>Series B</option><option>Series C+</option><option>Public</option><option>Bootstrapped</option></select></div></div><div class="form-group"><label class="form-label">Tech Stack</label><input class="form-input" id="l-tech" value="HubSpot, Snowflake, Looker"></div><div class="form-group"><label class="form-label">Intent</label><textarea class="form-textarea" id="l-intent">Visited pricing 4x this week, posted RevOps Director role, Series B 6mo ago</textarea></div><button class="btn-run" onclick="runLeadSim()">Run ICP Score + Routing →</button></div><div class="sim-output-pane" id="lead-output"><div class="output-placeholder"><div class="output-placeholder-icon">◎</div><div class="output-placeholder-text">Fill in lead profile and click run.</div></div></div></div></div>
-<div id="tab-plan" class="tab"><div class="sim-layout"><div class="sim-form-pane"><div class="sim-pane-title">Planning Period</div><p class="sim-pane-sub">Simulates AGT-101 + AGT-105.</p><div class="form-section-label">Targets</div><div class="form-row"><div class="form-group"><label class="form-label">Target ARR</label><input class="form-input" id="p-arr" value="$18M"></div><div class="form-group"><label class="form-label">FY</label><select class="form-select" id="p-fy"><option>FY2026</option><option selected>FY2027</option></select></div></div><div class="form-row"><div class="form-group"><label class="form-label">SMB %</label><input class="form-input" id="p-smb-pct" value="20"></div><div class="form-group"><label class="form-label">MM %</label><input class="form-input" id="p-mm-pct" value="40"></div></div><div class="form-section-label">Team</div><div class="form-row"><div class="form-group"><label class="form-label">SMB AEs</label><input class="form-input" id="p-smb-ae" type="number" value="4"></div><div class="form-group"><label class="form-label">MM AEs</label><input class="form-input" id="p-mm-ae" type="number" value="3"></div></div><div class="form-row"><div class="form-group"><label class="form-label">Ent AEs</label><input class="form-input" id="p-ent-ae" type="number" value="2"></div><div class="form-group"><label class="form-label">SDRs</label><input class="form-input" id="p-sdr" type="number" value="3"></div></div><div class="form-row"><div class="form-group"><label class="form-label">Attrition %</label><input class="form-input" id="p-attrition" value="18"></div><div class="form-group"><label class="form-label">Ramp (mo)</label><input class="form-input" id="p-ramp" value="4"></div></div><div class="form-section-label">Guardrails</div><div class="form-row"><div class="form-group"><label class="form-label">Magic #</label><input class="form-input" id="p-magic" value="0.8"></div><div class="form-group"><label class="form-label">CAC Payback</label><input class="form-input" id="p-cac" value="16"></div></div><button class="btn-run" onclick="runPlanSim()">Run Quota + Capacity →</button></div><div class="sim-output-pane" id="plan-output"><div class="output-placeholder"><div class="output-placeholder-icon">◉</div><div class="output-placeholder-text">Set inputs and click run.</div></div></div></div></div>
-<div id="tab-forecast" class="tab"><div class="sim-layout"><div class="sim-form-pane"><div class="sim-pane-title">Forecast & WBR</div><p class="sim-pane-sub">Simulates AGT-402 + AGT-404 + AGT-704.</p><div class="form-section-label">Context</div><div class="form-row"><div class="form-group"><label class="form-label">Quarter</label><select class="form-select" id="f-quarter"><option>Q1</option><option selected>Q2</option><option>Q3</option><option>Q4</option></select></div><div class="form-group"><label class="form-label">Week</label><select class="form-select" id="f-week"><option>Week 1</option><option>Week 3</option><option selected>Week 6</option><option>Week 9</option><option>Week 13</option></select></div></div><div class="form-row"><div class="form-group"><label class="form-label">Q Target</label><input class="form-input" id="f-target" value="$4.5M"></div><div class="form-group"><label class="form-label">Closed Won</label><input class="form-input" id="f-closed" value="$1.2M"></div></div><div class="form-section-label">Pipeline</div><div class="form-row"><div class="form-group"><label class="form-label">Discovery</label><input class="form-input" id="f-disc" value="$2.8M"></div><div class="form-group"><label class="form-label">Eval</label><input class="form-input" id="f-eval" value="$1.9M"></div></div><div class="form-row"><div class="form-group"><label class="form-label">Proposal</label><input class="form-input" id="f-prop" value="$2.1M"></div><div class="form-group"><label class="form-label">Neg/Close</label><input class="form-input" id="f-neg" value="$1.4M"></div></div><div class="form-section-label">Commit</div><div class="form-group"><label class="form-label">Rep Commits</label><input class="form-input" id="f-commit" value="$3.1M"></div><div class="form-group"><label class="form-label">Risk Flags</label><textarea class="form-textarea" id="f-risk">Top deal $850K no economic buyer. Two deals $600K slipped from Q1.</textarea></div><button class="btn-run" onclick="runForecastSim()">Generate Forecast + WBR →</button></div><div class="sim-output-pane" id="forecast-output"><div class="output-placeholder"><div class="output-placeholder-icon">◈</div><div class="output-placeholder-text">Enter pipeline data to generate forecast.</div></div></div></div></div>
+<div id="tab-lead" class="tab"><div class="sim-layout"><div class="sim-form-pane"><div class="sim-pane-title">ICP Scorer Demo</div><p class="sim-pane-sub">Deterministic JS reproduction of AGT-201 6-dimension scoring + AGT-202 routing. Useful for explaining the dimensional model — narrow scope, no LLM, no brain reasoning. For end-to-end reasoning see <a href="#" onclick="document.querySelectorAll('.nav-btn')[3].click();return false;" style="color:var(--gold);text-decoration:underline">Brain Outputs</a> and <a href="#" onclick="document.querySelectorAll('.nav-btn')[4].click();return false;" style="color:var(--gold);text-decoration:underline">Follow a Lead</a>.</p><div class="form-section-label">Company</div><div class="form-group"><label class="form-label">Company</label><input class="form-input" id="l-company" value="Meridian Analytics"></div><div class="form-row"><div class="form-group"><label class="form-label">Employees</label><input class="form-input" id="l-employees" type="number" value="850"></div><div class="form-group"><label class="form-label">Revenue</label><input class="form-input" id="l-revenue" value="$120M"></div></div><div class="form-row"><div class="form-group"><label class="form-label">Vertical</label><select class="form-select" id="l-vertical"><option>FinTech</option><option selected>SaaS</option><option>HealthTech</option><option>RetailTech</option><option>HR Tech</option><option>EdTech</option><option>Cybersecurity</option><option>Logistics</option><option>Other</option></select></div><div class="form-group"><label class="form-label">Geo</label><select class="form-select" id="l-geo"><option selected>US - West</option><option>US - East</option><option>EMEA</option><option>APAC</option></select></div></div><div class="form-section-label">Signals</div><div class="form-row"><div class="form-group"><label class="form-label">Source</label><select class="form-select" id="l-source"><option>Inbound - Demo</option><option selected>Inbound - Content</option><option>PLG Signup</option><option>Outbound</option><option>Partner</option><option>Event</option></select></div><div class="form-group"><label class="form-label">Funding</label><select class="form-select" id="l-funding"><option>Seed</option><option>Series A</option><option selected>Series B</option><option>Series C+</option><option>Public</option><option>Bootstrapped</option></select></div></div><div class="form-group"><label class="form-label">Tech Stack</label><input class="form-input" id="l-tech" value="HubSpot, Snowflake, Looker"></div><div class="form-group"><label class="form-label">Intent</label><textarea class="form-textarea" id="l-intent">Visited pricing 4x this week, posted RevOps Director role, Series B 6mo ago</textarea></div><button class="btn-run" onclick="runLeadSim()">Run ICP Score + Routing →</button></div><div class="sim-output-pane" id="lead-output"><div class="output-placeholder"><div class="output-placeholder-icon">◎</div><div class="output-placeholder-text">Fill in lead profile and click run.</div></div></div></div></div>
+<div id="tab-brain" class="tab"><div id="brain-gallery"><div class="output-placeholder" style="padding:60px 20px"><div class="output-placeholder-icon" style="font-size:32px">◇</div><div class="output-placeholder-text">Loading actual brain outputs from <code style="font-family:var(--mono);font-size:11px">eval/samples/brain_outputs.json</code>…</div></div></div></div>
+<div id="tab-followlead" class="tab"><div id="followlead-content"><div class="output-placeholder" style="padding:60px 20px"><div class="output-placeholder-icon" style="font-size:32px">↪</div><div class="output-placeholder-text">Follow a Lead — end-to-end walkthrough coming next. Single synthetic account from lead → close → onboarding → first overage → expansion → renewal.</div></div></div></div>
 </main>
 <div class="modal-overlay" id="agent-modal" onclick="closeModal(event)"><div class="modal" id="modal-content"></div></div>
+<div class="brain-modal-overlay" id="brain-modal-overlay" onclick="closeBrainModal(event)"><div class="brain-modal" id="brain-modal-content" onclick="event.stopPropagation()"></div></div>
 <script>
 const SPECS={"AGT-101":"specs/AGT-101_Quota_Setting.html","AGT-102":"specs/AGT-102_Comp_Plan_Design.html","AGT-103":"specs/AGT-103_Comp_Attainment_Payout.html","AGT-104":"specs/AGT-104_Comp_Governance_Audit.html","AGT-105":"specs/AGT-105_Sales_Capacity_Planning.html","AGT-106":"specs/AGT-106_Territory_Design.html","AGT-107":"specs/AGT-107_Quota_Plan_Document.html","AGT-201":"specs/AGT-201_ICP_Scorer.html","AGT-202":"specs/AGT-202_Lead_Router.html","AGT-203":"specs/AGT-203_ABM_Target_Selection.html","AGT-204":"specs/AGT-204_Lead_Enrichment.html","AGT-205":"specs/AGT-205_TAM_SAM_Sizing.html","AGT-206":"specs/AGT-206_Account_Prioritization.html","AGT-301":"specs/AGT-301_Outreach_Generator.html","AGT-302":"specs/AGT-302_Cadence_Coordinator.html","AGT-303":"specs/AGT-303_Cadence_Intelligence_Agent.html","AGT-304":"specs/AGT-304_Marketing_Nurture_Agent.html","AGT-305":"specs/AGT-305_Meeting_Discovery_Prep.html","AGT-401":"specs/AGT-401_Deal_Health_Monitor.html","AGT-402":"specs/AGT-402_Forecast_Adjuster.html","AGT-403":"specs/AGT-403_Competitive_Intelligence.html","AGT-404":"specs/AGT-404_TopDown_Forecast.html","AGT-405":"specs/AGT-405_Meeting_Opp_Prep.html","AGT-406":"specs/AGT-406_CPQ_Deal_Desk.html","AGT-407":"specs/AGT-407_Conv_Intelligence.html","AGT-501":"specs/AGT-501_Customer_Health_Monitor.html","AGT-502":"specs/AGT-502_Churn_Risk_Detector.html","AGT-503":"specs/AGT-503_Expansion_Trigger.html","AGT-504":"specs/AGT-504_Customer_Communications.html","AGT-601":"specs/AGT-601_Onboarding_Orchestrator.html","AGT-602":"specs/AGT-602_Technical_Implementation.html","AGT-603":"specs/AGT-603_QBR_Prep.html","AGT-604":"specs/AGT-604_Voice_of_Customer.html","AGT-701":"specs/AGT-701_Rep_Performance_Coaching.html","AGT-702":"specs/AGT-702_GTM_Health_Monitor.html","AGT-703":"specs/AGT-703_Win_Loss_Forecast_Accuracy.html","AGT-704":"specs/AGT-704_Business_Review_Orchestrator.html","AGT-801":"specs/AGT-801_Order_Management.html","AGT-802":"specs/AGT-802_Billing_Invoicing.html","AGT-803":"specs/AGT-803_Payment_Health.html","AGT-804":"specs/AGT-804_Revenue_Recognition.html","AGT-901":"specs/AGT-901_Pipeline_Brain.html","AGT-902":"specs/AGT-902_Account_Brain.html"};
 const CONNECTIONS=[["AGT-101","AGT-102","feeds"],["AGT-101","AGT-103","feeds"],["AGT-101","AGT-105","feeds"],["AGT-101","AGT-107","feeds"],["AGT-102","AGT-103","feeds"],["AGT-102","AGT-107","feeds"],["AGT-103","AGT-104","feeds"],["AGT-103","AGT-702","cross"],["AGT-107","AGT-104","feeds"],["AGT-105","AGT-106","feeds"],["AGT-106","AGT-202","feeds"],["AGT-106","AGT-201","feeds"],["AGT-201","AGT-202","feeds"],["AGT-201","AGT-203","feeds"],["AGT-201","AGT-206","feeds"],["AGT-202","AGT-301","feeds"],["AGT-203","AGT-301","feeds"],["AGT-203","AGT-305","feeds"],["AGT-204","AGT-201","feeds"],["AGT-205","AGT-105","cross"],["AGT-205","AGT-404","cross"],["AGT-206","AGT-301","feeds"],["AGT-206","AGT-106","cross"],["AGT-301","AGT-302","feeds"],["AGT-301","AGT-303","feeds"],["AGT-302","AGT-303","feeds"],["AGT-303","AGT-302","reads"],["AGT-304","AGT-302","feeds"],["AGT-305","AGT-407","cross"],["AGT-305","AGT-701","cross"],["AGT-401","AGT-402","feeds"],["AGT-401","AGT-403","feeds"],["AGT-401","AGT-405","feeds"],["AGT-402","AGT-704","cross"],["AGT-402","AGT-703","cross"],["AGT-403","AGT-405","feeds"],["AGT-404","AGT-703","cross"],["AGT-404","AGT-704","cross"],["AGT-405","AGT-407","feeds"],["AGT-406","AGT-801","cross"],["AGT-406","AGT-601","cross"],["AGT-407","AGT-401","feeds"],["AGT-407","AGT-403","feeds"],["AGT-407","AGT-501","cross"],["AGT-407","AGT-701","cross"],["AGT-407","AGT-703","cross"],["AGT-501","AGT-502","feeds"],["AGT-501","AGT-503","feeds"],["AGT-501","AGT-402","cross"],["AGT-501","AGT-603","cross"],["AGT-502","AGT-503","feeds"],["AGT-502","AGT-702","cross"],["AGT-503","AGT-402","cross"],["AGT-503","AGT-603","cross"],["AGT-601","AGT-501","cross"],["AGT-601","AGT-104","cross"],["AGT-601","AGT-602","feeds"],["AGT-602","AGT-802","cross"],["AGT-603","AGT-604","feeds"],["AGT-603","AGT-701","cross"],["AGT-604","AGT-201","cross"],["AGT-604","AGT-403","cross"],["AGT-604","AGT-702","cross"],["AGT-701","AGT-703","cross"],["AGT-701","AGT-704","cross"],["AGT-702","AGT-703","feeds"],["AGT-702","AGT-704","feeds"],["AGT-703","AGT-704","feeds"],["AGT-703","AGT-101","cross"],["AGT-703","AGT-201","cross"],["AGT-703","AGT-402","cross"],["AGT-801","AGT-802","feeds"],["AGT-802","AGT-803","feeds"],["AGT-803","AGT-501","cross"],["AGT-804","AGT-501","cross"],["AGT-804","AGT-503","cross"],["AGT-804","AGT-702","cross"],["AGT-804","AGT-802","feeds"],["AGT-901","AGT-702","reads"],["AGT-901","AGT-401","reads"],["AGT-901","AGT-402","reads"],["AGT-901","AGT-201","reads"],["AGT-901","AGT-206","reads"],["AGT-901","AGT-105","reads"],["AGT-901","AGT-703","reads"],["AGT-901","AGT-303","reads"],["AGT-901","AGT-604","reads"],["AGT-902","AGT-501","reads"],["AGT-902","AGT-502","reads"],["AGT-902","AGT-503","reads"],["AGT-902","AGT-804","reads"],["AGT-902","AGT-401","reads"],["AGT-902","AGT-407","reads"],["AGT-902","AGT-603","reads"],["AGT-902","AGT-601","reads"],["AGT-902","AGT-602","reads"],["AGT-902","AGT-803","reads"]];
@@ -182,7 +276,7 @@ function renderArch(){document.getElementById('principles-wrap').innerHTML=OS.pr
 function toggleLayer(id){document.getElementById(id).classList.toggle('open')}
 function showAgent(a){const s=SPECS[a.id];document.getElementById('modal-content').innerHTML=`<button class="modal-close" onclick="document.getElementById('agent-modal').classList.remove('open')">✕</button><div class="modal-agent-id">${a.id}</div><div class="modal-agent-name">${a.name}</div><div class="modal-purpose">${a.purpose}</div><div class="modal-section-label">INPUTS</div><div class="modal-tags">${a.inputs.map(i=>`<span class="modal-tag in">${i}</span>`).join('')}</div><div class="modal-section-label">OUTPUTS</div><div class="modal-tags">${a.outputs.map(o=>`<span class="modal-tag out">${o}</span>`).join('')}</div><div class="modal-section-label">KEY DECISIONS</div><div class="modal-key">${a.key}</div>${s?`<a class="spec-link" href="${s}" target="_blank" style="display:inline-block;margin-top:16px;font-size:12px;padding:6px 14px">View Full Spec →</a>`:''}`;document.getElementById('agent-modal').classList.add('open')}
 function closeModal(e){if(e.target===document.getElementById('agent-modal'))document.getElementById('agent-modal').classList.remove('open')}
-function switchTab(n,b){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');b.classList.add('active');if(n==='map'&&!document.getElementById('map-svg'))renderMap();if(n==='os'&&!document.getElementById('os-rendered'))renderOS()}
+function switchTab(n,b){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');b.classList.add('active');if(n==='map'&&!document.getElementById('map-svg'))renderMap();if(n==='os'&&!document.getElementById('os-rendered'))renderOS();if(n==='brain'&&!window.__brainLoaded)loadBrainGallery();if(n==='followlead'&&!window.__followLeadLoaded)loadFollowLead()}
 function renderMap(){const allA=OS.layers.flatMap(l=>l.agents.map(a=>({...a,layer:l.id,color:l.color})));const grp={};allA.forEach(a=>{if(!grp[a.layer])grp[a.layer]=[];grp[a.layer].push(a)});const ord=["L1","L2","L3","L4","L5","L6","L7","L8"];const nW=130,nH=38,pX=16,pY=52,lW=36;const pos={};let mW=0;ord.forEach((lid,ri)=>{const ag=grp[lid]||[];ag.forEach((a,ci)=>{pos[a.id]={x:lW+pX+ci*(nW+pX)+nW/2,y:pY+ri*(nH+pY)+nH/2,color:a.color,name:a.name}});mW=Math.max(mW,lW+pX+ag.length*(nW+pX))});const sW=Math.max(mW+pX,1000),sH=pY+ord.length*(nH+pY)+20;let eS='';CONNECTIONS.forEach(([src,tgt,type])=>{const s=pos[src],t=pos[tgt];if(!s||!t)return;const c=src.startsWith('AGT-9')?'#D4A84C':type==='feeds'?'#4EDBA8':type==='reads'?'#5BA3E8':'#E8A84C';const c1Y=s.y+(t.y-s.y)*.3,c2Y=s.y+(t.y-s.y)*.7;eS+=`<path class="map-edge" data-src="${src}" data-tgt="${tgt}" d="M${s.x},${s.y+nH/2} C${s.x},${c1Y} ${t.x},${c2Y} ${t.x},${t.y-nH/2}" fill="none" stroke="${c}" stroke-width="1.2" stroke-opacity=".35"/>`});let nS='';ord.forEach((lid,ri)=>{const y=pY+ri*(nH+pY)+nH/2;nS+=`<text x="4" y="${y+4}" fill="${LAYER_COLORS[lid]}" font-size="11" font-weight="700" opacity=".5">${lid}</text>`});allA.forEach(a=>{const p=pos[a.id];if(!p)return;const sh=a.id.replace('AGT-','');const nm=a.name.length>14?a.name.slice(0,13)+'…':a.name;nS+=`<g class="map-node" data-id="${a.id}" onclick="focusNode('${a.id}')"><rect x="${p.x-nW/2}" y="${p.y-nH/2}" width="${nW}" height="${nH}" rx="6" fill="${p.color}18" stroke="${p.color}" stroke-width="1.5"/><text x="${p.x}" y="${p.y-5}" text-anchor="middle" dominant-baseline="middle" fill="${p.color}" font-size="10" font-weight="700">${sh}</text><text x="${p.x}" y="${p.y+9}" text-anchor="middle" dominant-baseline="middle" fill="${p.color}" font-size="8" opacity=".7" style="font-family:var(--sans)">${nm}</text></g>`});document.getElementById('map-container').innerHTML=`<svg id="map-svg" width="${sW}" height="${sH}" viewBox="0 0 ${sW} ${sH}" xmlns="http://www.w3.org/2000/svg">${eS}${nS}</svg>`}
 let fNode=null;function focusNode(id){const c=document.getElementById('map-container');const sb=document.getElementById('map-sidebar');if(fNode===id){fNode=null;c.classList.remove('has-focus');document.querySelectorAll('.map-node,.map-edge').forEach(el=>{el.classList.remove('dimmed');el.style.strokeOpacity='';el.style.strokeWidth=''});sb.innerHTML='<div class="map-sidebar-empty">Click a service node to see its connections and wiring details</div>';return}fNode=id;c.classList.add('has-focus');const cn=new Set([id]);CONNECTIONS.forEach(([s,t])=>{if(s===id)cn.add(t);if(t===id)cn.add(s)});document.querySelectorAll('.map-node').forEach(el=>el.classList.toggle('dimmed',!cn.has(el.dataset.id)));document.querySelectorAll('.map-edge').forEach(el=>{const hit=el.dataset.src===id||el.dataset.tgt===id;el.classList.toggle('dimmed',!hit);el.style.strokeOpacity=hit?'.85':'';el.style.strokeWidth=hit?'2.5':''});
 const ag=OS.layers.flatMap(l=>l.agents.map(a=>({...a,layerName:l.name,layerId:l.id,color:l.color}))).find(a=>a.id===id);if(!ag)return;
@@ -247,69 +341,370 @@ return flags}
 
 async function runLeadSim(){const btn=document.querySelector('#tab-lead .btn-run'),out=document.getElementById('lead-output');btn.disabled=true;btn.textContent='Scoring...';out.innerHTML='<div class="output-loading"><div class="loading-spinner"></div><div class="loading-text">AGT-201 + AGT-202...</div></div>';await new Promise(res=>setTimeout(res,350));try{const employees=document.getElementById('l-employees').value,revenue=document.getElementById('l-revenue').value,vertical=document.getElementById('l-vertical').value,geo=document.getElementById('l-geo').value,source=document.getElementById('l-source').value,funding=document.getElementById('l-funding').value,techStack=document.getElementById('l-tech').value,intentText=document.getElementById('l-intent').value;const{score,tier,segment}=scoreICP(employees,revenue,vertical,geo,source,funding,techStack,intentText);const routing=routeLead(tier,segment,source,geo,vertical);const flags=buildLeadFlags(score,tier,segment,source,funding);const r={score,tier,segment,routing,flags};const tc={'T1':'#4EDBA8','T2':'#5BA3E8','T3':'#8B96A8'}[r.tier]||'#8B96A8';out.innerHTML=`<div class="output-card"><div class="output-card-title">ICP Score — AGT-201</div><div class="output-grid"><div class="output-stat"><div class="output-stat-label">Total</div><div class="output-stat-val" style="color:${tc}">${r.score.total}/100</div><div class="output-stat-sub" style="color:${tc}">${r.tier}</div></div><div class="output-stat"><div class="output-stat-label">Segment</div><div class="output-stat-val">${r.segment}</div></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px">${[['Firm',r.score.d1,20],['Vertical',r.score.d2,20],['Revenue',r.score.d3,15],['Tech',r.score.d4,15],['Growth',r.score.d5,15],['Intent',r.score.d6,15]].map(([n,v,m])=>`<div style="background:var(--surface);border-radius:5px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--text3)">${n}</div><div style="font-family:var(--mono);font-size:16px;font-weight:700">${v}/${m}</div></div>`).join('')}</div></div><div class="output-card"><div class="output-card-title">Routing — AGT-202</div><div class="output-content"><strong>To:</strong> ${r.routing.assigned_to} · <strong>SLA:</strong> ${r.routing.sla} · <strong>Seq:</strong> ${r.routing.sequence_type}<br><em>${r.routing.rationale}</em></div></div>${r.flags?.length?`<div class="output-card"><div class="output-card-title">Flags</div>${r.flags.map(f=>`<div style="font-size:12px;color:var(--text2);padding:5px 10px;background:rgba(15,23,42,.06);border-radius:5px;border-left:2px solid rgba(15,23,42,.3);margin-bottom:4px">◆ ${f}</div>`).join('')}</div>`:''}`}catch(e){out.innerHTML=`<div class="error-box">Error: ${e.message}</div>`}btn.disabled=false;btn.textContent='Run ICP Score + Routing →'}
 
-function scorePlanLocal(targetARR,fy,smbPct,mmPct,smbAE,mmAE,entAE,sdrs,attritionPct,rampMo,magicTarget,cacTarget){
-const target=parseCurrency(targetARR),sp=parseNum(smbPct)/100,mp=parseNum(mmPct)/100,ep=1-sp-mp;
-const smbTarget=target*sp,mmTarget=target*mp,entTarget=target*ep;
-const Q={smb:400000,mm:800000,ent:1600000};const ramp=parseNum(rampMo)||4;const attr=parseNum(attritionPct)/100;
-const smbN=parseNum(smbAE),mmN=parseNum(mmAE),entN=parseNum(entAE),sdrN=parseNum(sdrs);
-const eRep=n=>n*(1-attr)+n*attr*0.5;
-const smbERep=eRep(smbN),mmERep=eRep(mmN),entERep=eRep(entN);
-const smbCap=smbERep*Q.smb,mmCap=mmERep*Q.mm,entCap=entERep*Q.ent;
-const totalCap=smbCap+mmCap+entCap;const covRatio=target>0?((totalCap/target)*100):0;
-const covStatus=covRatio>=85?'Healthy':covRatio>=70?'Gap':'Critical';
-const smbGap=smbTarget-smbCap,mmGap=mmTarget-mmCap,entGap=entTarget-entCap;
-const smbH=smbGap>0?Math.ceil(smbGap/Q.smb):0,mmH=mmGap>0?Math.ceil(mmGap/Q.mm):0,entH=entGap>0?Math.ceil(entGap/Q.ent):0;
-const attrBack=Math.ceil((smbN+mmN+entN)*attr);
-const sdrH=Math.max(0,Math.ceil((smbH+mmH)*0.5)-sdrN+Math.ceil(sdrN*attr));
-const magicNum=parseNum(magicTarget);const avgOTE=180000;const currentSpend=(smbN+mmN+entN+sdrN)*avgOTE;
-const projMagic=currentSpend>0?target/currentSpend:0;const magicOk=projMagic>=magicNum*0.85;
-const cacMo=parseNum(cacTarget);const avgACV=target/(smbERep+mmERep+entERep);
-const implCAC=avgOTE*1.3;const implPayback=avgACV>0?(implCAC/avgACV)*12:99;const cacOk=implPayback<=cacMo;
-const verdict=magicOk&&cacOk&&covStatus==='Healthy'?'Hire aggressively':magicOk&&cacOk?'Hire cautiously':'Hold';
-const risks=[];
-if(covStatus==='Critical')risks.push('Coverage ratio '+covRatio.toFixed(0)+'% is critically below 85% target — significant hiring gap');
-if(covStatus==='Gap')risks.push('Coverage ratio '+covRatio.toFixed(0)+'% below 85% — moderate hiring needed');
-if(!magicOk)risks.push('Projected Magic Number '+projMagic.toFixed(2)+' trails target '+magicNum+' — efficiency headwind');
-if(!cacOk)risks.push('Implied CAC Payback ~'+implPayback.toFixed(0)+'mo exceeds '+cacMo+'mo guardrail');
-if(attr>=0.2)risks.push(+(attr*100).toFixed(0)+'% attrition above benchmark — retention programs needed before scaling');
-if(ep>0.5&&entN<3)risks.push('Enterprise mix '+(ep*100).toFixed(0)+'% with only '+entN+' AEs — concentration risk');
-if(risks.length===0)risks.push('No critical risks identified — plan is well-balanced');
-return{quota_recommendations:{smb:{full_quota:'$'+Q.smb.toLocaleString(),current_erep:smbERep.toFixed(1),gap:smbGap>0?'$'+(smbGap/1e6).toFixed(1)+'M gap — need '+smbH+' hires':'Covered'},mm:{full_quota:'$'+Q.mm.toLocaleString(),current_erep:mmERep.toFixed(1),gap:mmGap>0?'$'+(mmGap/1e6).toFixed(1)+'M gap — need '+mmH+' hires':'Covered'},ent:{full_quota:'$'+Q.ent.toLocaleString(),current_erep:entERep.toFixed(1),gap:entGap>0?'$'+(entGap/1e6).toFixed(1)+'M gap — need '+entH+' hires':'Covered'},total_deployed:'$'+(totalCap/1e6).toFixed(1)+'M',coverage_ratio:covRatio.toFixed(0)+'%',coverage_status:covStatus},capacity_analysis:{net_new_hires_needed:smbH+mmH+entH,attrition_backfill_needed:attrBack,hire_split:{smb_ae:smbH,mm_ae:mmH,ent_ae:entH,sdr:Math.max(0,sdrH)}},hire_timing:'Start hiring Q1 '+fy+' — '+ramp+'-month ramp means Q1 hires reach full capacity by Q'+Math.min(4,Math.ceil(ramp/3)+1)+'. Backfill attrition continuously.',efficiency_guardrails:{magic_number_assessment:'Projected '+projMagic.toFixed(2)+' vs '+magicNum+' target. '+(magicOk?'Within tolerance.':'Below threshold — watch S&M leverage.'),cac_payback_assessment:'Implied ~'+implPayback.toFixed(0)+'mo vs '+cacMo+'mo cap. '+(cacOk?'Within guardrail.':'Exceeds guardrail — review ACV or cost structure.'),overall_verdict:verdict},top_risks:risks}}
+// ════════════════════════════════════════════════════════════════════
+//  Follow a Lead — narrative walkthrough of one synthetic account
+//  (Stark Logistics, expansion_ready archetype) from inbound lead
+//  through close, onboarding, expansion brain reasoning, human
+//  co-definition, play execution, and renewal.
+// ════════════════════════════════════════════════════════════════════
 
-async function runPlanSim(){const btn=document.querySelector('#tab-plan .btn-run'),out=document.getElementById('plan-output');btn.disabled=true;btn.textContent='Processing...';out.innerHTML='<div class="output-loading"><div class="loading-spinner"></div><div class="loading-text">AGT-101 + AGT-105...</div></div>';const sp=document.getElementById('p-smb-pct').value,mp=document.getElementById('p-mm-pct').value,ep=100-parseInt(sp)-parseInt(mp);await new Promise(res=>setTimeout(res,350));try{const r=scorePlanLocal(document.getElementById('p-arr').value,document.getElementById('p-fy').value,sp,mp,document.getElementById('p-smb-ae').value,document.getElementById('p-mm-ae').value,document.getElementById('p-ent-ae').value,document.getElementById('p-sdr').value,document.getElementById('p-attrition').value,document.getElementById('p-ramp').value,document.getElementById('p-magic').value,document.getElementById('p-cac').value);const cv={'Healthy':'#4EDBA8','Gap':'#E8A84C','Critical':'#E87878'}[r.quota_recommendations.coverage_status]||'#8B96A8';const vv=r.efficiency_guardrails.overall_verdict.includes('aggressively')?'#4EDBA8':r.efficiency_guardrails.overall_verdict.includes('cautiously')?'#E8A84C':'#E87878';const h=r.capacity_analysis.hire_split;out.innerHTML=`<div class="output-card"><div class="output-card-title">Quota — AGT-101</div><div class="output-grid"><div class="output-stat"><div class="output-stat-label">Deployed</div><div class="output-stat-val">${r.quota_recommendations.total_deployed}</div></div><div class="output-stat"><div class="output-stat-label">Coverage</div><div class="output-stat-val" style="color:${cv}">${r.quota_recommendations.coverage_ratio}</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">${['smb','mm','ent'].map(s=>{const d=r.quota_recommendations[s];return`<div style="background:var(--surface);border-radius:6px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase">${s}</div><div style="font-family:var(--mono);font-size:14px;font-weight:700;margin:4px 0">${d.full_quota}</div><div style="font-size:10px;color:var(--text2)">eRep:${d.current_erep} · ${d.gap}</div></div>`}).join('')}</div></div><div class="output-card"><div class="output-card-title">Capacity — AGT-105</div><div class="output-grid">${h.smb_ae>0?`<div class="output-stat"><div class="output-stat-label">SMB AE</div><div class="output-stat-val">+${h.smb_ae}</div></div>`:''}${h.mm_ae>0?`<div class="output-stat"><div class="output-stat-label">MM AE</div><div class="output-stat-val">+${h.mm_ae}</div></div>`:''}${h.ent_ae>0?`<div class="output-stat"><div class="output-stat-label">Ent AE</div><div class="output-stat-val">+${h.ent_ae}</div></div>`:''}${h.sdr>0?`<div class="output-stat"><div class="output-stat-label">SDR</div><div class="output-stat-val">+${h.sdr}</div></div>`:''}<div class="output-stat"><div class="output-stat-label">Net New</div><div class="output-stat-val" style="color:var(--gold2)">+${r.capacity_analysis.net_new_hires_needed}</div></div></div><div style="font-size:12px;color:var(--text2);margin-top:12px">${r.hire_timing}</div></div><div class="output-card"><div class="output-card-title">Guardrails</div><div style="font-size:13px;color:${vv};font-weight:600;margin-bottom:12px">${r.efficiency_guardrails.overall_verdict}</div><div class="output-content"><strong>Magic#:</strong> ${r.efficiency_guardrails.magic_number_assessment}<br><strong>CAC:</strong> ${r.efficiency_guardrails.cac_payback_assessment}</div>${r.top_risks.map(k=>`<div style="font-size:12px;color:var(--text2);margin-top:6px;padding:6px 10px;background:rgba(232,120,120,.05);border-radius:5px;border-left:2px solid rgba(232,120,120,.4)">◆ ${k}</div>`).join('')}</div>`}catch(e){out.innerHTML=`<div class="error-box">Error: ${e.message}</div>`}btn.disabled=false;btn.textContent='Run Quota + Capacity →'}
+const FOLLOWLEAD_STATE = { narrative: null, error: null };
 
-function scoreForecastLocal(quarter,week,target,closed,disc,eval_,prop,neg,commits,riskText){
-const tgt=parseCurrency(target),cl=parseCurrency(closed);
-const di=parseCurrency(disc),ev=parseCurrency(eval_),pr=parseCurrency(prop),ne=parseCurrency(neg);
-const cm=parseCurrency(commits);const weekNum=parseNum(week.replace(/\D/g,''))||6;
-const wb2=weekNum>=9?1.1:weekNum>=6?1.0:0.9;
-const convD=0.175*wb2,convE=0.35*wb2,convP=0.525*wb2,convN=0.775*wb2;
-const weighted=cl+(di*convD)+(ev*convE)+(pr*convP)+(ne*convN);
-const bear=cl+(di*0.10)+(ev*0.25)+(pr*0.40)+(ne*0.65);
-const bull=cl+(di*0.22)+(ev*0.42)+(pr*0.62)+(ne*0.88);
-const pctTarget=tgt>0?((weighted/tgt)*100):0;
-let commitAssess;if(cm>0&&Math.abs(cm-weighted)/weighted<0.1)commitAssess='Commit in line';else if(cm>weighted*1.1)commitAssess='Commit above AI — risk';else commitAssess='Commit below';
-const totalPipe=di+ev+pr+ne;const remaining=tgt-cl;const covRatio=remaining>0?(totalPipe/remaining):99;
-const covAssess=covRatio>=3?'Healthy':covRatio>=2?'Thin':'Critical';
-const reqPipe=remaining*3;const pipeGap=reqPipe-totalPipe;
-const pctClosed=tgt>0?((cl/tgt)*100):0;const weekPct=(weekNum/13)*100;
-const signal=pctTarget>=95&&covAssess==='Healthy'?'Green':pctTarget>=80&&covAssess!=='Critical'?'Amber':'Red';
-const risks=[];const riskLower=(riskText||'').toLowerCase();
-if(riskLower.includes('slip'))risks.push('Identified slip risk — validate close dates with reps');
-if(riskLower.includes('no economic buyer')||riskLower.includes('no eb'))risks.push('Top deal missing economic buyer — champion-only deals close at 40% lower rate');
-if(covAssess==='Critical')risks.push('Pipeline coverage '+covRatio.toFixed(1)+'x critically thin — need '+formatCurrency(pipeGap)+' new pipeline');
-if(covAssess==='Thin')risks.push('Pipeline coverage '+covRatio.toFixed(1)+'x below 3x target — generation needed');
-if(commitAssess.includes('above'))risks.push('Rep commits exceed AI forecast — investigate optimism basis');
-if(pctTarget<80)risks.push('AI forecast '+pctTarget.toFixed(0)+'% of target — material gap requires attention');
-if(risks.length===0)risks.push('No critical risks — pipeline health supports forecast');
-const actions=[];
-if(covAssess!=='Healthy')actions.push('Accelerate pipeline generation — engage AGT-301 for priority cadence refresh');
-if(commitAssess.includes('above'))actions.push('Schedule 1:1 deal reviews with reps whose commits exceed AI by >15%');
-if(pctTarget>=90)actions.push('Focus on deal execution and close acceleration for remaining pipeline');
-actions.push('Week '+weekNum+' priority: '+(weekNum<=6?'pipeline generation and deal progression':'deal close execution and risk mitigation'));
-return{bottoms_up_forecast:{ai_forecast:formatCurrency(weighted),bear_case:formatCurrency(bear),bull_case:formatCurrency(bull),pct_of_target:pctTarget.toFixed(0)+'%',commit_assessment:commitAssess,conversion_applied:{discovery:(convD*100).toFixed(0)+'%',eval:(convE*100).toFixed(0)+'%',proposal:(convP*100).toFixed(0)+'%',negotiation:(convN*100).toFixed(0)+'%'}},top_down_analysis:{pipeline_coverage_ratio:covRatio.toFixed(1),coverage_assessment:covAssess,required_pipeline:formatCurrency(reqPipe),pipeline_gap:pipeGap>0?formatCurrency(pipeGap):'$0 (surplus)'},wbr_narrative:{headline:quarter+' '+week+': '+signal+' — '+(pctClosed>=weekPct*0.9?'on pace':pctClosed>=weekPct*0.7?'slightly behind':'behind pace')+' at '+pctClosed.toFixed(0)+'% closed',performance_summary:'Closed '+formatCurrency(cl)+' of '+formatCurrency(tgt)+' target ('+pctClosed.toFixed(0)+'%). AI bottoms-up forecast: '+formatCurrency(weighted)+' ('+pctTarget.toFixed(0)+'% of target). Rep commit: '+formatCurrency(cm)+'.',forecast_summary:'Stage-weighted pipeline: '+formatCurrency(totalPipe)+' at '+covRatio.toFixed(1)+'x coverage. Bear '+formatCurrency(bear)+', bull '+formatCurrency(bull)+'.',top_risks:risks,recommended_actions:actions,overall_signal:signal}}}
+async function loadFollowLead() {
+  window.__followLeadLoaded = true;
+  try {
+    const resp = await fetch('eval/samples/follow_a_lead.json');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    FOLLOWLEAD_STATE.narrative = await resp.json();
+    // Also need the brain_outputs.json so brain moments can deeplink to modals
+    if (!BRAIN_STATE.data) {
+      const r2 = await fetch('eval/samples/brain_outputs.json');
+      if (r2.ok) BRAIN_STATE.data = await r2.json();
+    }
+  } catch (e) {
+    FOLLOWLEAD_STATE.error = e.message + '. Serve the repo root via http server (or use the live Pages URL) to load JSON samples.';
+  }
+  renderFollowLead();
+}
 
-async function runForecastSim(){const btn=document.querySelector('#tab-forecast .btn-run'),out=document.getElementById('forecast-output');btn.disabled=true;btn.textContent='Processing...';out.innerHTML='<div class="output-loading"><div class="loading-spinner"></div><div class="loading-text">AGT-402+404+704...</div></div>';const q=document.getElementById('f-quarter').value,w=document.getElementById('f-week').value;await new Promise(res=>setTimeout(res,350));try{const r=scoreForecastLocal(q,w,document.getElementById('f-target').value,document.getElementById('f-closed').value,document.getElementById('f-disc').value,document.getElementById('f-eval').value,document.getElementById('f-prop').value,document.getElementById('f-neg').value,document.getElementById('f-commit').value,document.getElementById('f-risk').value);const bu=r.bottoms_up_forecast,td=r.top_down_analysis,wb=r.wbr_narrative;const sc={'Green':'#4EDBA8','Amber':'#E8A84C','Red':'#E87878'}[wb.overall_signal]||'#8B96A8';const cc={'Healthy':'#4EDBA8','Thin':'#E8A84C','Critical':'#E87878'}[td.coverage_assessment]||'#8B96A8';const cb=bu.commit_assessment.includes('risk')?'rgba(232,168,76,':'rgba(78,219,168,';out.innerHTML=`<div class="output-card"><div class="output-card-title">Bottoms-Up — AGT-402</div><div class="output-grid"><div class="output-stat"><div class="output-stat-label">AI Forecast</div><div class="output-stat-val">${bu.ai_forecast}</div><div class="output-stat-sub">${bu.pct_of_target} of target</div></div><div class="output-stat"><div class="output-stat-label">Range</div><div class="output-stat-val" style="font-size:13px">${bu.bear_case}–${bu.bull_case}</div></div></div><div style="margin-top:12px;padding:10px;background:${cb}.06);border:1px solid ${cb}.3);border-radius:6px;font-size:12px"><strong>Commit:</strong> ${bu.commit_assessment}</div></div><div class="output-card"><div class="output-card-title">Top-Down — AGT-404</div><div class="output-grid"><div class="output-stat"><div class="output-stat-label">Coverage</div><div class="output-stat-val" style="color:${cc}">${td.pipeline_coverage_ratio}</div><div class="output-stat-sub" style="color:${cc}">${td.coverage_assessment}</div></div><div class="output-stat"><div class="output-stat-label">Gap</div><div class="output-stat-val" style="font-size:14px">${td.pipeline_gap}</div></div></div></div><div class="output-card"><div class="output-card-title">WBR — AGT-704</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span style="width:8px;height:8px;border-radius:50%;background:${sc};display:inline-block"></span><span style="font-size:14px;font-weight:600">${wb.headline}</span></div><div class="output-content" style="margin-bottom:10px">${wb.performance_summary}</div><div class="output-content" style="margin-bottom:10px">${wb.forecast_summary}</div>${wb.top_risks.map(x=>`<div style="font-size:12px;color:var(--text2);padding:5px 10px;background:rgba(232,120,120,.05);border-radius:5px;border-left:2px solid rgba(232,120,120,.4);margin-bottom:4px">◆ ${x}</div>`).join('')}${wb.recommended_actions.map(x=>`<div style="font-size:12px;color:var(--text2);padding:5px 10px;background:rgba(78,219,168,.05);border-radius:5px;border-left:2px solid rgba(78,219,168,.3);margin-bottom:4px">→ ${x}</div>`).join('')}</div>`}catch(e){out.innerHTML=`<div class="error-box">Error: ${e.message}</div>`}btn.disabled=false;btn.textContent='Generate Forecast + WBR →'}
+function renderFollowLead() {
+  const root = document.getElementById('followlead-content');
+  if (FOLLOWLEAD_STATE.error) {
+    root.innerHTML = '<div class="error-box" style="margin:24px 0">Could not load follow_a_lead.json: ' +
+      escapeHtmlSafe(FOLLOWLEAD_STATE.error) + '</div>';
+    return;
+  }
+  if (!FOLLOWLEAD_STATE.narrative) {
+    root.innerHTML = '<div class="output-placeholder" style="padding:60px 20px"><div class="output-placeholder-icon">↪</div><div class="output-placeholder-text">Loading narrative…</div></div>';
+    return;
+  }
+  const n = FOLLOWLEAD_STATE.narrative;
+  const a = n.account;
+  root.innerHTML = `
+    <div class="fl-header">
+      <div class="fl-headline">Follow a Lead — ${escapeHtmlSafe(a.company_name)}</div>
+      <div class="fl-sub">${escapeHtmlSafe(n.summary)} <strong>The brain reasoning steps below (highlighted in amber)
+      are real outputs from the prototype</strong> — captured verbatim from
+      <code style="font-family:var(--mono);font-size:11px">prototype/brain_analysis_log.jsonl</code>. Click them
+      to see the full BrainAnalysisLog. The other steps are deterministic service handoffs based on the canonical
+      Tier 1 schema.</div>
+      <div class="fl-account-strip">
+        <div class="fl-account-stat"><div class="fl-account-num">${escapeHtmlSafe(a.segment)}</div><div class="fl-account-label">segment</div></div>
+        <div class="fl-account-stat"><div class="fl-account-num">${escapeHtmlSafe(a.vertical)}</div><div class="fl-account-label">vertical</div></div>
+        <div class="fl-account-stat"><div class="fl-account-num">${escapeHtmlSafe(a.icp_tier)}</div><div class="fl-account-label">ICP tier</div></div>
+        <div class="fl-account-stat"><div class="fl-account-num">$${(a.starting_arr_usd||0).toLocaleString()}</div><div class="fl-account-label">starting ARR</div></div>
+        <div class="fl-account-stat"><div class="fl-account-num">$${(a.ending_arr_usd||0).toLocaleString()}</div><div class="fl-account-label">renewed ARR</div></div>
+        <div class="fl-account-stat"><div class="fl-account-num">${a.nrr_pct}%</div><div class="fl-account-label">NRR</div></div>
+        <div class="fl-account-stat"><div class="fl-account-num">${a.licensed_seats}</div><div class="fl-account-label">licensed seats</div></div>
+      </div>
+    </div>
+    <div class="fl-timeline">
+      ${n.steps.map(renderFollowLeadStep).join('')}
+    </div>
+  `;
+
+  // Wire up brain-moment click handlers
+  document.querySelectorAll('.fl-brain-link').forEach(el => {
+    el.addEventListener('click', () => {
+      const fid = el.dataset.fid;
+      if (BRAIN_STATE.data) openBrainModal(fid);
+    });
+  });
+}
+
+function renderFollowLeadStep(step) {
+  const dayText = step.day_offset === 0 ? 'Day 0'
+    : step.day_offset > 0 ? `Day +${step.day_offset}`
+    : `Day ${step.day_offset}`;
+  const isBrainStep = !!step.brain_moment;
+  return `
+    <div class="fl-step ${isBrainStep ? 'fl-step-brain' : ''}">
+      <div class="fl-step-dot"></div>
+      <div class="fl-step-card">
+        <div class="fl-step-head">
+          <span class="fl-step-day">${escapeHtmlSafe(dayText)}</span>
+          <span class="fl-step-phase">${escapeHtmlSafe(step.phase || '')}</span>
+          <span class="fl-step-title">${escapeHtmlSafe(step.title || '')}</span>
+        </div>
+        <div class="fl-step-services">
+          <span class="fl-step-svc fl-step-svc-primary">${escapeHtmlSafe(step.primary_service || '?')}</span>
+          ${(step.secondary_services||[]).map(s => `<span class="fl-step-svc">${escapeHtmlSafe(s)}</span>`).join('')}
+        </div>
+        <div class="fl-step-changed">${escapeHtmlSafe(step.what_changed || '')}</div>
+        <div class="fl-step-evidence">
+          ${(step.evidence||[]).map(e => `<div class="fl-step-evidence-row">▸ ${escapeHtmlSafe(e)}</div>`).join('')}
+        </div>
+        ${step.brain_moment ? `
+          <div class="fl-brain-link" data-fid="${escapeHtmlSafe(step.brain_moment.fixture_id)}">
+            <span class="fl-brain-icon">🧠</span>
+            <span>See the actual brain reasoning — ${escapeHtmlSafe(step.brain_moment.fixture_id)} →</span>
+          </div>
+          <div class="fl-brain-framing">${escapeHtmlSafe(step.brain_moment.framing)}</div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  Brain Outputs gallery — loads eval/samples/brain_outputs.json and
+//  renders each curated brain run as a clickable card. Modal expands
+//  to show the full BrainAnalysisLog: narrative with citation chips,
+//  sources_read, proposed_actions, tool_calls_made.
+// ════════════════════════════════════════════════════════════════════
+
+const BRAIN_STATE = {
+  data: null,
+  loadError: null,
+  filterWriter: 'all',
+  filterDifficulty: 'all',
+  search: '',
+};
+
+async function loadBrainGallery() {
+  window.__brainLoaded = true;
+  const root = document.getElementById('brain-gallery');
+  try {
+    const resp = await fetch('eval/samples/brain_outputs.json');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    BRAIN_STATE.data = await resp.json();
+  } catch (e) {
+    BRAIN_STATE.loadError = e.message + '. If you opened this via file://, ' +
+      'serve the repo root with `python3 -m http.server` and reload.';
+  }
+  renderBrainGallery();
+}
+
+function renderBrainGallery() {
+  const root = document.getElementById('brain-gallery');
+  if (BRAIN_STATE.loadError) {
+    root.innerHTML = '<div class="error-box" style="margin:24px 0">' +
+      'Could not load brain_outputs.json: ' + escapeHtmlSafe(BRAIN_STATE.loadError) + '</div>';
+    return;
+  }
+  if (!BRAIN_STATE.data) {
+    root.innerHTML = '<div class="output-placeholder" style="padding:60px 20px">' +
+      '<div class="output-placeholder-icon" style="font-size:32px">◇</div>' +
+      '<div class="output-placeholder-text">Loading…</div></div>';
+    return;
+  }
+  const { sample_count, total_cost_usd, by_writer, generated_at, samples } = BRAIN_STATE.data;
+  const filtered = applyBrainFilters(samples);
+
+  root.innerHTML = `
+    <div class="brain-header">
+      <div class="brain-headline">Brain Outputs Gallery</div>
+      <div class="brain-sub">Real outputs from the prototype's L9 Brain Agents — AGT-902 (per-account)
+      and AGT-901 (cohort). Each card is a single passing eval-fixture run, captured verbatim from
+      <code style="font-family:var(--mono);font-size:11px">prototype/brain_analysis_log.jsonl</code>.
+      Click any card to see the full <em>BrainAnalysisLog</em>: narrative with inline source citations,
+      sources_read, proposed actions, tool calls made. This is what the system actually produces — not a
+      simulator.</div>
+      <div class="brain-stats">
+        <div class="brain-stat"><div class="brain-stat-num">${sample_count}</div><div class="brain-stat-label">curated samples</div><div class="brain-stat-sub">eval-fixture passes</div></div>
+        <div class="brain-stat"><div class="brain-stat-num">${by_writer['AGT-902']||0}</div><div class="brain-stat-label">AGT-902 Account</div><div class="brain-stat-sub">per-account synthesis</div></div>
+        <div class="brain-stat"><div class="brain-stat-num">${by_writer['AGT-901']||0}</div><div class="brain-stat-label">AGT-901 Pipeline</div><div class="brain-stat-sub">cohort reasoning</div></div>
+        <div class="brain-stat"><div class="brain-stat-num">$${(total_cost_usd||0).toFixed(2)}</div><div class="brain-stat-label">total spend</div><div class="brain-stat-sub">across all samples</div></div>
+      </div>
+    </div>
+    ${renderBrainFilters()}
+    <div class="brain-cards" id="brain-cards-grid">
+      ${filtered.map(renderBrainCard).join('')}
+    </div>
+  `;
+
+  // Wire up filter buttons
+  document.querySelectorAll('.brain-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const f = btn.dataset.filter, v = btn.dataset.value;
+      if (f === 'writer') BRAIN_STATE.filterWriter = v;
+      else if (f === 'difficulty') BRAIN_STATE.filterDifficulty = v;
+      renderBrainGallery();
+    });
+  });
+  const searchInput = document.getElementById('brain-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', e => {
+      BRAIN_STATE.search = e.target.value;
+      const start = e.target.selectionStart, end = e.target.selectionEnd;
+      renderBrainGallery();
+      const s2 = document.getElementById('brain-search');
+      if (s2) { s2.focus(); s2.setSelectionRange(start, end); }
+    });
+  }
+  // Wire up card clicks
+  document.querySelectorAll('.brain-card').forEach(card => {
+    card.addEventListener('click', () => openBrainModal(card.dataset.fid));
+  });
+}
+
+function applyBrainFilters(samples) {
+  return samples.filter(s => {
+    const writer = (s.brain_row||{}).writer_agent_id;
+    const diff = (s.fixture_summary||{}).difficulty;
+    if (BRAIN_STATE.filterWriter !== 'all' && writer !== BRAIN_STATE.filterWriter) return false;
+    if (BRAIN_STATE.filterDifficulty !== 'all' && diff !== BRAIN_STATE.filterDifficulty) return false;
+    if (BRAIN_STATE.search) {
+      const q = BRAIN_STATE.search.toLowerCase();
+      const hay = [s.fixture_id, s.company_name, s.archetype_key,
+                   (s.brain_row||{}).question, (s.brain_row||{}).narrative_output]
+        .filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderBrainFilters() {
+  const wBtn = (k,l) => `<button class="brain-filter-btn ${BRAIN_STATE.filterWriter===k?'active':''}" data-filter="writer" data-value="${k}">${l}</button>`;
+  const dBtn = (k,l) => `<button class="brain-filter-btn ${BRAIN_STATE.filterDifficulty===k?'active':''}" data-filter="difficulty" data-value="${k}">${l}</button>`;
+  return `
+    <div class="brain-filters">
+      <span class="brain-filter-label">writer</span>
+      ${wBtn('all','all')} ${wBtn('AGT-902','AGT-902 (account)')} ${wBtn('AGT-901','AGT-901 (cohort)')}
+      <span class="brain-filter-label" style="margin-left:14px">difficulty</span>
+      ${dBtn('all','all')} ${dBtn('easy','easy')} ${dBtn('medium','medium')} ${dBtn('hard','hard')} ${dBtn('stale_fixture','stale')}
+      <input id="brain-search" class="form-input" style="margin-left:auto;max-width:280px;padding:5px 10px;font-size:11px" type="text" placeholder="search question, account, narrative…" value="${escapeHtmlSafe(BRAIN_STATE.search)}"/>
+    </div>
+  `;
+}
+
+function renderBrainCard(s) {
+  const r = s.brain_row || {};
+  const writer = r.writer_agent_id || '?';
+  const diff = (s.fixture_summary||{}).difficulty || 'unknown';
+  const qtype = (s.fixture_summary||{}).question_type || '';
+  const writerCls = writer === 'AGT-901' ? 'bp-901' : 'bp-902';
+  const diffCls = diff === 'easy' ? 'bp-easy' : diff === 'hard' ? 'bp-hard' : diff === 'stale_fixture' ? 'bp-stale' : 'bp-medium';
+  const acct = s.company_name ? `${escapeHtmlSafe(s.company_name)} · ${escapeHtmlSafe(s.archetype_key||'')}` : '(cohort-level — across-corpus aggregate)';
+  const narrative = (r.narrative_output||'').substring(0,260);
+  const tokensIn = r.input_tokens || 0, tokensOut = r.output_tokens || 0;
+  return `
+    <div class="brain-card" data-fid="${escapeHtmlSafe(s.fixture_id)}">
+      <div class="brain-card-head">
+        <span class="brain-card-pill ${writerCls}">${escapeHtmlSafe(writer)}</span>
+        <span class="brain-card-pill ${diffCls}">${escapeHtmlSafe(diff)}</span>
+        <span style="margin-left:auto">${escapeHtmlSafe(s.fixture_id)} · ${escapeHtmlSafe(qtype)}</span>
+      </div>
+      <div class="brain-card-q">${escapeHtmlSafe(r.question || '(no question)')}</div>
+      <div class="brain-card-acct">${acct}</div>
+      <div class="brain-card-narrative">${escapeHtmlSafe(narrative)}…</div>
+      <div class="brain-card-foot">
+        <span class="brain-card-foot-item">cost <span class="brain-card-foot-num">$${(r.cost_usd_estimate||0).toFixed(3)}</span></span>
+        <span class="brain-card-foot-item">tokens <span class="brain-card-foot-num">${tokensIn}/${tokensOut}</span></span>
+        <span class="brain-card-foot-item">tools <span class="brain-card-foot-num">${(r.tool_calls_made||[]).length}</span></span>
+        <span class="brain-card-foot-item">actions <span class="brain-card-foot-num">${(r.proposed_actions||[]).length}</span></span>
+        <span class="brain-card-foot-item">srcs <span class="brain-card-foot-num">${(r.sources_read||[]).length}</span></span>
+        <span class="brain-card-foot-item" style="margin-left:auto;color:var(--gold)">click to expand →</span>
+      </div>
+    </div>
+  `;
+}
+
+function openBrainModal(fid) {
+  const sample = (BRAIN_STATE.data.samples||[]).find(s => s.fixture_id === fid);
+  if (!sample) return;
+  const r = sample.brain_row || {};
+  const overlay = document.getElementById('brain-modal-overlay');
+  const modal = document.getElementById('brain-modal-content');
+
+  // Render narrative with [src:N] chips
+  const narrativeHtml = escapeHtmlSafe(r.narrative_output||'').replace(/\[src:(\d+)\]/g, '<span class="src">[src:$1]</span>');
+
+  modal.innerHTML = `
+    <button class="brain-modal-close" onclick="closeBrainModal({target:document.getElementById('brain-modal-overlay')})">×</button>
+    <div class="brain-modal-title">${escapeHtmlSafe(r.question||sample.fixture_id)}</div>
+    <div class="brain-modal-meta">
+      <span>${escapeHtmlSafe(sample.fixture_id)}</span>
+      <span>·</span>
+      <span>writer: ${escapeHtmlSafe(r.writer_agent_id||'?')}</span>
+      <span>·</span>
+      <span>${sample.company_name ? escapeHtmlSafe(sample.company_name)+' · '+escapeHtmlSafe(sample.archetype_key||'') : 'cohort-level'}</span>
+      <span>·</span>
+      <span>${escapeHtmlSafe(r.model_used||'?')}</span>
+      <span>·</span>
+      <span>$${(r.cost_usd_estimate||0).toFixed(4)}</span>
+      <span>·</span>
+      <span>${r.input_tokens||0}in/${r.output_tokens||0}out</span>
+      <span>·</span>
+      <span>${r.response_time_ms||0}ms</span>
+    </div>
+
+    <div class="brain-modal-section">
+      <div class="brain-modal-section-label">Narrative output (citations rendered as chips)</div>
+      <div class="brain-narrative-rendered">${narrativeHtml}</div>
+    </div>
+
+    <div class="brain-modal-section">
+      <div class="brain-modal-section-label">Sources read (${(r.sources_read||[]).length})</div>
+      <div class="brain-sources-list">
+        ${(r.sources_read||[]).map(s => `
+          <div class="brain-source-row">
+            <span class="brain-source-idx">[src:${escapeHtmlSafe(s.source_index)}]</span>
+            <span class="brain-source-name">${escapeHtmlSafe(s.table_name||'?')}</span>
+            <span class="brain-source-meta">view: ${escapeHtmlSafe(s.view_name||'-')} · rows: ${escapeHtmlSafe(s.row_count_consumed??'-')}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    ${(r.tool_calls_made||[]).length > 0 ? `
+    <div class="brain-modal-section">
+      <div class="brain-modal-section-label">Tool calls made (${r.tool_calls_made.length})</div>
+      <div class="brain-tools-list">
+        ${r.tool_calls_made.map(tc => `
+          <div class="brain-tool">
+            <span><span class="brain-tool-name">${escapeHtmlSafe(tc.tool_name||'?')}</span> ${escapeHtmlSafe(JSON.stringify(tc.tool_input||{}))}</span>
+            <span class="brain-tool-status" style="color:${tc.tool_result_status==='ok'?'#085041':'#712B13'}">${escapeHtmlSafe(tc.tool_result_status||'?')}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>` : ''}
+
+    <div class="brain-modal-section">
+      <div class="brain-modal-section-label">Proposed actions (${(r.proposed_actions||[]).length})</div>
+      <div class="brain-actions-list">
+        ${(r.proposed_actions||[]).map(a => `
+          <div class="brain-action">
+            <span class="brain-action-type">${escapeHtmlSafe(a.action_type||'?')}</span>
+            <span class="brain-action-conf">conf: ${escapeHtmlSafe(a.confidence||'?')}</span>
+            <div class="brain-action-target">${escapeHtmlSafe(a.target||'')}</div>
+            <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px">lever: ${escapeHtmlSafe(a.lever||'-')}</div>
+            <div class="brain-action-just">${escapeHtmlSafe(a.justification||'')}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    ${(sample.criterion_results||[]).length > 0 ? `
+    <div class="brain-modal-section">
+      <div class="brain-modal-section-label">Eval criteria (${sample.criterion_results.length})</div>
+      ${sample.criterion_results.map(c => `
+        <div class="brain-criterion ${c.passed?'brain-criterion-pass':'brain-criterion-fail'}">
+          <span>${c.passed?'✓':'✗'}</span>
+          <span>${escapeHtmlSafe(c.name||'?')}</span>
+          <span style="color:var(--text3);font-size:10px">${escapeHtmlSafe(c.detail||'')}</span>
+        </div>
+      `).join('')}
+    </div>` : ''}
+  `;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeBrainModal(e) {
+  if (e.target === document.getElementById('brain-modal-overlay')) {
+    document.getElementById('brain-modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+function escapeHtmlSafe(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])
+  );
+}
+
 
 renderArch();setTimeout(()=>{document.getElementById('layer-L0').classList.add('open');document.getElementById('layer-L1').classList.add('open')},100);
 </script>

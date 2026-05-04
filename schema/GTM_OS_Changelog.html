@@ -84,6 +84,74 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
 <div id="log">
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v34→v35: Explainer pivot — Brain Outputs gallery + Follow a Lead walkthrough -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L9">
+  <div class="version-hdr">
+    <span class="version-pill">v34 → v35</span>
+    <span class="version-date">Explainer pivot: real brain outputs replace simulator-only tabs · Follow-a-Lead end-to-end narrative</span>
+    <span class="version-summary">CRO feedback drove a pivot: deterministic JS simulator tabs that mirrored spec logic now sit alongside (and partially replaced by) two new tabs that show the system actually working. <strong>Brain Outputs</strong> = a gallery of real prototype runs from the eval harness, citation-resolved and clickable. <strong>Follow a Lead</strong> = an end-to-end walkthrough of one synthetic account from inbound lead through expansion + renewal, with two real brain reasoning moments embedded inline. The "Lead Ingestion" simulator was renamed "ICP Scorer Demo" to set narrower expectations; "Planning Period" and "Forecast & WBR" simulators were retired.</span>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Brain Outputs gallery<span class="layer-tag lt-l9">UX</span></span>
+      <span class="agent-name">14 real brain runs, citation-resolved, clickable to full BrainAnalysisLog</span>
+      <div class="change-type"><span class="ct ct-new">New tab</span></div>
+      <span class="entry-summary">Gallery of curated samples from the eval harness — 11 AGT-902 (per-account) + 3 AGT-901 (cohort). Each card: question, account, narrative excerpt, cost, token counts, tool-call count, action count. Click to expand: full narrative with [src:N] chips inline, sources_read table, tool_calls_made list with input/output/status, proposed_actions with brain confidence + lever, eval criterion pass/fail rows. Filter by writer (902/901), difficulty (easy/medium/hard/stale), free-text search.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Source data</div><div class="detail-val">Curation script <code>prototype/eval/curate_brain_samples.py</code> reads <code>brain_analysis_log.jsonl</code> + <code>brain_eval_log.jsonl</code>, picks the latest passing run per fixture, strips run-state-only fields, attaches fixture metadata, writes static <code>eval/samples/brain_outputs.json</code>. Re-run after fresh evals to refresh.</div>
+        <div class="detail-lbl">Why this matters</div><div class="detail-val">CRO showed-up reaction to the prior explainer was: 3 deterministic JS simulators are graphical recreations of spec logic, not proof of working reasoning. The gallery is direct counter-evidence — every card is a real prototype output, citation-resolved, with audit trail visible.</div>
+        <div class="detail-lbl">Cost</div><div class="detail-val">$0 to render (static JSON). Total spend <em>across</em> the curated samples (the actual eval runs) was $1.49.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">First on-explainer demonstration of the system actually working.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Follow a Lead walkthrough<span class="layer-tag lt-l9">UX</span></span>
+      <span class="agent-name">End-to-end synthetic account: lead → close → onboarding → overage → expansion brain → renewal</span>
+      <div class="change-type"><span class="ct ct-new">New tab</span></div>
+      <span class="entry-summary">Single synthetic MM/FinTech account (Stark Logistics, expansion_ready archetype) walks through 15 timeline steps from Day -120 (inbound lead) through Day +330 (renewal closed at $355K, NRR=161%). Each step shows: primary service, secondary services, what changed (canonical table delta), evidence rows (the actual log entries that would write). Two steps are highlighted as <em>brain reasoning moments</em> with embedded real BrainAnalysisLog outputs — clicking opens the same modal as the Brain Outputs gallery.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Brain moments</div><div class="detail-val">Day +120 (consumption overage qualification — EVAL-Q04 real output) and Day +130 (cross-team siloed adoption diagnosis — EVAL-Q11 real output, with TOOL-008 cited inline). Both pulled from the curated brain_outputs.json and rendered with their full BrainAnalysisLog: narrative, sources, proposed actions, tool calls.</div>
+        <div class="detail-lbl">Account choice rationale</div><div class="detail-val">expansion_ready archetype was picked over champion_loss_decliner for the CRO-friendly story arc — growth posture (expansion + renewal at 161% NRR) rather than defensive (decline + escalation). Every step references real spec artifacts (CadenceEventLog, ConvIntelligence, MutualActionPlan, OnboardingLog, ExpansionLog, ChurnRiskLog, etc.).</div>
+        <div class="detail-lbl">Source data</div><div class="detail-val"><code>eval/samples/follow_a_lead.json</code> — narrative scaffold with brain_moment refs to fixture_ids in brain_outputs.json. Edit the JSON to refine the narrative; no code changes needed.</div>
+        <div class="detail-lbl">Why this matters</div><div class="detail-val">CRO question was: "How could I run a lead end-to-end through this, like does the system actually work?" This tab is the answer. A click-through walks one account through every relevant layer of the DAG, with two amber-highlighted moments where the brain actually reasons.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Pivots the explainer from "spec architecture" to "spec architecture + working system narrative."</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Tab restructure<span class="layer-tag lt-l9">UX</span></span>
+      <span class="agent-name">Lead Ingestion → ICP Scorer Demo · Planning Period + Forecast & WBR retired</span>
+      <div class="change-type"><span class="ct ct-update">Tab restructure</span></div>
+      <span class="entry-summary">Three changes to the explainer's nav. (1) "Lead Ingestion" renamed to "ICP Scorer Demo" with a sub-line clarifying it's a deterministic JS reproduction useful for explaining the dimensional model — narrow scope, links to Brain Outputs / Follow a Lead for end-to-end reasoning. (2) "Planning Period" and "Forecast & WBR" simulator tabs retired — orphan deterministic JS scoring functions removed. (3) New tab order: Architecture · The OS · Connection Map · Brain Outputs · Follow a Lead · ICP Scorer Demo.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Why retire 2 simulator tabs</div><div class="detail-val">In the spec era they were the strongest demo of "the system has been thought through." Now that AGT-902 + AGT-901 actually run, those JS scoring functions are the WEAKER part because they're hardcoded math, not reasoning. Brain Outputs + Follow a Lead replace them with substance.</div>
+        <div class="detail-lbl">Why keep ICP Scorer Demo</div><div class="detail-val">The 6-dimension ICP scoring + routing demo is genuinely useful for explaining how AGT-201's dimensional model works. Narrow, deterministic, calibratable — keeps its niche. Renamed + sub-line set the right expectation that it's narrow.</div>
+        <div class="detail-lbl">Code removed</div><div class="detail-val"><code>scorePlanLocal</code>, <code>runPlanSim</code>, <code>scoreForecastLocal</code>, <code>runForecastSim</code> — ~15K chars of JS scoring logic deleted from the explainer, replaced with the gallery + walkthrough renderers (~13K chars). Net code reduction.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">CRO-readability of the explainer materially upgraded.</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- v33→v34: SalesPlayLibrary draft loop closed — TOOL-003 + writer + viewer -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="version-block" data-layer="L9">
