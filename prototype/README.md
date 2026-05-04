@@ -30,7 +30,7 @@ prototype/run.sh --account 026a4a59
 ../prototype/run.sh --batch --archetype champion_loss_decliner
 
 # From anywhere with absolute path
-/Users/connorkasser/gtm-os/prototype/run.sh --batch --limit 5
+/absolute/path/to/gtm-os/prototype/run.sh --batch --limit 5
 
 # Override the question
 prototype/run.sh \

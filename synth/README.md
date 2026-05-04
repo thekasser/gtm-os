@@ -37,7 +37,7 @@ end-to-end without real customer data.
 ### Step 1: Generate the structural corpus (no API needed)
 
 ```bash
-cd /Users/connorkasser/gtm-os/synth
+cd <repo-root>/synth
 python3 main.py
 ```
 

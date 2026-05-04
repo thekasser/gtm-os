@@ -7,7 +7,7 @@
 # Examples (run from anywhere):
 #   prototype/run.sh --account "Pendant Logistics"
 #   prototype/run.sh --batch --archetype champion_loss_decliner
-#   /Users/connorkasser/gtm-os/prototype/run.sh --batch --limit 5
+#   /absolute/path/to/gtm-os/prototype/run.sh --batch --limit 5
 #
 # Exits non-zero if the venv or script can't be found.
 

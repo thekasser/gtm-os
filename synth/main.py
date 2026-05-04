@@ -5,7 +5,7 @@ runs each archetype through the usage / health / payments generators, and
 writes one JSON file per account plus a ground_truth.json mapping.
 
 Usage:
-    cd /Users/connorkasser/gtm-os/synth
+    cd <repo-root>/synth
     python main.py                      # default seed=42, ~50 accounts
     python main.py --seed 1234 --n 100  # custom seed + count
 

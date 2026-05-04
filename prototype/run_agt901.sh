@@ -4,7 +4,7 @@
 # Examples (run from anywhere):
 #   prototype/run_agt901.sh
 #   prototype/run_agt901.sh --question "Why is SMB churn elevated?"
-#   /Users/connorkasser/gtm-os/prototype/run_agt901.sh --quiet
+#   /absolute/path/to/gtm-os/prototype/run_agt901.sh --quiet
 #
 # Exits non-zero if the venv or script can't be found.
 

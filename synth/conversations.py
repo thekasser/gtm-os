@@ -8,7 +8,7 @@ qualitative content (transcript_summary, sentiment fields, objections, etc.).
 Cost expectation: ~50 accounts × 1 LLM call each at Haiku tier ≈ $1-3 total.
 
 Usage:
-    cd /Users/connorkasser/gtm-os/synth
+    cd <repo-root>/synth
     pip install anthropic                            # one-time
     export ANTHROPIC_API_KEY=sk-ant-...              # one-time
     python3 conversations.py                         # generate for all accounts
