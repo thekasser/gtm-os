@@ -111,12 +111,8 @@ def _target_definition_from_action(action: dict, brain_row: dict,
 
 
 def _suggested_cadence_placeholder(action: dict) -> dict:
-    """Prototype: cadence is a placeholder for human co-definition.
-
-    In production, this could call TOOL-003 (Sales Play Composer) to draft
-    a starting cadence. For now we emit a structured stub so humans know
-    where to fill in.
-    """
+    """Fallback when TOOL-003 isn't available or fails. Structured stub
+    that signals where humans need to fill in."""
     return {
         "status": "pending_human_codefinition",
         "channel_mix": [],
@@ -128,7 +124,7 @@ def _suggested_cadence_placeholder(action: dict) -> dict:
 
 
 def _success_criteria_placeholder(action: dict) -> dict:
-    """Prototype: success criteria pending human definition."""
+    """Fallback when TOOL-003 isn't available or fails."""
     return {
         "status": "pending_human_codefinition",
         "target_meeting_rate": None,
@@ -139,8 +135,65 @@ def _success_criteria_placeholder(action: dict) -> dict:
     }
 
 
-def build_draft_record(action: dict, brain_row: dict) -> dict:
-    """Convert ONE play-shaped proposed_action into a SalesPlayLibrary draft row."""
+# Cap on TOOL-003 calls per writer invocation. Each brain call typically
+# produces 0-2 play-shaped actions; this cap is a defensive guard against
+# pathological cases (e.g., a brain producing 20 play_drafts in one run
+# and burning through Haiku budget unexpectedly).
+MAX_TOOL_003_CALLS_PER_INVOCATION = 5
+
+
+def _enrich_via_tool_003(action: dict, brain_row: dict, scope: str) -> dict | None:
+    """Call TOOL-003 to compose cadence + criteria from the action's
+    hypothesis. Returns the tool result dict, or None on failure.
+
+    Failure does not raise — falls back to placeholders. Logged inline.
+    """
+    try:
+        from tools.tool_003 import tool_003_handler
+    except Exception:
+        return None
+
+    sources_read = brain_row.get("sources_read", [])
+    originating_signals = [
+        {
+            "source_index": s.get("source_index"),
+            "table_name": s.get("table_name"),
+        }
+        for s in sources_read
+    ]
+    target_definition = (
+        {"scope": "account_specific",
+         "account_id": brain_row.get("account_id"),
+         "raw_target": action.get("target")}
+        if scope == "account_specific"
+        else {"scope": "segment", "raw_target": action.get("target"),
+              "lever": action.get("lever")}
+    )
+    tool_input = {
+        "play_hypothesis": action.get("justification", ""),
+        "scope": scope,
+        "target_definition": target_definition,
+        "originating_signals": originating_signals,
+        "lever_hint": action.get("lever"),
+        "writer_brain": brain_row.get("writer_agent_id"),
+    }
+    try:
+        return tool_003_handler(tool_input)
+    except Exception as e:
+        import sys as _sys
+        _sys.stderr.write(f"  warn: TOOL-003 enrichment failed: {e!s}\n")
+        return None
+
+
+def build_draft_record(action: dict, brain_row: dict,
+                        enrich_with_tool_003: bool = True) -> dict:
+    """Convert ONE play-shaped proposed_action into a SalesPlayLibrary draft row.
+
+    When `enrich_with_tool_003` is True (default), calls TOOL-003 to compose
+    a starting cadence + success criteria. On TOOL-003 failure, falls back
+    to placeholders. Caller controls enrichment to enforce per-invocation
+    caps (see write_drafts_from_brain_row).
+    """
     writer_agent_id = brain_row.get("writer_agent_id", "AGT-?")
     scope = _scope_for_writer(writer_agent_id)
 
@@ -152,6 +205,31 @@ def build_draft_record(action: dict, brain_row: dict) -> dict:
     sources_read = brain_row.get("sources_read", [])
     supporting_source_ids = [s.get("source_index") for s in sources_read]
 
+    # Enrichment: TOOL-003 composes cadence + criteria from hypothesis.
+    suggested_cadence = _suggested_cadence_placeholder(action)
+    success_criteria = _success_criteria_placeholder(action)
+    tool_003_metadata = None
+    if enrich_with_tool_003:
+        tool_003_result = _enrich_via_tool_003(action, brain_row, scope)
+        if tool_003_result and tool_003_result.get("status") == "ok":
+            if tool_003_result.get("suggested_cadence"):
+                suggested_cadence = tool_003_result["suggested_cadence"]
+            if tool_003_result.get("success_criteria"):
+                success_criteria = tool_003_result["success_criteria"]
+            tool_003_metadata = {
+                "tool": "TOOL-003",
+                "status": "ok",
+                "confidence": tool_003_result.get("confidence"),
+                "ungrounded_assumptions": tool_003_result.get("ungrounded_assumptions", []),
+                "_llm_metadata": tool_003_result.get("_llm_metadata"),
+            }
+        elif tool_003_result:
+            tool_003_metadata = {
+                "tool": "TOOL-003",
+                "status": tool_003_result.get("status"),
+                "reason": tool_003_result.get("reason"),
+            }
+
     return {
         "play_id":                  play_id,
         "state":                    "draft",
@@ -161,8 +239,8 @@ def build_draft_record(action: dict, brain_row: dict) -> dict:
         "name":                     _name_for_play(action, writer_agent_id),
         "hypothesis":               _hypothesis_from_action(action),
         "target_definition":        _target_definition_from_action(action, brain_row, scope),
-        "suggested_cadence":        _suggested_cadence_placeholder(action),
-        "success_criteria":         _success_criteria_placeholder(action),
+        "suggested_cadence":        suggested_cadence,
+        "success_criteria":         success_criteria,
         "originating_proposal_id":  brain_row.get("proposal_id"),
         "originating_analysis_id":  brain_row.get("analysis_id"),
         "writer_agent_id":          writer_agent_id,
@@ -170,6 +248,7 @@ def build_draft_record(action: dict, brain_row: dict) -> dict:
         "originating_lever":        action.get("lever"),
         "brain_confidence":         action.get("confidence"),
         "supporting_source_indices": supporting_source_ids,
+        "tool_003_metadata":        tool_003_metadata,
         "created_at":               now,
         # State-machine slots — empty in draft, populated as humans transition
         "picked_up_by_user_id":     None,
@@ -190,9 +269,15 @@ def build_draft_record(action: dict, brain_row: dict) -> dict:
 def write_drafts_from_brain_row(
     brain_row: dict,
     log_path: Path | str = DEFAULT_LOG_PATH,
+    enrich_with_tool_003: bool = True,
 ) -> list[dict]:
     """Scan brain_row.proposed_actions for play-shaped actions, build
     SalesPlayLibrary drafts, append to JSONL log, return what was written.
+
+    Each play-shaped action is enriched via TOOL-003 (Sales Play Composer)
+    by default. Enrichment is capped at MAX_TOOL_003_CALLS_PER_INVOCATION to
+    bound the per-brain-call cost; remaining drafts fall back to placeholder
+    cadence + criteria.
 
     Idempotency note: this writer is invocation-scoped — calling it twice
     on the same brain_row writes two sets of drafts (with different play_ids
@@ -203,12 +288,20 @@ def write_drafts_from_brain_row(
     """
     actions = brain_row.get("proposed_actions", []) or []
     drafts: list[dict] = []
+    enriched_count = 0
     for action in actions:
         if not isinstance(action, dict):
             continue
         if action.get("action_type") not in PLAY_SHAPED_ACTIONS:
             continue
-        drafts.append(build_draft_record(action, brain_row))
+        # Cap enrichment: first N drafts get TOOL-003, the rest get placeholders.
+        # Defensive guard against a single brain run producing many plays and
+        # blowing through Haiku budget unexpectedly.
+        do_enrich = enrich_with_tool_003 and (enriched_count < MAX_TOOL_003_CALLS_PER_INVOCATION)
+        draft = build_draft_record(action, brain_row, enrich_with_tool_003=do_enrich)
+        if do_enrich and draft.get("tool_003_metadata", {}).get("status") == "ok":
+            enriched_count += 1
+        drafts.append(draft)
 
     if drafts:
         log_path = Path(log_path)

@@ -16,19 +16,26 @@ from __future__ import annotations
 
 from typing import Callable
 
+from tools.tool_003 import tool_003_handler, TOOL_003_DEFINITION
 from tools.tool_004 import tool_004_handler, TOOL_004_DEFINITION
 from tools.tool_008 import tool_008_handler, TOOL_008_DEFINITION
 
 
 # Anthropic tool definitions (what the brain sees)
+# Note: TOOL-003 is registered but NOT exposed to the brain via TOOL_DEFINITIONS.
+# It's invoked by the SalesPlayLibrary writer, not as a brain tool_use call.
+# Brains shouldn't draft plays — they propose, the writer enriches, humans
+# co-define. Adding TOOL-003 to TOOL_DEFINITIONS would let the brain draft
+# cadences directly, which conflates the layers.
 TOOL_DEFINITIONS: list[dict] = [
     TOOL_004_DEFINITION,
     TOOL_008_DEFINITION,
 ]
 
 
-# Handlers (what executes when the brain requests a tool)
+# Handlers (what executes when the brain — or the writer — requests a tool)
 TOOL_HANDLERS: dict[str, Callable[[dict], dict]] = {
+    "tool_003_sales_play_composer": tool_003_handler,
     "tool_004_consumption_forecast": tool_004_handler,
     "tool_008_product_adoption_pattern": tool_008_handler,
 }

@@ -84,6 +84,131 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
 <div id="log">
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v33→v34: SalesPlayLibrary draft loop closed — TOOL-003 + writer + viewer -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L9">
+  <div class="version-hdr">
+    <span class="version-pill">v33 → v34</span>
+    <span class="version-date">SalesPlayLibrary draft loop end-to-end · TOOL-003 prototyped · BrainViewSource seam · calibration probes standing</span>
+    <span class="version-summary">The "brain proposes → human co-defines → service executes" loop is now demonstrable in the prototype. SalesPlayLibrary writer converts brain play-shaped actions into structured drafts; TOOL-003 enriches them with starting cadence + success criteria; a static HTML viewer renders drafts as reviewable cards. View-source abstraction makes synth → corporate a single subclass away. Calibration probes (5/5 passing) document validator teeth.</span>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">SalesPlayLibrary writer<span class="layer-tag lt-l9">L9 · Prototype</span></span>
+      <span class="agent-name">prototype/sales_play_library.py — brain proposals → draft records</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span></div>
+      <span class="entry-summary">Closes the human-codefinition loop in the prototype. Both brain runtimes (AGT-901, AGT-902) now produce structured <code>SalesPlayLibrary</code> draft records on every run, keyed to <code>BrainAnalysisLog.proposal_id</code> for cohort-level retrospective lineage.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Action-type filter</div><div class="detail-val">Only multi-touch sequence-shaped actions become drafts: <code>open_expansion_play</code> (AGT-902, scope=account_specific) and <code>draft_play</code> (AGT-901, scope=segment). Single-shot interventions (pull_qbr_forward, customer_communication, escalate_to_slm, brief_new_ae_or_csm) and information actions (recommend_human_query, flag_coverage_gap, none) stay in BrainAnalysisLog and route to their target service or human via existing mechanisms — they are not plays.</div>
+        <div class="detail-lbl">Brains write only `draft` state</div><div class="detail-val">Per the SalesPlayLibrary schema state machine: brains insert <code>draft</code> rows; humans transition <code>draft</code> → <code>under_review</code> → <code>active</code>. SLM + RevOps joint approval required for activation. Volume cap enforced at activation, not at draft write.</div>
+        <div class="detail-lbl">Lineage preserved</div><div class="detail-val"><code>originating_proposal_id</code>, <code>originating_analysis_id</code>, <code>originating_action_type</code>, <code>originating_lever</code>, <code>brain_confidence</code>, <code>supporting_source_indices</code>. Enables cohort-level retrospective: brain-co-designed plays vs. plays designed without brain involvement.</div>
+        <div class="detail-lbl">Hypothesis = brain justification verbatim</div><div class="detail-val">The most important signal for the human reviewer is the brain's reasoning — captured unmodified. Reviewer edits cadence + criteria + name in <code>under_review</code>; the originating hypothesis stays as written for retrospective traceability.</div>
+        <div class="detail-lbl">Per-invocation cap</div><div class="detail-val">First 5 play-shaped actions per brain run get TOOL-003 enrichment; remainder fall back to placeholder cadence + criteria. Defensive guard against pathological brain runs producing many drafts and burning Haiku budget unexpectedly.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Three-tier human-codefinition loop is end-to-end demonstrable.</span> Prototype now shows: brain proposes → writer drafts → tool enriches → viewer renders → (human picks up, mocked).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-003<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Sales Play Composer — status promotion: specced → prototyped</span>
+      <div class="change-type"><span class="ct ct-update">Status promotion</span></div>
+      <span class="entry-summary">Runtime at <code>prototype/tools/tool_003.py</code>. Converts brain play hypothesis into structured cadence (4-12 touches over 14-45 days) + success criteria (target meeting/opp-create rates, evaluation window). Invoked by SalesPlayLibrary writer per play-shaped action, NOT exposed to the brain via TOOL_DEFINITIONS — brains shouldn't draft cadences directly.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Change</div><div class="detail-val">Status: <code>specced</code> → <code>prototyped</code>. Implementation matches the spec contract.</div>
+        <div class="detail-lbl">Model deviation from spec</div><div class="detail-val">Spec called for Sonnet; prototype uses Haiku. Rationale: the task is narrow (cadence composition from a 1-2 sentence hypothesis), output budget bounded (1.5K tokens), and Haiku's per-call latency keeps the SalesPlayLibrary writer fast enough that brains can produce drafts synchronously without timing out. Per-call cost ≈ $0.004 (vs. ~$0.05 at Sonnet). Promote to Sonnet if production output quality slips below acceptable.</div>
+        <div class="detail-lbl">Hard rule preserved</div><div class="detail-val">Tool NEVER invents account-specific facts. If hypothesis mentions "champion engagement", cadence may say "champion-engaged touchpoint" but cannot fabricate names. When numbers are guesses, confidence drops to "low" and <code>ungrounded_assumptions</code> is annotated. Smoke test: 5 explicit caveats listed for a single-call output.</div>
+        <div class="detail-lbl">Wiring</div><div class="detail-val">Registered in <code>prototype/tools/registry.py</code> as <code>tool_003_sales_play_composer</code>. Handler in <code>TOOL_HANDLERS</code> but NOT in <code>TOOL_DEFINITIONS</code> — invoked by writer, not brain. Anthropic <code>TOOL_003_DEFINITION</code> included for future-use consistency.</div>
+        <div class="detail-lbl">Validated by</div><div class="detail-val">EVAL-Q11 (AGT-902 expansion play) + EVAL-P01 (AGT-901 cohort plays) — drafts now have populated cadence + criteria instead of <code>pending_human_codefinition</code> placeholders. Total eval cost unchanged at &lt;$0.20 per fixture.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">SalesPlayLibrary drafts are now review-ready out of the box.</span> Reviewers see: brain hypothesis (verbatim) + suggested 6-touch cadence + target meeting rate ≈ 0.7 + explicit ungrounded_assumptions list — instead of empty stubs.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">SalesPlayLibrary viewer<span class="layer-tag lt-l9">L9 · Prototype</span></span>
+      <span class="agent-name">prototype/sales_play_library_viewer.html — local-only draft browser</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span></div>
+      <span class="entry-summary">Static HTML page that reads the <code>sales_play_library.jsonl</code> log and renders each draft as a reviewable card: brain hypothesis, scope, writer, confidence, cadence, success criteria, supporting source lineage. Filter by state / writer / scope; free-text search the hypothesis.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Why local-only</div><div class="detail-val">JSONL is gitignored (run state). The viewer renders empty state when accessed via GitHub Pages — that's intentional. Local users serve the prototype dir with <code>python3 -m http.server</code> after running an eval.</div>
+        <div class="detail-lbl">Action buttons mocked</div><div class="detail-val">"Pick up for review" / "Reject" buttons are visual mocks — state transitions need server-side enforcement that's out of prototype scope. The buttons demonstrate the workflow without implementing it.</div>
+        <div class="detail-lbl">Visual language</div><div class="detail-val">Slate palette matching the explainer (v33). L9 amber for writer badges (AGT-901 / AGT-902) consistent with brain layer theme. State pills: amber=draft, blue=under_review, green=active, gray=retired.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">First visible demo of the human-codefinition workflow.</span> Brain runs produce JSONL → viewer renders cards → demonstrates the promotion gate without needing a full workspace UI.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">BrainViewSource<span class="layer-tag lt-l9">L9 · Prototype</span></span>
+      <span class="agent-name">prototype/view_source.py — synth ↔ warehouse seam</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span></div>
+      <span class="entry-summary">Abstract <code>BrainViewSource</code> interface between Tier 1 data and Tier 2 brain code. Brains, tools, and view extractors no longer read corpus files directly — they go through a source. Swapping synth corpus → real warehouse is a single subclass + one factory branch.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Interface</div><div class="detail-val"><code>load_account_corpus(account_id)</code> · <code>account_exists(account_id)</code> · <code>account_data_freshness(account_id)</code> · <code>iterate_account_ids()</code> · <code>metadata()</code>. Five methods are everything brains and tools depend on.</div>
+        <div class="detail-lbl">Implementations shipped</div><div class="detail-val"><code>SynthCorpusSource</code> (production-grade for the prototype, file-mtime staleness, ground_truth.json-driven account iteration) and <code>WarehouseViewSource</code> (stub class — every method raises NotImplementedError, documents what a real impl returns).</div>
+        <div class="detail-lbl">Threading</div><div class="detail-val">Source threaded through <code>run_for_account</code>, <code>run_for_pipeline</code>, <code>call_brain</code>, <code>dispatch_tool</code>, <code>extract_brain_ready_view</code>, <code>extract_pipeline_view</code>. Legacy file-IO branches preserved for backwards compat but unused under default execution. Eval verified: 14/14 fixtures pass through the seam.</div>
+        <div class="detail-lbl">Migration template</div><div class="detail-val"><code>prototype/PORT_TO_CORPORATE.md</code> updated with concrete <code>WarehouseViewSource</code> subclass example. Brain-ready view extractors do NOT need to change when porting — only compression budgets per component.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Synth → corporate is now an abstraction, not a refactor.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Calibration probes<span class="layer-tag lt-l9">Eval discipline</span></span>
+      <span class="agent-name">prototype/eval/calibration_probes.py — standing validator-teeth check</span>
+      <div class="change-type"><span class="ct ct-new">Eval discipline</span></div>
+      <span class="entry-summary">Cost-free synthetic-output probes that verify each eval-harness rule actually catches violations. Re-runnable forever; serves as both regression guard and executable documentation of what each rule's violation looks like. 5/5 passing as of v34.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Probes shipped</div><div class="detail-val"><strong>C1</strong> Invented action_type (AGT-902 enum) — validator must emit hard taxonomy issue. <strong>C1b</strong> AGT-902 action_type leaked into AGT-901 enum — verifies <code>taxonomy=</code> parameter is enforced. <strong>C2</strong> Unresolved <code>[src:99]</code> citation — validator must emit hard citations issue. <strong>C2b</strong> Negative control — all citations resolve cleanly, validator silent (no false positives). <strong>Sanity</strong> default taxonomy is AGT-902 (legacy callers don't accidentally validate against AGT-901's enum).</div>
+        <div class="detail-lbl">Hardening tightened on</div><div class="detail-val"><code>_check_must_cite_tool</code> in scorer now dual-checks dispatch-side <code>tool_calls_made</code> AND narrative-side <code>sources_read</code>. Catches fabricated citations (calibration probe finding from previous wave). Detail messages explain which side failed.</div>
+        <div class="detail-lbl">Pattern for adding probes</div><div class="detail-val">Add a new probe whenever a new validator rule is added to <code>validate_all</code>. (1) Construct synthetic output violating the rule. (2) Call the validator function directly. (3) Assert the rule's hard issue is in the returned issues list. (4) Add a negative-control probe for false-positive coverage.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Eval harness teeth are now provable, not assumed.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Explainer + brand chrome<span class="layer-tag lt-l9">UX</span></span>
+      <span class="agent-name">v33 brand palette swap (gold → slate) + scrub agent-vs-service drift + real top-level README</span>
+      <div class="change-type"><span class="ct ct-update">Polish</span></div>
+      <span class="entry-summary">Brand chrome (header wordmark, active nav, italic emphasis) swapped from gold to slate-900. L9 / Tier-3 amber identity preserved as intentional brain/tool visual signal. User-visible "40 agents across 8 layers" copy fixed to "40 services across 8 layers" — agent vocabulary now reserved exclusively for L9 brain agents. Top-level README rewritten as the real public-facing front door (was 3 lines).</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Editorial change</div><div class="detail-val">Active nav state distinguished by bottom-border underline rather than full colored border + bg tint. Italic "complete" in headline rendered as bold-italic with slate underline (3px, 8px offset). Net effect: layer rainbow palette and L9 amber are the only color in the document; brand chrome goes monochrome.</div>
+        <div class="detail-lbl">Vocabulary scrub</div><div class="detail-val">Last L1-L8 spec name carrying legacy "Agent" suffix renamed (AGT-101 "Quota Setting Agent" → "Quota Setting"). All other L1-L8 service names already clean. L9 "Pipeline Brain" / "Account Brain" / "Reasoning (Tier 2 Agents)" preserved — those ARE agents.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Documentation precision + visual coherence.</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- v32→v33: Brain Prototype Wave — AGT-901/902 + TOOL-004/008 prototyped   -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="version-block" data-layer="L9">

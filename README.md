@@ -10,6 +10,7 @@ This repo is a working prototype designed to port into a real corporate environm
 - **Changelog (v25 → present)**: [schema/GTM_OS_Changelog.html](https://thekasser.github.io/gtm-os/schema/GTM_OS_Changelog.html)
 - **Tier 3 tool catalog**: [tools/Tools_Index.html](https://thekasser.github.io/gtm-os/tools/Tools_Index.html)
 - **Prototype runtime + eval harness**: [`prototype/`](prototype/)
+- **SalesPlayLibrary draft viewer**: [`prototype/sales_play_library_viewer.html`](prototype/sales_play_library_viewer.html) — local-only; render brain proposals as reviewable cards (run an eval, then `python3 -m http.server` from `prototype/`)
 - **Synthetic data generator**: [`synth/`](synth/)
 - **Bridge to corporate**: [`prototype/PORT_TO_CORPORATE.md`](prototype/PORT_TO_CORPORATE.md)
 
@@ -36,7 +37,7 @@ LLM-native, long-context, ephemeral state. Read Tier 1 services freely; write on
 
 Stateless, narrow, callable LLM functions. Not agents — functions an agent (or service) can call. No layer, no schema ownership, no cadence. Logged for audit but not authoritative.
 
-Two are operational in the prototype: **TOOL-004 Consumption Forecasting** and **TOOL-008 Product Adoption Pattern Recognizer**. The other ten are specced in [tools/Tools_Index.html](https://thekasser.github.io/gtm-os/tools/Tools_Index.html).
+Three are operational in the prototype: **TOOL-003 Sales Play Composer** (called by the SalesPlayLibrary writer to enrich brain-drafted plays), **TOOL-004 Consumption Forecasting**, and **TOOL-008 Product Adoption Pattern Recognizer** (TOOL-004 + TOOL-008 wired into both brain runtimes via Anthropic tool-use). The other nine are specced in [tools/Tools_Index.html](https://thekasser.github.io/gtm-os/tools/Tools_Index.html).
 
 ### The contract between tiers
 
@@ -54,9 +55,10 @@ Two are operational in the prototype: **TOOL-004 Consumption Forecasting** and *
 | 40 GTM Services (L1–L8) | **Built** | Specs in [`specs/`](specs/) |
 | AGT-901 Pipeline Brain (L9) | **Prototyped** | 3-fixture eval at 3/3 pass, ~$0.32/run |
 | AGT-902 Account Brain (L9) | **Prototyped** | 11-fixture eval at 11/11 pass, ~$1.21/run |
+| TOOL-003 Sales Play Composer | **Prototyped** | Called by SalesPlayLibrary writer to enrich draft cadence + criteria |
 | TOOL-004 Consumption Forecasting | **Prototyped** | Wired into AGT-902 + AGT-901 |
 | TOOL-008 Product Adoption Pattern | **Prototyped** | Wired into AGT-902 + AGT-901 |
-| TOOL-001…003, 005…007, 009…012 | **Specced** | Awaiting corpus extension or dependent service |
+| TOOL-001, 002, 005…007, 009…012 | **Specced** | Awaiting corpus extension or dependent service |
 
 Three statuses, used consistently across [explainer](https://thekasser.github.io/gtm-os/gtm_os_explainer.html), [changelog](https://thekasser.github.io/gtm-os/schema/GTM_OS_Changelog.html), and [Tools_Index](https://thekasser.github.io/gtm-os/tools/Tools_Index.html):
 

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SalesPlayLibrary — Drafts</title>
+<style>
+:root{--bg:#fafafa;--surface:#ffffff;--surface2:#f5f5f5;--border:#e0e0e0;--text:#1a1a1a;--text2:#555555;--text3:#888888;--brand:#0F172A;--brand2:#475569;--mono:'SF Mono','Fira Code','Consolas',monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+
+/* Header */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;position:sticky;top:0;z-index:50}
+.header-row{display:flex;align-items:baseline;gap:18px;max-width:1400px;margin:0 auto;flex-wrap:wrap}
+.header-title{font-size:16px;font-weight:700;color:var(--brand)}
+.header-version{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.header-back{font-family:var(--mono);font-size:11px;color:var(--brand);text-decoration:none;padding:2px 8px;border:1px solid rgba(15,23,42,.3);border-radius:4px;margin-left:auto}
+.header-back:hover{background:rgba(15,23,42,.05)}
+
+/* Aggregate strip */
+.aggregate{max-width:1400px;margin:24px auto 0;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.agg-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.agg-num{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--brand)}
+.agg-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.agg-sub{font-size:10px;color:var(--text2);margin-top:4px;font-family:var(--mono)}
+
+/* Filters */
+.filters{max-width:1400px;margin:18px auto 0;padding:0 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filter-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-right:4px}
+.filter-btn{background:var(--surface);border:1px solid var(--border);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:var(--sans);color:var(--text2);transition:all .15s}
+.filter-btn:hover{color:var(--text);background:var(--surface2)}
+.filter-btn.active{color:var(--brand);border-color:var(--brand);background:rgba(15,23,42,.04)}
+.search-input{background:var(--surface);border:1px solid var(--border);font-size:12px;padding:6px 10px;border-radius:6px;flex:1;min-width:240px;color:var(--text);font-family:var(--sans)}
+.search-input:focus{outline:none;border-color:var(--brand)}
+
+/* Cards grid */
+.cards{max-width:1400px;margin:18px auto 32px;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;transition:border-color .15s}
+.card:hover{border-color:var(--brand2)}
+
+.card-head{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.card-name{font-size:14px;font-weight:600;color:var(--text);flex:1;line-height:1.4;min-width:200px}
+
+.pill{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:6px;font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
+.pill-state-draft{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.pill-state-under_review{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.pill-state-active{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.pill-state-retired{background:#F1F5F9;color:#475569;border:1px solid #CBD5E1}
+.pill-writer-AGT-901{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.pill-writer-AGT-902{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.pill-conf-high{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.pill-conf-medium{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.pill-conf-low{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.pill-scope{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+
+.card-hypothesis{font-size:12px;color:var(--text);line-height:1.65;background:var(--surface2);border-left:3px solid var(--brand2);padding:10px 12px;border-radius:0 6px 6px 0}
+.card-hypothesis-label{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+
+.card-meta{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:11px}
+.card-meta-key{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;align-self:center}
+.card-meta-val{color:var(--text2);font-family:var(--mono);font-size:11px;word-break:break-all}
+
+.card-cadence,.card-criteria{font-size:11px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:8px 12px;line-height:1.55}
+.card-section-label{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.card-pending{font-style:italic;color:var(--text3)}
+
+.card-actions{display:flex;gap:6px;margin-top:auto;padding-top:8px;border-top:1px solid var(--border)}
+.btn-action{font-size:11px;padding:5px 11px;border-radius:5px;cursor:pointer;font-family:var(--sans);background:var(--surface);border:1px solid var(--border);color:var(--text2);transition:all .15s}
+.btn-action:hover{background:var(--surface2);color:var(--text)}
+.btn-action-primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.btn-action-primary:hover{background:var(--brand2);color:#fff}
+.btn-disabled-note{font-size:10px;color:var(--text3);font-style:italic;margin-left:auto;align-self:center}
+
+.empty{text-align:center;padding:60px 24px;color:var(--text3)}
+.empty-icon{font-size:32px;margin-bottom:12px;opacity:.5}
+.empty-title{font-size:16px;font-weight:600;color:var(--text2);margin-bottom:8px}
+.empty-text{font-size:12px;line-height:1.7;max-width:480px;margin:0 auto}
+.empty-text code{font-family:var(--mono);background:var(--surface2);padding:1px 6px;border-radius:4px;color:var(--text)}
+
+.error{background:#FAECE7;border:1px solid #F0997B;color:#712B13;padding:14px 18px;border-radius:8px;margin:24px;font-size:12px}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-row">
+    <span class="header-title">SalesPlayLibrary</span>
+    <span class="header-version">drafts viewer</span>
+    <a href="../gtm_os_explainer.html" class="header-back">← Architecture</a>
+  </div>
+</header>
+
+<div id="root"></div>
+
+<script>
+const JSONL_PATH = "sales_play_library.jsonl";
+
+const state = {
+  drafts: [],
+  filterState: "draft",       // default to drafts since that's the workspace view
+  filterWriter: "all",
+  filterScope: "all",
+  search: "",
+  loadError: null,
+};
+
+async function loadDrafts() {
+  try {
+    const resp = await fetch(JSONL_PATH);
+    if (!resp.ok) {
+      state.loadError = `Could not load ${JSONL_PATH} (HTTP ${resp.status}).`;
+      render();
+      return;
+    }
+    const text = await resp.text();
+    state.drafts = text.split("\n")
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .map(line => {
+        try { return JSON.parse(line); }
+        catch (e) { return null; }
+      })
+      .filter(d => d !== null);
+    state.loadError = null;
+  } catch (e) {
+    state.loadError = `Error reading ${JSONL_PATH}: ${e.message}. ` +
+      `If you're viewing this via file://, modern browsers block fetch — ` +
+      `serve the directory with \`python3 -m http.server\` and open ` +
+      `http://localhost:8000/sales_play_library_viewer.html instead.`;
+  }
+  render();
+}
+
+function applyFilters(drafts) {
+  return drafts.filter(d => {
+    if (state.filterState !== "all" && d.state !== state.filterState) return false;
+    if (state.filterWriter !== "all" && d.writer_agent_id !== state.filterWriter) return false;
+    if (state.filterScope !== "all" && d.scope !== state.filterScope) return false;
+    if (state.search) {
+      const q = state.search.toLowerCase();
+      const hay = `${d.name || ""} ${d.hypothesis || ""} ${d.account_id || ""} ${d.segment || ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])
+  );
+}
+
+function fmtMaybeJSON(v) {
+  if (v === null || v === undefined) return "<span class='card-pending'>(none)</span>";
+  if (typeof v === "object") {
+    if (v.status === "pending_human_codefinition") {
+      const note = escapeHtml(v.note || "Pending human co-definition.");
+      return `<span class='card-pending'>${note}</span>`;
+    }
+    return `<pre style="white-space:pre-wrap;font-family:var(--mono);font-size:10px;margin:0">${escapeHtml(JSON.stringify(v, null, 2))}</pre>`;
+  }
+  return escapeHtml(v);
+}
+
+function renderCard(d) {
+  const conf = d.brain_confidence || "unknown";
+  const writer = d.writer_agent_id || "AGT-?";
+  const scope = d.scope || "unknown";
+  const target = d.scope === "account_specific"
+    ? `account: <code>${escapeHtml((d.account_id || "").slice(0,8))}</code>`
+    : `segment: <code>${escapeHtml(d.segment || "(unspecified)")}</code>`;
+
+  return `
+    <div class="card" data-play-id="${escapeHtml(d.play_id)}">
+      <div class="card-head">
+        <div class="card-name">${escapeHtml(d.name || "(unnamed)")}</div>
+        <span class="pill pill-state-${escapeHtml(d.state)}">${escapeHtml(d.state)}</span>
+      </div>
+      <div class="card-head" style="gap:4px">
+        <span class="pill pill-writer-${escapeHtml(writer)}">${escapeHtml(writer)}</span>
+        <span class="pill pill-scope">${escapeHtml(scope)}</span>
+        <span class="pill pill-conf-${escapeHtml(conf)}">conf: ${escapeHtml(conf)}</span>
+      </div>
+
+      <div class="card-hypothesis">
+        <div class="card-hypothesis-label">Brain hypothesis (verbatim)</div>
+        ${escapeHtml(d.hypothesis || "(no hypothesis provided)")}
+      </div>
+
+      <div>
+        <div class="card-section-label">Suggested cadence</div>
+        <div class="card-cadence">${fmtMaybeJSON(d.suggested_cadence)}</div>
+      </div>
+
+      <div>
+        <div class="card-section-label">Success criteria</div>
+        <div class="card-criteria">${fmtMaybeJSON(d.success_criteria)}</div>
+      </div>
+
+      <div class="card-meta">
+        <span class="card-meta-key">target</span><span class="card-meta-val">${target}</span>
+        <span class="card-meta-key">action_type</span><span class="card-meta-val">${escapeHtml(d.originating_action_type || "—")}</span>
+        <span class="card-meta-key">lever</span><span class="card-meta-val">${escapeHtml(d.originating_lever || "—")}</span>
+        <span class="card-meta-key">proposal_id</span><span class="card-meta-val">${escapeHtml((d.originating_proposal_id || "").slice(0,8))}</span>
+        <span class="card-meta-key">created</span><span class="card-meta-val">${escapeHtml((d.created_at || "").slice(0,16).replace("T"," "))}</span>
+      </div>
+
+      <div class="card-actions">
+        <button class="btn-action btn-action-primary" disabled title="Mock: state-machine writes are out of scope for the prototype viewer">Pick up for review</button>
+        <button class="btn-action" disabled title="Mock: state transitions require server-side enforcement">Reject</button>
+        <span class="btn-disabled-note">prototype: actions mocked</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderEmpty() {
+  return `
+    <div class="empty">
+      <div class="empty-icon">∅</div>
+      <div class="empty-title">No drafts found</div>
+      <div class="empty-text">
+        ${state.drafts.length === 0
+          ? `The library is empty. Run an eval to populate it:<br><br>
+             <code>prototype/run_eval.sh --fixture EVAL-Q11</code><br>
+             <code>prototype/run_pipeline_eval.sh --fixture EVAL-P01</code><br><br>
+             Brain runs that produce <code>open_expansion_play</code> (AGT-902) or
+             <code>draft_play</code> (AGT-901) write rows here. Refresh this page after running.`
+          : `No drafts match the current filters. Try clearing them above.`}
+      </div>
+    </div>
+  `;
+}
+
+function renderError() {
+  return `<div class="error">${escapeHtml(state.loadError)}</div>`;
+}
+
+function renderAggregate() {
+  const total = state.drafts.length;
+  if (total === 0) return "";
+  const byState = {};
+  const byWriter = {};
+  const byScope = {};
+  state.drafts.forEach(d => {
+    byState[d.state] = (byState[d.state] || 0) + 1;
+    byWriter[d.writer_agent_id] = (byWriter[d.writer_agent_id] || 0) + 1;
+    byScope[d.scope] = (byScope[d.scope] || 0) + 1;
+  });
+  const fmtBreakdown = obj => Object.entries(obj).map(([k,v]) => `${k}: ${v}`).join(" · ");
+  return `
+    <div class="aggregate">
+      <div class="agg-card">
+        <div class="agg-num">${total}</div>
+        <div class="agg-label">total drafts</div>
+        <div class="agg-sub">${fmtBreakdown(byState)}</div>
+      </div>
+      <div class="agg-card">
+        <div class="agg-num">${byWriter["AGT-902"] || 0}</div>
+        <div class="agg-label">from AGT-902</div>
+        <div class="agg-sub">account_specific</div>
+      </div>
+      <div class="agg-card">
+        <div class="agg-num">${byWriter["AGT-901"] || 0}</div>
+        <div class="agg-label">from AGT-901</div>
+        <div class="agg-sub">segment</div>
+      </div>
+      <div class="agg-card">
+        <div class="agg-num">${(byState["draft"] || 0)}</div>
+        <div class="agg-label">awaiting review</div>
+        <div class="agg-sub">workspace queue</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderFilters() {
+  const stateBtn = (k, label) =>
+    `<button class="filter-btn ${state.filterState === k ? 'active' : ''}" data-filter="state" data-value="${k}">${label}</button>`;
+  const writerBtn = (k, label) =>
+    `<button class="filter-btn ${state.filterWriter === k ? 'active' : ''}" data-filter="writer" data-value="${k}">${label}</button>`;
+  const scopeBtn = (k, label) =>
+    `<button class="filter-btn ${state.filterScope === k ? 'active' : ''}" data-filter="scope" data-value="${k}">${label}</button>`;
+  return `
+    <div class="filters">
+      <span class="filter-label">state</span>
+      ${stateBtn("draft", "draft")}
+      ${stateBtn("under_review", "under review")}
+      ${stateBtn("active", "active")}
+      ${stateBtn("retired", "retired")}
+      ${stateBtn("all", "all")}
+      <span class="filter-label" style="margin-left:14px">writer</span>
+      ${writerBtn("all", "all")}
+      ${writerBtn("AGT-901", "AGT-901")}
+      ${writerBtn("AGT-902", "AGT-902")}
+      <span class="filter-label" style="margin-left:14px">scope</span>
+      ${scopeBtn("all", "all")}
+      ${scopeBtn("account_specific", "account")}
+      ${scopeBtn("segment", "segment")}
+      <input class="search-input" id="search" type="text" placeholder="search hypothesis, name, account, segment…" value="${escapeHtml(state.search)}"/>
+    </div>
+  `;
+}
+
+function render() {
+  const root = document.getElementById("root");
+  if (state.loadError) {
+    root.innerHTML = renderError();
+    return;
+  }
+  const filtered = applyFilters(state.drafts);
+  root.innerHTML = `
+    ${renderAggregate()}
+    ${state.drafts.length ? renderFilters() : ""}
+    ${filtered.length === 0
+      ? renderEmpty()
+      : `<div class="cards">${filtered.map(renderCard).join("")}</div>`}
+  `;
+
+  document.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const f = btn.dataset.filter;
+      const v = btn.dataset.value;
+      if (f === "state") state.filterState = v;
+      else if (f === "writer") state.filterWriter = v;
+      else if (f === "scope") state.filterScope = v;
+      render();
+    });
+  });
+  const search = document.getElementById("search");
+  if (search) {
+    search.addEventListener("input", e => {
+      state.search = e.target.value;
+      // Re-render but preserve focus position
+      const start = e.target.selectionStart, end = e.target.selectionEnd;
+      render();
+      const s2 = document.getElementById("search");
+      if (s2) { s2.focus(); s2.setSelectionRange(start, end); }
+    });
+  }
+}
+
+loadDrafts();
+</script>
+
+</body>
+</html>

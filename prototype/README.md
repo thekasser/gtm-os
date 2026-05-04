@@ -12,10 +12,18 @@ metadata, action taxonomy enforcement, staleness recognition).
 
 | File | Purpose |
 |---|---|
-| `agt902.py` | Brain runtime: extract brain-ready view from corpus, build prompt, call API, assemble BrainAnalysisLog row |
-| `validation.py` | Output validators: schema, citations, action taxonomy, staleness disclosure, confidence calibration |
-| `brain_analysis_log.py` | JSONL writer for the BrainAnalysisLog table (append-only) |
-| `run_agt902.py` | CLI entry — runs on one or many corpus accounts |
+| `agt902.py` | AGT-902 Account Brain runtime — per-account synthesis, calls TOOL-004 + TOOL-008 |
+| `agt901.py` | AGT-901 Pipeline Brain runtime — cross-account cohort reasoning |
+| `aggregates.py` | Cross-account view extractor (segment/vertical/ICP rollups) for AGT-901 |
+| `view_source.py` | `BrainViewSource` interface — synth corpus today, warehouse tomorrow |
+| `tools/` | TOOL-004 (consumption forecasting), TOOL-008 (adoption pattern), registry |
+| `validation.py` | Output validators: schema, citations, action taxonomy, staleness, confidence |
+| `brain_analysis_log.py` | JSONL writer for `BrainAnalysisLog` (append-only) |
+| `sales_play_library.py` | Writer that converts play-shaped brain actions → `SalesPlayLibrary` draft records |
+| `sales_play_library_viewer.html` | Static HTML viewer for drafts (run an eval, then open it) |
+| `eval/` | Fixtures + scorers for both brains; harness with criterion-level pass/fail |
+| `run.sh` / `run_agt901.sh` / `run_eval.sh` / `run_pipeline_eval.sh` | Path-resolving wrappers |
+| `PORT_TO_CORPORATE.md` | Bridge document for migration to real Tier 1 warehouse data |
 
 ## Quick start
 
@@ -50,6 +58,31 @@ synth/venv/bin/python3 prototype/run_agt902.py --account 026a4a59
 ```
 
 Use this if you've activated the venv yourself or want to inspect what's running.
+
+## Viewing SalesPlayLibrary drafts
+
+Brain runs that produce play-shaped actions (`open_expansion_play` from
+AGT-902, `draft_play` from AGT-901) write structured `draft` records to
+`prototype/sales_play_library.jsonl`. To see them rendered as reviewable
+cards:
+
+```bash
+# After running any eval that produces drafts
+cd prototype
+python3 -m http.server 8000
+# Then open http://localhost:8000/sales_play_library_viewer.html
+```
+
+The viewer is a static HTML page — no backend, no API. It reads the JSONL
+and renders each draft as a card with the brain's hypothesis, scope,
+writer, confidence, and supporting source lineage. Filter by state /
+writer / scope, or free-text search the hypothesis.
+
+Why a local server: modern browsers block `fetch()` on `file://` URLs.
+`python3 -m http.server` is the simplest workaround. The viewer also
+loads when served via GitHub Pages, but the JSONL is gitignored (run
+state) so the live Pages copy will show the empty state — that's
+intentional. The viewer is for local prototype use.
 
 ## What it does
 
