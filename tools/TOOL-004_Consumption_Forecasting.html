@@ -54,7 +54,7 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 <div class="section">
   <div class="section-title">Purpose</div>
   <p class="prose">Reads UsageMeteringLog trailing 90&ndash;180 day pattern for one (account_id, sku_id) pair and produces: predicted overage date (or "no overage in next 60 days"), confidence interval, and trend characterization (linear / exponential / seasonal / cliff / flat). Used by the Account Brain when answering "is this real expansion or a one-time spike?", by AGT-503 to augment expansion trigger sensitivity, and by AGT-402 to weight expansion ACV probability in forecasting.</p>
-  <div class="alert-box alert-gold">Closes UBB-specific gap from the v26 eval. Today the system can detect overage <em>has happened</em> (AGT-503 fires on threshold breach) but cannot predict <em>when</em> overage will happen or distinguish trend from spike. For a Checkr-style usage-based business, this is the difference between proactive expansion conversation and reactive damage control.</div>
+  <div class="alert-box alert-gold">Closes UBB-specific gap from the v26 eval. Today the system can detect overage <em>has happened</em> (AGT-503 fires on threshold breach) but cannot predict <em>when</em> overage will happen or distinguish trend from spike. For a usage-based business, this is the difference between proactive expansion conversation and reactive damage control.</div>
 </div>
 
 <!-- ── INPUT SCHEMA ───────────────────────────────────────── -->

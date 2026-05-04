@@ -160,7 +160,7 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
     </div>
     <div class="entry-body">
       <div class="detail-grid">
-        <div class="detail-lbl">Change</div><div class="detail-val">Status: <code>specced</code> → <code>prototyped</code>. Required new corpus extension: 23-feature engagement telemetry per account (5 categories: core / advanced / integration / admin / experimental — modeled on a Checkr-style background-check API product).</div>
+        <div class="detail-lbl">Change</div><div class="detail-val">Status: <code>specced</code> → <code>prototyped</code>. Required new corpus extension: 23-feature engagement telemetry per account (5 categories: core / advanced / integration / admin / experimental — modeled on a B2B API product with UBB pricing).</div>
         <div class="detail-lbl">Smoke test</div><div class="detail-val">8/8 archetypes correctly classified including the spec's hard onboarding-aware rule. Deeply_integrated (ideal_power_user) and siloed_by_team (expansion_ready) discriminated by Gini concentration threshold; activating (stalled_onboarding) preserved for &lt;60d accounts.</div>
         <div class="detail-lbl">Validated by</div><div class="detail-val">EVAL-Q11 with new <code>must_cite_tool_008</code> criterion. Brain consistently uses tool output for adoption-depth diagnosis when consumption-volume signals are ambiguous.</div>
         <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Post-sales feature-level adoption gap closed in prototype.</span> Three-tool post-sales activation stack (TOOL-008 + TOOL-009 + TOOL-012) now has its first member operational.</div>
@@ -223,7 +223,7 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
   <div class="entry" data-layer="L9" data-type="new">
     <div class="entry-hdr" onclick="tog(this)">
       <span class="agent-id">Bridge doc<span class="layer-tag lt-l9">Migration</span></span>
-      <span class="agent-name">prototype/PORT_TO_CORPORATE.md — synth → real Checkr-style data checklist</span>
+      <span class="agent-name">prototype/PORT_TO_CORPORATE.md — synth → real corporate data checklist</span>
       <div class="change-type"><span class="ct ct-new">New artifact</span></div>
       <span class="entry-summary">Concrete migration plan for moving the prototype to a corporate environment. Phase 0–5 sequence (eval baseline → UsageMeteringLog → ConvIntelligence → CustomerHealthLog/ChurnRisk/Expansion → feature_engagement + TOOL-008 → Brain Agents go live). Risks flagged: real conversation transcript length, feature taxonomy mapping, PII handling, API cost monitoring, tool-retirement discipline.</span>
       <span class="chevron">▼</span>
@@ -711,7 +711,7 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
         <div class="detail-lbl">Hard rules</div><div class="detail-val">Refuses if &lt; 30 days of history. Seasonality requires &ge; 2 full cycles (eval enforces 0% false-positive seasonality). Confidence intervals scale with history length (no narrow intervals on short data). LLM does not invent forecast numbers &mdash; numerical forecasting runs in code (exponential smoothing + regression with seasonality decomposition); LLM produces structured summary + interpretation.</div>
         <div class="detail-lbl">Called by</div><div class="detail-val">AGT-902 Account Brain (most common &mdash; "real expansion or spike?" use case). AGT-503 Expansion Trigger (optional augment to existing 5-signal scoring &mdash; downgrades signal weight on cliff/spike pattern). AGT-402 Forecast Adjuster (weights expansion ACV probability in bottoms-up forecast by trend strength).</div>
         <div class="detail-lbl">Cost</div><div class="detail-val">Haiku (LLM portion is interpretation only; numerical work in code). 15K input + 2K output budget. ~$0.02 per call. Monthly cap $400/mo (~20,000 calls). Highest-frequency tool of the four.</div>
-        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes UBB-specific gap from v26 eval.</span> For Checkr-style usage-based business: the difference between proactive expansion conversation (timed before overage hits) and reactive damage control (overage already painful for customer).</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes UBB-specific gap from v26 eval.</span> For a usage-based business: the difference between proactive expansion conversation (timed before overage hits) and reactive damage control (overage already painful for customer).</div>
       </div>
     </div>
   </div>

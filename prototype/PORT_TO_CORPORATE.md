@@ -1,4 +1,4 @@
-# Porting AGT-902 from synthetic prototype → real Checkr-style corporate data
+# Porting AGT-902 from synthetic prototype → real corporate data
 
 This doc is the bridge document for moving the prototype into a corporate
 environment. Written while the prototype is fresh; reverse-engineering it

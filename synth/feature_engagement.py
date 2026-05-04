@@ -3,7 +3,8 @@
 Reads FeatureProfile from archetypes.py. Produces a list of feature_usage
 records matching the TOOL-008 input schema. Numerical only — no LLM.
 
-The taxonomy below models a Checkr-style background-check API product:
+The taxonomy below models a B2B API product (background-check use case
+as a concrete example):
 core (basic-search workflow), advanced (compliance + customization),
 integration (ATS + identity), admin (workspace controls), experimental
 (newer GTM-led capabilities).
@@ -19,7 +20,7 @@ from archetypes import FeatureProfile
 
 # ─────────────────────────────────────────────────────────────────────
 # Feature taxonomy — 23 features across 5 categories
-# Modeled on a Checkr-style UBB product to keep the prototype concrete.
+# Modeled on a B2B API product (UBB pricing) to keep the prototype concrete.
 # ─────────────────────────────────────────────────────────────────────
 
 FEATURE_TAXONOMY: dict[str, list[str]] = {
