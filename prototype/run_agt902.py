@@ -39,6 +39,7 @@ if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
 from agt902 import run_for_account, DEFAULT_QUESTION
+from view_source import default_source
 from validation import validate_all
 from brain_analysis_log import append_row, DEFAULT_LOG_PATH
 
@@ -102,7 +103,7 @@ def run_one(corpus_path: Path, question: str, log_path: Path) -> dict:
 
     t0 = time.time()
     try:
-        row = run_for_account(corpus_path, question)
+        row = run_for_account(corpus_path, question, source=default_source())
     except Exception as e:
         print(f"  FAILED: {type(e).__name__}: {e}", file=sys.stderr)
         return {"failed": True, "company": company}

@@ -20,6 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from agt901 import run_for_pipeline, ACTION_TAXONOMY as PIPELINE_TAXONOMY
+from view_source import default_source
 from validation import validate_all, ValidationResult
 
 from scorer import (
@@ -83,7 +84,8 @@ def score_pipeline_fixture(fixture: dict, corpus_dir: Path) -> PipelineFixtureRe
     try:
         question = fixture["question"]
         brain_row = run_for_pipeline(corpus_dir, question=question,
-                                     invocation_path="eval_run")
+                                     invocation_path="eval_run",
+                                     source=default_source())
         result.brain_analysis_row = brain_row
 
         validation_input = {

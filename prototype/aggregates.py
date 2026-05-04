@@ -202,31 +202,47 @@ def _top_k(signals: list[dict], filter_fn, sort_key, k: int = 5,
 # Public entry point
 # ─────────────────────────────────────────────────────────────────────
 
-def extract_pipeline_view(corpus_dir: Path | str) -> dict:
-    """Build the AGT-901 brain-ready view from the synth corpus directory.
+def extract_pipeline_view(corpus_dir: Path | str, source=None) -> dict:
+    """Build the AGT-901 brain-ready view.
+
+    Args:
+      corpus_dir:  Path to a synth corpus directory (legacy entry point).
+                   Ignored when `source` is provided.
+      source:      Optional BrainViewSource. When supplied, account corpora
+                   are pulled through the source's load_account_corpus instead
+                   of via direct file IO. This is the seam for swapping
+                   synth → real warehouse.
 
     Returns a single dict with cross-account rollups + drill-down anchors.
     """
-    corpus_dir = Path(corpus_dir)
-    ground_truth_path = corpus_dir / "ground_truth.json"
-    if not ground_truth_path.exists():
-        raise FileNotFoundError(f"missing ground_truth.json in {corpus_dir}")
+    if source is not None:
+        meta = source.metadata()
+        snapshot_date = meta.get("snapshot_date", "unknown")
+        signals: list[dict] = []
+        for aid in source.iterate_account_ids():
+            corpus = source.load_account_corpus(aid)
+            signals.append(_account_signals(corpus))
+    else:
+        corpus_dir = Path(corpus_dir)
+        ground_truth_path = corpus_dir / "ground_truth.json"
+        if not ground_truth_path.exists():
+            raise FileNotFoundError(f"missing ground_truth.json in {corpus_dir}")
 
-    with ground_truth_path.open() as f:
-        gt = json.load(f)
+        with ground_truth_path.open() as f:
+            gt = json.load(f)
 
-    signals: list[dict] = []
-    for entry in gt.get("accounts", []):
-        aid = entry["account_id"]
-        path = corpus_dir / f"{aid}.json"
-        if not path.exists():
-            continue
-        with path.open() as f:
-            corpus = json.load(f)
-        signals.append(_account_signals(corpus))
+        signals = []
+        for entry in gt.get("accounts", []):
+            aid = entry["account_id"]
+            path = corpus_dir / f"{aid}.json"
+            if not path.exists():
+                continue
+            with path.open() as f:
+                corpus = json.load(f)
+            signals.append(_account_signals(corpus))
 
-    # Snapshot date — derived from corpus generation time
-    snapshot_date = gt.get("generated_at", "").split("T")[0] or "unknown"
+        # Snapshot date — derived from corpus generation time
+        snapshot_date = gt.get("generated_at", "").split("T")[0] or "unknown"
 
     # Rollups
     segment_rollup = _rollup_by(signals, "segment")

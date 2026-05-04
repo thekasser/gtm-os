@@ -170,7 +170,8 @@ def _estimate_cost_usd(input_tokens: int, output_tokens: int, model: str) -> flo
 # API call orchestration — multi-turn tool-use loop, mirrors agt902
 # ─────────────────────────────────────────────────────────────────────
 
-def call_brain(view: dict, question: str, max_tokens: int = 8192) -> dict:
+def call_brain(view: dict, question: str, max_tokens: int = 8192,
+               source=None) -> dict:
     """Call Anthropic API with the AGT-901 prompt + tool-use support.
 
     max_tokens=8192 (vs AGT-902's 4096) — the cohort brain produces longer
@@ -218,7 +219,7 @@ def call_brain(view: dict, question: str, max_tokens: int = 8192) -> dict:
                 # view with the account_id the brain provided so dispatch's
                 # corpus augmentation works.
                 tool_view = {"account_id": tool_input.get("account_id")}
-                result = dispatch_tool(tool_name, tool_input, tool_view)
+                result = dispatch_tool(tool_name, tool_input, tool_view, source=source)
                 tool_calls_made.append({
                     "tool_name": tool_name,
                     "tool_input": tool_input,
@@ -266,13 +267,24 @@ def call_brain(view: dict, question: str, max_tokens: int = 8192) -> dict:
 def run_for_pipeline(corpus_dir: Path, question: str = DEFAULT_QUESTION,
                      invocation_path: str = "operator_query",
                      operator_user_id: str | None = None,
-                     view_mutation_fn=None) -> dict:
+                     view_mutation_fn=None,
+                     source=None) -> dict:
     """Full pipeline: extract aggregate view → call brain → assemble BrainAnalysisLog row.
 
+    Args:
+      corpus_dir:  Path to the synth corpus dir (legacy entry point).
+                   When `source` is provided, this is ignored — aggregate
+                   view is built from the source.
+      source:      Optional BrainViewSource. Threaded to dispatch_tool so
+                   per-account drill-down tools (TOOL-004, TOOL-008) pull
+                   through the same seam.
+      view_mutation_fn: optional view post-processor (e.g., for staleness
+                   injection in fixtures).
+
     No per-account corpus loading — the aggregate view comes from
-    aggregates.extract_pipeline_view, which iterates the whole corpus dir.
+    aggregates.extract_pipeline_view, which iterates the corpus dir or source.
     """
-    view = extract_pipeline_view(corpus_dir)
+    view = extract_pipeline_view(corpus_dir, source=source)
     if view_mutation_fn is not None:
         view = view_mutation_fn(view)
 
@@ -281,7 +293,7 @@ def run_for_pipeline(corpus_dir: Path, question: str = DEFAULT_QUESTION,
     last_err: Exception | None = None
     for attempt in range(3):
         try:
-            api_result = call_brain(view, question)
+            api_result = call_brain(view, question, source=source)
             break
         except (ValueError, json.JSONDecodeError) as e:
             last_err = e

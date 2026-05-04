@@ -210,25 +210,18 @@ def _derive_churn_proximity(account: dict) -> dict:
     }
 
 
-def _is_view_stale(corpus_path: Path) -> bool:
-    """Per Brain_Ready_Views_Contract: view is stale if >24h since file mtime.
-
-    For the prototype, we treat each corpus file's mtime as the view's
-    last_refresh_timestamp. In production this would come from the
-    materialization job's metadata.
-    """
-    if not corpus_path.exists():
-        return True
-    age_hours = (time.time() - corpus_path.stat().st_mtime) / 3600
-    return age_hours > 24
-
-
-def extract_brain_ready_view(corpus_data: dict, corpus_path: Path) -> dict:
-    """Build the per-account composite brain-ready view from a corpus file.
+def extract_brain_ready_view(corpus_data: dict,
+                              corpus_path_or_source) -> dict:
+    """Build the per-account composite brain-ready view.
 
     Mirrors the AGT-902 composite view shape from Brain_Ready_Views_Contract.
     Components not in the corpus are marked as not_in_corpus rather than null,
     so the brain can acknowledge missing dimensions explicitly.
+
+    Second arg accepts either a Path (legacy callers) OR a BrainViewSource
+    instance with a `account_data_freshness(account_id)` method (new path).
+    The Path branch exists for backwards compatibility with code that hasn't
+    been migrated to use the source seam yet.
     """
     account = corpus_data["account"]
     usage_rows = corpus_data.get("usage_metering_log", [])
@@ -236,8 +229,22 @@ def extract_brain_ready_view(corpus_data: dict, corpus_path: Path) -> dict:
     payment_rows = corpus_data.get("payment_event_log", [])
     conv_rows = corpus_data.get("conversation_intelligence_log", [])
 
-    is_stale = _is_view_stale(corpus_path)
-    last_refresh = datetime.fromtimestamp(corpus_path.stat().st_mtime, tz=timezone.utc).isoformat()
+    # Staleness — pulled from source if available, else fall back to file mtime
+    if hasattr(corpus_path_or_source, "account_data_freshness"):
+        is_stale, last_refresh = corpus_path_or_source.account_data_freshness(
+            account["account_id"]
+        )
+    else:
+        # Legacy: corpus_path_or_source is a Path
+        from pathlib import Path as _Path
+        cp = _Path(corpus_path_or_source) if not isinstance(corpus_path_or_source, _Path) else corpus_path_or_source
+        if not cp.exists():
+            is_stale, last_refresh = True, datetime.now(timezone.utc).isoformat()
+        else:
+            mtime_dt = datetime.fromtimestamp(cp.stat().st_mtime, tz=timezone.utc)
+            age_hours = (datetime.now(timezone.utc) - mtime_dt).total_seconds() / 3600
+            is_stale = age_hours > 24
+            last_refresh = mtime_dt.isoformat()
 
     return {
         "view_metadata": {
@@ -378,7 +385,8 @@ def _hash_prompt(text: str) -> str:
 # API call + orchestration
 # ─────────────────────────────────────────────────────────────────────
 
-def call_brain(view: dict, question: str, max_tokens: int = 4096) -> dict:
+def call_brain(view: dict, question: str, max_tokens: int = 4096,
+               source=None) -> dict:
     """Call Anthropic API with the brain prompt + tool-use support.
 
     Multi-turn loop:
@@ -387,6 +395,10 @@ def call_brain(view: dict, question: str, max_tokens: int = 4096) -> dict:
       3. Loop until brain produces a text-only response (final output)
 
     Returns parsed JSON + cumulative metadata across all loop turns.
+
+    `source` is an optional BrainViewSource passed to dispatch_tool so tools
+    can pull per-account corpus through the same seam as the brain-ready view.
+    Falls back to the legacy file-path read inside dispatch_tool when None.
     """
     # Lazy import to avoid circulars at module load
     from tools.registry import TOOL_DEFINITIONS, dispatch_tool
@@ -431,7 +443,7 @@ def call_brain(view: dict, question: str, max_tokens: int = 4096) -> dict:
             for block in tool_use_blocks:
                 tool_name = block.name
                 tool_input = block.input
-                result = dispatch_tool(tool_name, tool_input, view)
+                result = dispatch_tool(tool_name, tool_input, view, source=source)
                 tool_calls_made.append({
                     "tool_name": tool_name,
                     "tool_input": tool_input,
@@ -509,17 +521,33 @@ def _estimate_cost_usd(input_tokens: int, output_tokens: int, model: str) -> flo
 def run_for_account(corpus_path: Path, question: str = DEFAULT_QUESTION,
                     invocation_path: str = "operator_query",
                     operator_user_id: str | None = None,
-                    view_mutation_fn=None) -> dict:
+                    view_mutation_fn=None,
+                    source=None) -> dict:
     """Full pipeline: read corpus → extract view → call brain → assemble BrainAnalysisLog row.
 
-    view_mutation_fn: optional callable (view: dict) -> dict applied to the brain-ready
-    view after extraction. Used by the eval harness to inject staleness or other
-    fixture mutations without modifying the corpus on disk.
+    Args:
+      corpus_path:    Path to a per-account corpus file (legacy entry point).
+                      If `source` is provided, this is used only to derive
+                      account_id; the source handles the data load.
+      source:         Optional BrainViewSource. If supplied, account corpus
+                      and staleness are pulled through the source instead of
+                      via the file path. This is the seam for swapping
+                      synth → real warehouse.
+      view_mutation_fn: optional callable (view: dict) -> dict applied to the
+                      brain-ready view after extraction. Used by the eval
+                      harness to inject staleness or other fixture mutations.
     """
-    with corpus_path.open() as f:
-        corpus_data = json.load(f)
+    if source is not None:
+        # New path: pull through the source. account_id derived from filename.
+        account_id = corpus_path.stem if hasattr(corpus_path, "stem") else str(corpus_path)
+        corpus_data = source.load_account_corpus(account_id)
+        view = extract_brain_ready_view(corpus_data, source)
+    else:
+        # Legacy path: direct file IO
+        with corpus_path.open() as f:
+            corpus_data = json.load(f)
+        view = extract_brain_ready_view(corpus_data, corpus_path)
 
-    view = extract_brain_ready_view(corpus_data, corpus_path)
     if view_mutation_fn is not None:
         view = view_mutation_fn(view)
 
@@ -531,7 +559,7 @@ def run_for_account(corpus_path: Path, question: str = DEFAULT_QUESTION,
     last_err: Exception | None = None
     for attempt in range(3):
         try:
-            api_result = call_brain(view, question)
+            api_result = call_brain(view, question, source=source)
             break
         except (ValueError, json.JSONDecodeError) as e:
             last_err = e

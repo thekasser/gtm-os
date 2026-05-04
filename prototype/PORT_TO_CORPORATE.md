@@ -24,41 +24,66 @@ real at this seam and the rest works without modification.
 | `synth/conversations.py` → ConvIntelligence | Gong / Chorus / Fireflies / Otter export. AGT-407 ConvIntelligence is already specced for this. **Real transcripts will be 10-50x longer** than the synthetic Haiku-generated summaries. The brain-ready view must summarize aggressively before passing to AGT-902. |
 | `synth/feature_engagement.py` → feature_engagement | Product analytics warehouse (Amplitude, Heap, Mixpanel, or in-house). Map your real feature catalog to the 5-category taxonomy (core / advanced / integration / admin / experimental). The category split drives TOOL-008's classification logic — get the categorization right before turning on the tool. |
 
-### 2. Brain-ready view extractor (`prototype/agt902.py:extract_brain_ready_view`)
+### 2. Brain-ready view extractor + the **`BrainViewSource` seam**
 
-**The single most important file to understand before porting.** It defines the
-contract between Tier 1 (canonical tables) and Tier 2 (the brain). The current
-implementation:
+**The single most important seam to understand before porting** is
+`prototype/view_source.py`. It defines the abstract contract every data
+source must satisfy for the brains and tools to consume it. The prototype
+ships with two implementations:
 
-- Reads from a synth corpus JSON file
-- Extracts ~7 components (account_root, usage_metering, customer_health,
-  conversation_intel, payment_health, expansion_signals, churn_risk)
-- Compresses each component to a brain-digestible summary
-- Total view size ≈ 5–10K tokens
+- **`SynthCorpusSource`** — production-grade for the prototype. Reads JSON
+  files from `synth/corpus/`. This is the default.
+- **`WarehouseViewSource`** — stub class with `NotImplementedError` on every
+  method. Documents the interface a corporate-environment implementation
+  fulfills.
 
-In the corporate environment:
-- Replace the file-load with reads from your real Tier 1 tables (one per
-  service: `customer_health_log`, `usage_metering_log`, `payment_event_log`,
-  `conversation_intelligence_log`, `expansion_signal_log`, `churn_risk_log`,
-  `feature_engagement_telemetry`)
-- **Re-tune the compression budgets** with real data. Real conversation
-  transcripts may push the view over 30K tokens before compression. The
-  brain's accuracy degrades visibly past ~20K tokens of view input — measure
-  this with your eval harness.
-- Token budget per component should be a separate config knob (currently
-  hardcoded). Add this as `view_compression_config.json` so RevOps can tune
-  without code changes.
+To port: subclass `BrainViewSource` and implement these methods:
 
-### 3. Tools that re-read corpus files (`prototype/tools/registry.py:dispatch_tool`)
+```python
+class WarehouseViewSource(BrainViewSource):
+    def load_account_corpus(self, account_id: str) -> dict:
+        # SELECT … JOIN across CustomerHealthLog, UsageMeteringLog,
+        # PaymentEventLog, ConvIntelligence (filtered by call_owner_role),
+        # ExpansionLog, ChurnRiskLog, feature_engagement_telemetry, account
+        # → return the same shape the synth corpus JSON provides.
+        ...
 
-TOOL-004 and TOOL-008 currently re-read the synth JSON file because the
-brain-ready view is lossy by design. In corporate:
-- Replace `corpus_path = corpus_dir / f"{account_id}.json"` with a query
-  against the canonical table (whichever service owns the data the tool
-  needs).
-- Cache aggressively at the data layer — TOOL-008 daily-batch use case will
-  hit ~100s-1000s of accounts per day; per-call DB roundtrip is fine but
-  table scans per call are not.
+    def account_exists(self, account_id: str) -> bool: ...
+    def account_data_freshness(self, account_id: str) -> tuple[bool, str]: ...
+    def iterate_account_ids(self) -> Iterator[str]: ...
+    def metadata(self) -> dict: ...
+```
+
+Then either:
+- Pass an instance to `run_for_account(...)` / `run_for_pipeline(...)` directly, or
+- Set `GTM_OS_VIEW_SOURCE=warehouse` and add a branch in
+  `view_source.default_source()` to construct it from your config.
+
+**The brain-ready view extractor itself** (`agt902.extract_brain_ready_view`,
+`aggregates.extract_pipeline_view`) does NOT need to change when porting.
+It already pulls through the source. What you'll re-tune is:
+
+- **Compression budgets per component.** Real conversation transcripts may
+  push raw view size over 30K tokens. The brain's accuracy degrades visibly
+  past ~20K tokens of view input — measure this with your eval harness.
+- **Per-component token caps** as a config knob (currently hardcoded). Add
+  this as `view_compression_config.json` so RevOps can tune without code
+  changes.
+
+### 3. Tools that re-read corpus files
+
+TOOL-004 and TOOL-008 currently re-read per-account corpus because the
+brain-ready view is lossy by design (monthly aggregates only). After the
+view-source refactor, both tools pull through `_load_account_corpus(account_id, source=source)`
+in `prototype/tools/registry.py`. **No tool code changes when porting** —
+the source's `load_account_corpus(account_id)` method is the seam.
+
+Operational notes:
+- Cache aggressively at the warehouse layer — TOOL-008 daily-batch use case
+  will hit ~100s-1000s of accounts per day; per-call DB roundtrip is fine
+  but full table scans per call are not.
+- Consider materializing a per-account `account_brain_view` table that the
+  source's `load_account_corpus` reads in one query, refreshed nightly.
 
 ### 4. ANTHROPIC_API_KEY → corporate Anthropic account
 

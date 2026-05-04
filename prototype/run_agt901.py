@@ -16,6 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from agt901 import run_for_pipeline, DEFAULT_QUESTION
+from view_source import default_source
 from brain_analysis_log import append_row as append_brain_analysis_row
 
 
@@ -43,7 +44,7 @@ def main():
     print(f"  question: {args.question}", file=sys.stderr)
     print(file=sys.stderr)
 
-    row = run_for_pipeline(corpus_dir, question=args.question)
+    row = run_for_pipeline(corpus_dir, question=args.question, source=default_source())
 
     if not args.no_log:
         append_brain_analysis_row(row, Path(args.brain_log))

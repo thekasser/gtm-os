@@ -34,12 +34,43 @@ TOOL_HANDLERS: dict[str, Callable[[dict], dict]] = {
 }
 
 
-def dispatch_tool(name: str, tool_input: dict, view: dict) -> dict:
+def _load_account_corpus(account_id: str, source=None) -> dict | None:
+    """Load per-account corpus, preferring the BrainViewSource seam.
+
+    If `source` is provided, route through source.load_account_corpus.
+    Otherwise fall back to direct file IO from synth/corpus/ — legacy
+    behavior for backwards compatibility with older callers.
+    Returns None if the account cannot be found.
+    """
+    if source is not None:
+        try:
+            return source.load_account_corpus(account_id)
+        except (FileNotFoundError, KeyError):
+            return None
+
+    # Legacy path
+    from pathlib import Path
+    import json as _json
+    corpus_dir = Path(__file__).parent.parent.parent / "synth" / "corpus"
+    corpus_path = corpus_dir / f"{account_id}.json"
+    if not corpus_path.exists():
+        for p in corpus_dir.glob("*.json"):
+            if p.stem == account_id:
+                corpus_path = p
+                break
+    if not corpus_path.exists():
+        return None
+    with corpus_path.open() as f:
+        return _json.load(f)
+
+
+def dispatch_tool(name: str, tool_input: dict, view: dict, source=None) -> dict:
     """Execute a tool by name. Injects the brain-ready view as input where needed.
 
-    For TOOL-004, we automatically populate metering_history and context from
-    the brain's per-account composite view, so the brain's tool_use call only
-    needs to specify account_id + forecast_horizon_days.
+    For TOOL-004 + TOOL-008, we automatically populate the tool's input from
+    the per-account corpus. The corpus is loaded via the BrainViewSource if
+    `source` is provided (the prototype/corporate seam) or via direct file IO
+    as a legacy fallback.
     """
     handler = TOOL_HANDLERS.get(name)
     if handler is None:
@@ -51,19 +82,14 @@ def dispatch_tool(name: str, tool_input: dict, view: dict) -> dict:
 
     # Per-tool input augmentation
     if name == "tool_008_product_adoption_pattern":
-        from pathlib import Path
-        import json as _json
         account_id = tool_input.get("account_id") or view.get("account_id")
-        corpus_dir = Path(__file__).parent.parent.parent / "synth" / "corpus"
-        corpus_path = corpus_dir / f"{account_id}.json"
-        if not corpus_path.exists():
+        corpus_data = _load_account_corpus(account_id, source=source)
+        if corpus_data is None:
             return {
                 "tool_name": name,
                 "status": "error",
                 "reason": f"corpus file not found for account_id={account_id}",
             }
-        with corpus_path.open() as f:
-            corpus_data = _json.load(f)
         feature_engagement = corpus_data.get("feature_engagement")
         if not feature_engagement:
             return {
@@ -87,31 +113,17 @@ def dispatch_tool(name: str, tool_input: dict, view: dict) -> dict:
         return handler(augmented_input)
 
     if name == "tool_004_consumption_forecast":
-        usage_component = view.get("components", {}).get("usage_metering", {})
-        # Reconstruct day-level metering_history from the view's monthly_aggregates
-        # is lossy. The brain-ready view doesn't carry daily rows by design (size).
-        # For the prototype, the tool re-reads the full corpus file via account_id.
-        # Cleaner alternative — pass daily series in the view as a tool-specific
-        # extra. But that bloats every brain call. Trade-off: tool re-reads.
-        from pathlib import Path
-        import json as _json
+        # The brain-ready view's monthly_aggregates is lossy — TOOL-004 needs
+        # daily granularity. Re-read full per-account corpus through the
+        # source seam (or legacy file IO if no source).
         account_id = tool_input.get("account_id") or view.get("account_id")
-        corpus_dir = Path(__file__).parent.parent.parent / "synth" / "corpus"
-        corpus_path = corpus_dir / f"{account_id}.json"
-        if not corpus_path.exists():
-            # Fallback: search by account_id (UUID)
-            for p in corpus_dir.glob("*.json"):
-                if p.stem == account_id:
-                    corpus_path = p
-                    break
-        if not corpus_path.exists():
+        corpus_data = _load_account_corpus(account_id, source=source)
+        if corpus_data is None:
             return {
                 "tool_name": name,
                 "status": "error",
                 "reason": f"corpus file not found for account_id={account_id}",
             }
-        with corpus_path.open() as f:
-            corpus_data = _json.load(f)
         metering_history = corpus_data.get("usage_metering_log", [])
 
         # Pull commit + contract context from account

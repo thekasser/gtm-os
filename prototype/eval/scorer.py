@@ -28,6 +28,7 @@ if str(_PROTOTYPE_DIR) not in sys.path:
     sys.path.insert(0, str(_PROTOTYPE_DIR))
 
 from agt902 import run_for_account, DEFAULT_QUESTION
+from view_source import default_source
 from validation import validate_all, ValidationResult
 from brain_analysis_log import append_row as append_brain_analysis_row
 
@@ -355,6 +356,7 @@ def score_fixture(fixture: dict, corpus_dir: Path,
             question=question,
             invocation_path="eval_run",
             view_mutation_fn=view_mutation_fn,
+            source=default_source(),
         )
         result.brain_analysis_row = brain_row
 
