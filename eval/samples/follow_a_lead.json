@@ -21,11 +21,11 @@
       "title": "Inbound: pricing-page activity + RevOps Director job posting → routed + cadence live within hours",
       "primary_service": "AGT-201",
       "secondary_services": ["AGT-204", "AGT-202", "AGT-301", "AGT-203", "AGT-302"],
-      "what_changed": "Same-day L2 → L3 chain. AGT-204 enriches firmographics + technographics within minutes of form submit. AGT-201 produces ICP score 78/100 → T1. AGT-202 routes to MM AE West with hot-inbound SLA (5-min auto-response, 24-hour AE follow-up). AGT-301 generates a 10-step priority sequence. AGT-203 marks abm_active=TRUE. AGT-302 begins executing the cadence with 3-touch/week cap. First touch fires within hours of arrival.",
+      "what_changed": "Same-day L2 → L3 chain. AGT-204 enriches firmographics + technographics within minutes of form submit. AGT-201 produces ICP score 78/100 → T1. AGT-202 routes to MM AE West with the T1 routing SLA: 2 hours (per AGT-202 spec — T1 ≥80, T2 60-79=24hr, T3 <60=72hr; PLG/inbound override applies same SLA, just routes AE-direct bypassing SDR). AGT-301 generates a 10-step priority sequence. AGT-203 marks abm_active=TRUE. AGT-302 begins executing the cadence with 3-touch/week cap. First touch fires within hours of arrival.",
       "evidence": [
         "Accounts.icp_score=78, icp_tier=T1, segment=MM",
         "EnrichmentLog: 6-category enrichment complete, intent decay applied",
-        "Leads: routed to MM AE West, sla='5min auto / 24h AE', sequence_type=inbound_high_priority",
+        "Leads: routed to MM AE West, sla=2hr (T1 tier), motion=Inbound, sequence_type=abm_cluster",
         "CadenceEventLog: 10-step sequence created, priority_score_at_queue=78, first touch sent",
         "ABMPlaybook: abm_active=TRUE (suppresses nurture per AGT-304)"
       ],
