@@ -84,6 +84,79 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
 <div id="log">
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v36→v37: AGT-903 Strategy Brain specced + StrategyRecommendationLog schema + strategy brain-ready view contract -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L9">
+  <div class="version-hdr">
+    <span class="version-pill">v36 → v37</span>
+    <span class="version-date">AGT-903 Strategy Brain specced · StrategyRecommendationLog schema · strategy brain-ready view contract obligation on 10 Tier 1 services</span>
+    <span class="version-summary">Third L9 brain agent specced to fill the multi-quarter portfolio-reasoning gap that AGT-901 (current pipeline) and AGT-902 (per-account) don't cover. AGT-903 reasons across 4–12 quarters of cohort and trajectory data to answer ICP-revision, vertical-entry, capacity-reallocation, pricing-strategy, and strategic-retrospective questions. Output is option-shaped (2–4 alternatives + tradeoffs + risk surface + assumptions-must-hold), never single answers. New write target StrategyRecommendationLog with its own state machine (draft → under_review → endorsed/shelved/retired). Endorsement triggers a human-led planning workstream owned by the relevant Tier 1 service — never modifies a canonical table directly. New contract obligation: strategy_brain_view extensions on 10 Tier 1 services. Spec-first; build follows once views ship and Tier 3 cohort tools exist.</span>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-903<span class="layer-tag lt-l9">L9</span></span>
+      <span class="agent-name">Strategy Brain — multi-quarter portfolio reasoning · executive-invoked · Opus default</span>
+      <div class="change-type"><span class="ct ct-new">New agent</span></div>
+      <span class="entry-summary">Third Tier 2 brain. Differentiated from AGT-901/902 by horizon (4–12 trailing quarters + 2–6 forward), scope (portfolio/segment/vertical/motion), stakeholder (CRO/CFO/CEO), output shape (option-set memos), and default model (Opus). Distinct action taxonomy: <code>propose_icp_revision</code>, <code>propose_segment_redefinition</code>, <code>propose_vertical_entry</code>, <code>propose_capacity_reallocation</code>, <code>propose_pricing_packaging_review</code>, <code>flag_strategic_risk</code>, <code>recommend_market_research_query</code>, <code>recommend_human_query</code>, <code>none</code>. Every action maps to a downstream human-led workstream — never a direct canonical edit. Never on cadence; concentrated around annual planning, board prep, mid-year inflection.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Why a third brain (vs extending AGT-901)</div><div class="detail-val">AGT-901's read contract is current-period brain-ready views; extending it with multi-quarter cohort projections would have bloated its system prompt and conflated current-pipeline-operational reasoning with strategic-portfolio reasoning — different stakeholders, different cost profile, different evaluation criteria. Cleaner separation: each brain has a distinct horizon, distinct action taxonomy, distinct write target.</div>
+        <div class="detail-lbl">Read contract</div><div class="detail-val">Strategy brain-ready view extensions on AGT-201 (icp_outcome_brain_view), AGT-205 (strategy_brain_view — TAM/SAM/SOM), AGT-501 (cohort_brain_view), AGT-503 (strategy_brain_view), AGT-702 (strategy_brain_view — multi-quarter Magic Number/NRR/GRR/R40/CAC Payback), AGT-703 (strategy_brain_view — multi-quarter win-loss + forecast bias evolution), AGT-105, AGT-101, AGT-404, AGT-604. New contract obligation on each owning Tier 1 service. Where a view does not yet exist, AGT-903 declines and surfaces the gap rather than estimating from raw rows.</div>
+        <div class="detail-lbl">Write contract</div><div class="detail-val">BrainAnalysisLog (own log, shared schema with AGT-901/902) + StrategyRecommendationLog (drafts only). Explicitly does NOT write SalesPlayLibrary — plays are AGT-901/902's job, downstream of an endorsed strategic recommendation. May write annual-planning narrative sections to BusinessReviewLog per AGT-704 charter extension.</div>
+        <div class="detail-lbl">Output discipline</div><div class="detail-val">Options-shaped: 2–4 viable options per memo with distinct hypotheses (not minor variants), tradeoffs matrix per option, four-class risk surface (market/execution/capacity/model_assumption), falsifiable assumptions-must-hold list. If brain finds one obvious answer, it is required to articulate at least one credible alternative + the conditions under which it would be correct. Eval criterion enforces option count ≥ 2.</div>
+        <div class="detail-lbl">Cost profile</div><div class="detail-val">Rare-but-heavy: 10–30 queries/month at 150K input + 10K output, Opus default. Per-query cap 200K input + 20K output. Monthly budget alert at $300 default (CRO-configurable). Refusal on missing/stale strategy view is the cheapest correct answer (~one tool-call's tokens).</div>
+        <div class="detail-lbl">Promotion gate</div><div class="detail-val">draft → under_review (CRO pickup) → endorsed (CRO + CFO joint approval; CEO required if scope_severity = material). Endorsement triggers a planning workstream owned by the relevant Tier 1 service — never modifies a canonical table. Healthy cadence: 2–5 endorsed recommendations per year. Strategic churn is a known anti-pattern; brain availability should not lower the cost of strategic second-guessing.</div>
+        <div class="detail-lbl">Status</div><div class="detail-val">Specced only. Build deferred until (a) critical mass of strategy_brain_view extensions ships and (b) at least one Tier 3 cohort tool (likely TOOL-013 cohort retention forecaster, TOOL-014 segment-LTV decomposer) exists. Spec-first to anchor the contract obligations.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">L9 brain layer feature-complete at the spec level — three brains cover current-pipeline, per-account, and multi-quarter portfolio horizons.</span> The CRO-conversation range expands from operational coverage to strategic bets.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">StrategyRecommendationLog<span class="layer-tag lt-l9">Schema</span></span>
+      <span class="agent-name">Production schema — AGT-903 strategic memos with options, tradeoffs, risk surface, assumptions-must-hold</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span></div>
+      <span class="entry-summary">Companion workspace to SalesPlayLibrary, but for strategic recommendations rather than plays. State machine: draft → under_review → endorsed / shelved / retired. No volume cap (executive bandwidth is the natural limiter). CHECK constraints enforce architectural commitments: option count between 2 and 4 for propose_* actions, risk_surface must include all four risk classes, endorsed_option_label must match a real option, writer_agent_id must be AGT-903. Endorsement requires CRO + CFO (+ CEO if scope_severity = material) joint approval. Endorsement does NOT modify any canonical table — the strongest separation between Tier 2 reasoning and Tier 1 governance in the OS.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Why a separate table from SalesPlayLibrary</div><div class="detail-val">Different consumer (no execution engine reads endorsed rows directly), different state machine (shelved as a non-terminal "set aside"), different approval roles (CRO/CFO/CEO vs SLM/RevOps), different volume discipline (no cap; cadence-as-limiter), longer retention (warm 4y / cold 10y vs SalesPlayLibrary's 18mo / 7y) because strategic decisions have longer relevance horizons.</div>
+        <div class="detail-lbl">Key fields</div><div class="detail-val">options_enumerated (JSONB array, 2–4 items, each with hypothesis + projected_impact_range + required_investment + capacity_implications + tier1_dependencies), tradeoffs_matrix, risk_surface (four-class structured), assumptions_must_hold (with brittleness flag), suggested_workstream_owners, endorsed_option_label, scope_severity (routine/significant/material), data_staleness_acknowledged.</div>
+        <div class="detail-lbl">Calibration signals</div><div class="detail-val">Endorsement rate per quarter (target band 10–30% — too low = options not credible; too high = brain reading leadership preference). Edits during review (heavy = drafts are starting points; light = brain is calibrated). Brittle-assumption surfacing rate (for failed endorsements: did brain pre-flag the failing assumption?). Retrospective outcomes vs projected impact range, 4–6 quarters out.</div>
+        <div class="detail-lbl">No execution wiring</div><div class="detail-val">SalesPlayLibrary's execution wiring (AGT-302 reads active plays) is irrelevant here. Endorsed rows trigger workstreams in AGT-201/AGT-105/AGT-101/AGT-205/AGT-203/AGT-302/AGT-403/AGT-406/AGT-802 depending on action_type. Each owning service runs its normal redesign cycle — strategic recommendation is an input, not a substitute for governance.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Schema-level reinforcement of the architectural rule that brains never directly modify canonical configuration.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Strategy brain-ready view contract<span class="layer-tag lt-l9">Contract</span></span>
+      <span class="agent-name">New view-extension obligation on 10 Tier 1 services to support AGT-903</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple</span></div>
+      <span class="entry-summary">AGT-903 cannot ship usefully without strategy_brain_view extensions on AGT-201, AGT-205, AGT-501, AGT-503, AGT-702, AGT-703, AGT-105, AGT-101, AGT-404, AGT-604. These differ from AGT-901's brain-ready views by (a) longer time windows (4–12 quarters), (b) cohort axis where applicable (signup-quarter cohorts on AGT-501 + AGT-503), (c) outcome-correlation projections (e.g., ICP score × realized LTV on AGT-201's icp_outcome_brain_view). Refresh cadence is at most quarterly. View definition lives with the owning Tier 1 service; refusal-on-missing is the brain-side discipline.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Why the brain doesn't compute its own multi-quarter aggregates</div><div class="detail-val">Same architectural rule as AGT-901 / AGT-902: brains never recompute Tier 1 numbers. Cohort retention curves, multi-quarter NRR/GRR trajectories, win-rate evolution by segment — all are deterministic computations that belong on the owning Tier 1 service. Brain estimation would break source-trace integrity.</div>
+        <div class="detail-lbl">View ownership</div><div class="detail-val">Each Tier 1 service owns its strategy_brain_view extension. AGT-201 owns icp_outcome_brain_view (correlation of 6-dimension ICP score to realized LTV/NRR/churn/win-rate by cohort). AGT-501 + AGT-503 own cohort_brain_view (signup-quarter cohort retention curves). AGT-702 + AGT-703 own multi-quarter strategy_brain_view (extended time window of existing brain-ready views). AGT-205 owns strategy_brain_view of MarketAssumptions with current penetration. AGT-105/AGT-101/AGT-404/AGT-604 own their respective extensions.</div>
+        <div class="detail-lbl">Tier 3 tool consequences</div><div class="detail-val">Two Tier 3 tools likely needed to make AGT-903 useful: TOOL-013 cohort retention forecaster (analogous to TOOL-004 consumption forecaster — projects cohort retention curves forward with confidence bands) and TOOL-014 segment-LTV decomposer (decomposes LTV by segment/vertical/ICP-tier to support capacity-reallocation and ICP-revision use cases). Neither specced yet.</div>
+        <div class="detail-lbl">Status</div><div class="detail-val">Contract obligation specced; views not yet built. AGT-903 build-readiness depends on critical mass of these views shipping. Each service can ship its strategy_brain_view independently — incremental rollout supported (AGT-903 declines on any missing view rather than estimating).</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Backlog work for 10 Tier 1 services; sequenced after AGT-903 use-case prioritization.</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- v35→v36: Decliner narrative + TOOL-010 prototyped + spec-citation discipline -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="version-block" data-layer="L9">

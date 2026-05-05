@@ -52,8 +52,8 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 
 <div class="meta-row">
   <span class="badge badge-layer">Tier 3 &middot; Tools</span>
-  <span class="badge badge-status">v36 &middot; 4 prototyped, 8 specced</span>
-  <span class="badge badge-tier">12 tools across 3 waves</span>
+  <span class="badge badge-status">v37 &middot; 4 prototyped, 10 specced</span>
+  <span class="badge badge-tier">14 tools across 4 waves</span>
   <span class="badge badge-owner">RevOps · technical owners per tool</span>
 </div>
 
@@ -93,8 +93,8 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 
 <!-- ── INDEX ─────────────────────────────────────────────── -->
 <div class="section">
-  <div class="section-title">Index of specced tools (v32 — 12 tools)</div>
-  <p class="prose" style="margin-bottom:14px">First wave (v29, 4 tools): closed the biggest cognition gaps &mdash; Domain 3 (API/dev-led GTM) twice, Domain 1 ("create plays, not just execute") once, UBB consumption forecasting once. Second wave (v31, 4 tools): closed Domain 4 (outbound deliverability), Domain 2 (in-call guidance + competitive narrative), and the post-sales feature-level adoption gap. Third wave (v32, 4 tools): TTV/timing analysis, champion movement detection, pricing sensitivity, onboarding health prediction. Twelve tools total &mdash; the Tier 3 catalogue is now broadly complete; further additions are case-by-case based on observed gaps.</p>
+  <div class="section-title">Index of specced tools (v37 — 14 tools)</div>
+  <p class="prose" style="margin-bottom:14px">First wave (v29, 4 tools): closed the biggest cognition gaps &mdash; Domain 3 (API/dev-led GTM) twice, Domain 1 ("create plays, not just execute") once, UBB consumption forecasting once. Second wave (v31, 4 tools): closed Domain 4 (outbound deliverability), Domain 2 (in-call guidance + competitive narrative), and the post-sales feature-level adoption gap. Third wave (v32, 4 tools): TTV/timing analysis, champion movement detection, pricing sensitivity, onboarding health prediction. Fourth wave (v37, 2 tools): cohort retention forecaster + segment-LTV decomposer, specced alongside AGT-903 Strategy Brain to support multi-quarter portfolio reasoning. Fourteen tools total &mdash; further additions remain case-by-case based on observed gaps.</p>
 
   <div class="tool-card">
     <div class="tool-header">
@@ -243,6 +243,30 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
     <div class="tool-meta"><strong>Called by:</strong> AGT-601 Onboarding Orchestrator (weekly batch, primary), AGT-501 (early forward-looking signal), AGT-902 Account Brain, AGT-704 (cohort-level onboarding trajectory for retention health section) &middot; <strong>Closes:</strong> predictive gap in post-sales activation toolkit. Onboarding intervention window is the highest-leverage moment in the customer lifecycle.</div>
     <a href="TOOL-012_Onboarding_Health_Predictor.html" class="spec-link">View spec →</a>
   </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-013</span>
+      <span class="tool-domain">Strategy · Multi-quarter</span>
+      <span class="tool-model">Sonnet</span>
+    </div>
+    <div class="tool-name">Cohort Retention Forecaster</div>
+    <div class="tool-purpose">Reads observed retention curves for one or more signup-quarter cohorts (from AGT-501 cohort_brain_view) and produces forward projections with confidence bands plus a cross-cohort characterization (stable / degrading / improving / mixed / insufficient_signal). Cohort-level analogue of TOOL-004. Numerical model in code (survival/decay fits + bootstrap intervals + rule-based pattern assignment); LLM portion produces structured interpretation with mandatory credible-alternative reading. <strong>Refusal is first-class</strong> — cohorts &lt; 25 accounts or &lt; 4 observed periods refuse rather than fabricate.</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-903 Strategy Brain (primary), AGT-704 (only via AGT-903 narrative jobs), RevOps direct &middot; <strong>Use case:</strong> "did the bet work?", "is retention flattening on newer cohorts?", "what's the projected NRR floor on the 2024 cohort?" &middot; <strong>Closes:</strong> cohort-projection gap that AGT-903 strategic reasoning needs (per v37 changelog ripple).</div>
+    <a href="TOOL-013_Cohort_Retention_Forecaster.html" class="spec-link">View spec →</a>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-014</span>
+      <span class="tool-domain">Strategy · Multi-quarter</span>
+      <span class="tool-model">Sonnet</span>
+    </div>
+    <div class="tool-name">Segment-LTV Decomposer</div>
+    <div class="tool-purpose">Decomposes observed LTV gaps between segment / vertical / ICP-tier buckets into driver components — initial ACV, tenure, expansion realization, CAC, segment mix — with confidence-banded contribution per driver. Counterfactual decomposition + bootstrap intervals run in code; LLM characterizes operational meaning. <strong>Hard rule:</strong> a driver is <code>load_bearing</code> only when its bootstrap band excludes zero with same-sign p10/p90 — the LLM cannot promote a driver on narrative grounds. Mandatory credible-alternative reading mirrors TOOL-013.</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-903 Strategy Brain (primary), AGT-704 (only via AGT-903 narrative jobs), RevOps direct &middot; <strong>Use case:</strong> "which ICP dimensions correlate with realized LTV?", "where's the highest LTV-per-rep payoff?", "is opportunistic-vertical LTV materially different from core LTV?" &middot; <strong>Closes:</strong> LTV-attribution gap AGT-903 needs for capacity-reallocation, ICP-revision, vertical-entry use cases (per v37 changelog ripple).</div>
+    <a href="TOOL-014_Segment_LTV_Decomposer.html" class="spec-link">View spec →</a>
+  </div>
 </div>
 
 <!-- ── FUTURE CANDIDATES ───────────────────────────────── -->
@@ -290,8 +314,10 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
     <tr><td>TOOL-010 Champion movement detector</td><td>Haiku</td><td>10K input + 2K output</td><td>$250/mo</td></tr>
     <tr><td>TOOL-011 Pricing sensitivity analyzer</td><td>Sonnet</td><td>20K input + 2.5K output</td><td>$300/mo</td></tr>
     <tr><td>TOOL-012 Onboarding health predictor</td><td>Haiku</td><td>10K input + 2K output</td><td>$200/mo</td></tr>
+    <tr><td>TOOL-013 Cohort retention forecaster</td><td>Sonnet</td><td>40K input + 4K output</td><td>$200/mo (low frequency, called by AGT-903 only)</td></tr>
+    <tr><td>TOOL-014 Segment-LTV decomposer</td><td>Sonnet</td><td>30K input + 4K output</td><td>$150/mo (low frequency, called by AGT-903 only)</td></tr>
   </table>
-  <div class="alert-box alert-amber"><strong>Total Tier 3 default budget: ~$4,800/mo across all 12 tools.</strong> TOOL-006 still dominates (~$2,000/mo for live-call guidance). Excluding TOOL-006, the rest of Tier 3 is ~$2,800/mo across 11 narrowly-scoped tools. Combined with Tier 2 brain budgets (~$1,500/mo), reasoning + augmentation layer total ~$6,300/mo &mdash; roughly 1/3 of one RevOps analyst FTE. Track in a single dashboard; alert at 75% of any tier's budget. RevOps configures opt-in per call-type for TOOL-006 to bound cost.</div>
+  <div class="alert-box alert-amber"><strong>Total Tier 3 default budget: ~$5,150/mo across all 14 tools.</strong> TOOL-006 still dominates (~$2,000/mo for live-call guidance). Excluding TOOL-006, the rest of Tier 3 is ~$3,150/mo across 13 narrowly-scoped tools. The fourth-wave additions (TOOL-013/014) are low-frequency Sonnet tools sized to AGT-903's rare-but-heavy invocation cadence. Combined with Tier 2 brain budgets (~$1,500/mo for AGT-901/902 + ~$300/mo for AGT-903), reasoning + augmentation layer total ~$6,950/mo &mdash; still well under half of one RevOps analyst FTE. Track in a single dashboard; alert at 75% of any tier's budget. RevOps configures opt-in per call-type for TOOL-006 to bound cost.</div>
 </div>
 
 <!-- ── EVAL FOR TOOLS ───────────────────────────────────── -->
@@ -308,10 +334,10 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 </div>
 
 <div class="footer">
-  Tier 3 Specialist Tools Index &middot; Schema v32 &middot; 12 tools across 3 waves<br>
+  Tier 3 Specialist Tools Index &middot; Schema v37 &middot; 14 tools across 4 waves<br>
   Owners: RevOps (governance) + tool-specific technical owners. Tools are stateless, no table ownership, no cadence.<br>
-  First wave (v29): TOOL-001/002/003/004. Second wave (v31): TOOL-005/006/007/008. Third wave (v32): TOOL-009/010/011/012.<br>
-  Companion: <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902 Account Brain</a> &middot; <a href="../eval/Brain_Eval_Harness.html">Brain Eval Harness</a><br>
+  First wave (v29): TOOL-001/002/003/004. Second wave (v31): TOOL-005/006/007/008. Third wave (v32): TOOL-009/010/011/012. Fourth wave (v37): TOOL-013/014 &mdash; cohort retention forecaster + segment-LTV decomposer, paired with AGT-903 Strategy Brain.<br>
+  Companion: <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902 Account Brain</a> &middot; <a href="../specs/AGT-903_Strategy_Brain.html">AGT-903 Strategy Brain</a> &middot; <a href="../eval/Brain_Eval_Harness.html">Brain Eval Harness</a><br>
   Tools are functions an agent can call. Add them lightly, eval them rigorously, retire them when their gap is closed by other means.
 </div>
 </body>

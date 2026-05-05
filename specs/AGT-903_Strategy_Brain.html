@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-903 — Strategy Brain</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-green{background:#E1F5EE;border-left:3px solid #5DCAA5;color:#085041}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.intro-banner{background:linear-gradient(135deg,#FAEEDA 0%,#FCF5E5 100%);border:1px solid #D4A84C;color:#7A4A0E;font-size:12px;padding:14px 16px;border-radius:10px;line-height:1.7;margin-bottom:24px}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-903 &mdash; Strategy Brain</h1>
+<div class="subtitle">Layer 9: Reasoning &middot; Tier 2 Brain Agent &middot; Multi-quarter horizon &middot; Portfolio &amp; segment-bet reasoning &middot; LLM-native &middot; Reads Tier 1 services &middot; Never writes canonical data &middot; Executive-invoked</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L9 &middot; Agent 03</span>
+  <span class="badge badge-status">Specced &middot; v37</span>
+  <span class="badge badge-tier">Tier 2 &middot; Brain Agent</span>
+  <span class="badge badge-owner">CRO + RevOps</span>
+</div>
+
+<div class="intro-banner">
+  <strong>Long-horizon counterpart to AGT-901 and AGT-902.</strong> Where AGT-901 reasons across the current pipeline and AGT-902 reasons across a single account in the current state, AGT-903 reasons across <em>multi-quarter trajectory</em> and <em>portfolio bets</em>: ICP redefinition, vertical entry, pricing/packaging strategy, capacity reallocation, retrospective on prior strategic moves. Same architectural commitments &mdash; LLM-native, reads brain-ready views, never writes canonical data, executive-invoked. The CRO owns the strategic call; the brain assembles cross-functional, cross-quarter context faster than a planning cycle would.
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-903 is the strategic-reasoning layer for portfolio and multi-quarter questions: <em>are we making the right segment bets?</em>, <em>is our ICP still aligned with where the highest-LTV customers actually are?</em>, <em>did the bet we made last year work, and what's next?</em>, <em>if we have $X to deploy, where's the highest-leverage motion?</em>. It reads multi-quarter cohort and trajectory views from Tier 1 services, optionally calls Tier 3 specialist tools (cohort retention, market sizing), and produces option-shaped strategic recommendations &mdash; not single answers &mdash; with full source-trace metadata for executive review. It is invoked rarely and per query is heavy: annual planning, board prep, mid-year inflection moments, strategic offsites. Never on cadence.</p>
+</div>
+
+<!-- ── SCOPE ──────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Scope &mdash; what AGT-903 answers, what it doesn't</div>
+  <table>
+    <tr><th>In scope</th><th>Out of scope</th></tr>
+    <tr><td>"Should we expand ICP to fintech vertical?"</td><td>Computing TAM/SAM for fintech (AGT-205 owns)</td></tr>
+    <tr><td>"Our top-decile NRR customers don't match our ICP &mdash; should we rewrite the rubric?"</td><td>Editing the ICP rubric (AGT-201 owns; spec change required)</td></tr>
+    <tr><td>"Did the 2025 land-and-expand pivot work? What does the cohort data say?"</td><td>Computing cohort retention numbers (Tier 1 service brain-ready view extensions own)</td></tr>
+    <tr><td>"If we add 10 reps, what's the highest-leverage segment to deploy them in?"</td><td>Producing the capacity plan (AGT-105 owns)</td></tr>
+    <tr><td>"Are we leaving money on the high end of pricing? Underpricing the low end?"</td><td>Pricing decisions or quote generation (AGT-406 owns CPQ)</td></tr>
+    <tr><td>"We're losing more deals to competitor X over 3 quarters. What's the strategic response?"</td><td>Competitive battle cards or per-deal positioning (AGT-403 owns)</td></tr>
+    <tr><td>"Is our NRR trajectory durable, or held up by 5 accounts?"</td><td>Computing NRR (AGT-702 owns)</td></tr>
+    <tr><td>Drafting strategic-recommendation memos with 2&ndash;4 viable options + tradeoffs + risk surface</td><td>Making the strategic call (executive decision; AGT-903 informs, never decides)</td></tr>
+  </table>
+  <div class="alert-box alert-amber"><strong>The hard line.</strong> AGT-903 never recomputes a Tier 1 number, and never proposes a direct edit to a canonical config &mdash; not the ICP rubric, not segment definitions, not quota models, not capacity plans, not pricing. It produces option-shaped recommendations that, if accepted, kick off a human-led planning workstream that goes through the relevant Tier 1 service's normal redesign cycle. The brain is a synthesis layer; strategic decisions remain with humans and remain subject to fiduciary deterministic processes.</div>
+</div>
+
+<!-- ── DIFFERENTIATION ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">How AGT-903 differs from AGT-901 and AGT-902</div>
+  <table>
+    <tr><th>Dimension</th><th>AGT-901 Pipeline Brain</th><th>AGT-902 Account Brain</th><th>AGT-903 Strategy Brain</th></tr>
+    <tr><td>Time horizon</td><td>Current quarter / current period</td><td>Current state of one account</td><td>Trailing 4&ndash;12 quarters + forward 2&ndash;6 quarters</td></tr>
+    <tr><td>Scope</td><td>Cross-account, segment / period</td><td>Per-account synthesis</td><td>Portfolio / segment / vertical / motion</td></tr>
+    <tr><td>Stakeholder</td><td>RevOps, sales leaders</td><td>AM, CSM, AE, RevOps</td><td>CRO, CFO, CEO, board prep</td></tr>
+    <tr><td>Decision impact</td><td>Plays, cadences, coverage allocation</td><td>Per-account next moves</td><td>ICP, segment definitions, quota model inputs, capacity bets, pricing, vertical entry</td></tr>
+    <tr><td>Output shape</td><td>Diagnosis + 1&ndash;3 candidate plays</td><td>Synthesis + 1&ndash;3 proposed actions to existing levers</td><td>Strategic memo: 2&ndash;4 options, tradeoffs, risk surface, assumptions-that-must-hold</td></tr>
+    <tr><td>Default model</td><td>Sonnet</td><td>Sonnet</td><td>Opus &mdash; multi-quarter cohort reasoning is the deep-analysis case</td></tr>
+    <tr><td>Invocation cadence</td><td>Ad-hoc + WBR/MBR narrative + quarterly play refresh</td><td>Ad-hoc + AGT-603 QBR narrative + hand-off events</td><td>Annual planning, mid-year inflection, board prep &mdash; rare and heavy</td></tr>
+  </table>
+  <div class="note">A query that lands in the wrong brain produces low-quality output. The intake layer (operator interface) routes by horizon: current-period operational &rarr; AGT-901; named-account &rarr; AGT-902; multi-quarter or portfolio-bet &rarr; AGT-903. When ambiguous, AGT-903 may decline and route the operator to AGT-901 (or vice versa).</div>
+</div>
+
+<!-- ── READ CONTRACT ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Read contract &mdash; Tier 1 services consumed (multi-quarter scoped)</div>
+  <p class="prose" style="margin-bottom:10px">AGT-903 reads <em>strategy-scoped</em> brain-ready view extensions: the same Tier 1 tables AGT-901 reads, but with longer time windows and cohort projections precomputed. The view extensions are owned by the underlying Tier 1 service. AGT-903 never extends the time window itself by re-aggregating raw rows &mdash; the view extension is the deterministic surface.</p>
+  <table>
+    <tr><th>Tier 1 service</th><th>Strategy brain-ready view</th><th>Used for</th></tr>
+    <tr><td>AGT-702 GTM Health Monitor</td><td>MetricsCalc.strategy_brain_view &mdash; Magic Number, NRR, GRR, R40, CAC Payback by segment / vertical / cohort across trailing 8&ndash;12 quarters</td><td>Long-horizon trajectory diagnosis: durable trend or recent compression?</td></tr>
+    <tr><td>AGT-703 Win-Loss &amp; Forecast Accuracy</td><td>WinLossLog.strategy_brain_view &mdash; loss-reason evolution + competitive mention frequency + forecast-bias evolution by segment, trailing 8 quarters</td><td>Strategic loss-pattern detection (multi-quarter, not week-over-week)</td></tr>
+    <tr><td>AGT-501 Customer Health Monitor</td><td>CustomerHealthLog.cohort_brain_view &mdash; cohort retention curves by signup quarter / segment / vertical / ICP tier</td><td>Cohort-level retention bet evaluation: do customers we're winning today retain better or worse than 2 years ago?</td></tr>
+    <tr><td>AGT-201 ICP Scorer</td><td>Accounts.icp_outcome_brain_view &mdash; correlation of 6-dimension ICP score to realized LTV / NRR / churn / win-rate, by cohort</td><td>"Is the ICP rubric still predicting outcomes?" diagnosis</td></tr>
+    <tr><td>AGT-205 TAM/SAM Sizing</td><td>MarketAssumptions.strategy_brain_view &mdash; TAM / SAM / SOM by product family + vertical + segment, with current penetration</td><td>Vertical or segment entry sizing &mdash; sized by AGT-205 hybrid methodology, not by AGT-903 estimation</td></tr>
+    <tr><td>AGT-604 Voice of Customer</td><td>VoCSynthesisLog.strategy_brain_view &mdash; trailing 8-quarter theme evolution + competitive theme evolution</td><td>Strategic shift in customer narrative</td></tr>
+    <tr><td>AGT-105 Sales Capacity Planning</td><td>CapacityPlan.strategy_brain_view &mdash; deployed eRep + ramp + utilization trajectory by segment, trailing 8 quarters</td><td>Capacity-bet retrospective + reallocation modeling</td></tr>
+    <tr><td>AGT-101 Quota Setting</td><td>QuotaPlanLog.strategy_brain_view &mdash; quota attainment distribution + bias by segment, trailing 8 quarters</td><td>Quota-model strategic alignment (over/under-set by segment)</td></tr>
+    <tr><td>AGT-503 Expansion Trigger</td><td>ExpansionLog.strategy_brain_view &mdash; expansion realization rate + cohort upsell trajectory by segment</td><td>Land-and-expand bet retrospective</td></tr>
+    <tr><td>AGT-404 Top-Down Forecast</td><td>TopDownForecast.strategy_brain_view &mdash; top-down vs bottoms-up reconciliation across trailing 4&ndash;8 quarters + segment-level decomposition</td><td>Multi-quarter forecast bias and structural gaps</td></tr>
+  </table>
+  <div class="alert-box alert-blue"><strong>Strategy brain-ready view extensions are a new contract obligation on the listed Tier 1 services.</strong> They differ from AGT-901's brain-ready views by (a) longer time windows, (b) cohort axis where applicable, and (c) outcome-correlation projections (e.g., ICP score &times; realized LTV). View definition lives with the owning Tier 1 service; refresh cadence is at most quarterly. Where a strategy view does not yet exist, AGT-903 declines the query and surfaces the gap rather than estimating from raw rows.</div>
+</div>
+
+<!-- ── WRITE CONTRACT ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Write contract &mdash; what AGT-903 may write</div>
+  <table>
+    <tr><th>Target</th><th>What's written</th><th>Canonical?</th></tr>
+    <tr><td><code>BrainAnalysisLog</code></td><td>Every query: question, scope, sources read with timestamps, narrative, proposed strategic actions, confidence flags, model used, token cost</td><td>No &mdash; brain's own log, shared schema with AGT-901 / AGT-902</td></tr>
+    <tr><td><code>StrategyRecommendationLog</code> (status: <code>draft</code>) &mdash; <em>new table, schema doc separate</em></td><td>Strategic recommendation memos: question, options enumerated (typically 2&ndash;4), per-option tradeoffs and risk surface, assumptions-that-must-hold, source-trace lineage, suggested human-led workstream owners</td><td>No &mdash; drafts only. Promotion to <code>under_review</code> is a CRO pickup; promotion to <code>endorsed</code> kicks off a human-led planning workstream.</td></tr>
+    <tr><td>Annual planning narrative sections</td><td>Per AGT-704 charter extension: AGT-903 may draft strategic narrative sections of the annual planning document (segment outlook, ICP review, competitive posture). Metric sections remain off-limits.</td><td>No &mdash; written into BusinessReviewLog narrative fields, not metric fields.</td></tr>
+    <tr><th colspan="3" style="background:#712B13">What AGT-903 may NEVER write</th></tr>
+    <tr><td><code>SalesPlayLibrary</code></td><td>Anything &mdash; play drafting belongs to AGT-901 / AGT-902. Strategic recommendations may suggest plays as a downstream consequence; AGT-901 actually drafts them after the strategic recommendation is endorsed.</td><td>n/a</td></tr>
+    <tr><td><code>ICPRubric</code> / <code>SegmentDefinitions</code> / <code>QuotaPlans</code> / <code>CapacityPlan</code> / <code>PricingCatalog</code></td><td>Anything &mdash; canonical configuration is Tier 1 only and changes go through the owning service's normal redesign cycle</td><td>n/a</td></tr>
+    <tr><td><code>MetricsCalc</code> / <code>WinLossLog</code> / <code>ForecastAccuracyLog</code></td><td>Anything &mdash; metric and pattern computation is Tier 1 only</td><td>n/a</td></tr>
+    <tr><td><code>MarketAssumptions</code> (AGT-205 owns)</td><td>Anything &mdash; TAM/SAM input assumptions are governed by AGT-205's analyst-input process</td><td>n/a</td></tr>
+  </table>
+</div>
+
+<!-- ── PROMOTION GATE ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Promotion gate &mdash; from draft strategic recommendation to endorsed</div>
+  <p class="prose" style="margin-bottom:12px">Strategic recommendations have a higher human gate than play drafts. Endorsement does not change canonical state &mdash; it kicks off a human-led planning workstream that may, in turn, propose changes through the relevant Tier 1 service's normal redesign cycle.</p>
+  <table>
+    <tr><th>State</th><th>Who can transition</th><th>What's required</th></tr>
+    <tr><td><code>draft</code></td><td>AGT-903 (write)</td><td>Brain produces a strategic memo with 2&ndash;4 options; lands in StrategyRecommendationLog for executive review</td></tr>
+    <tr><td><code>under_review</code></td><td>CRO (manual pickup)</td><td>CRO selects a draft to refine. May edit the option set, request additional analysis, narrow scope.</td></tr>
+    <tr><td><code>endorsed</code></td><td>CRO + CFO + (CEO if scope warrants) joint approval</td><td>Endorsement triggers a planning workstream owned by the relevant Tier 1 service(s). For ICP changes &rarr; AGT-201 redesign cycle. For capacity reallocation &rarr; AGT-105 redesign. For quota model &rarr; AGT-101. For vertical entry &rarr; cross-functional motion-build. <strong>Endorsement does not directly modify any canonical table.</strong></td></tr>
+    <tr><td><code>shelved</code></td><td>CRO</td><td>Recommendation set aside &mdash; not endorsed, not retired. Retained for historical retrospective.</td></tr>
+    <tr><td><code>retired</code></td><td>RevOps</td><td>Recommendation no longer relevant. Outcomes (if endorsed and acted on) recorded for retrospective.</td></tr>
+  </table>
+  <div class="alert-box alert-gold"><strong>Volume cap is enforced at endorsement.</strong> AGT-903 may produce many drafts &mdash; the human cost is in CRO pickup time, not in brain output. Endorsement is rare by design: a healthy cadence is 2&ndash;5 endorsed strategic recommendations per year, not per quarter. Strategy churn is a known anti-pattern; the brain produces options, not constant pivots.</div>
+</div>
+
+<!-- ── USE CASE PATTERNS ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Use case patterns</div>
+  <table>
+    <tr><th>Pattern</th><th>Trigger</th><th>Sources read</th><th>Output</th></tr>
+    <tr><td><strong>ICP fit retrospective</strong></td><td>CRO query: "Are our highest-LTV customers actually matching our ICP rubric?"</td><td>AGT-201 icp_outcome_brain_view, AGT-501 cohort_brain_view, AGT-702 strategy_brain_view</td><td>StrategyRecommendationLog memo: ICP rubric correlation analysis + 2&ndash;4 options (keep, reweight dimensions, add a dimension, narrow ICP) + tradeoffs and assumptions</td></tr>
+    <tr><td><strong>Vertical entry assessment</strong></td><td>CRO/CFO query: "Should we invest in [vertical]?"</td><td>AGT-205 strategy_brain_view (TAM/SAM), AGT-703 strategy_brain_view (win-rate in vertical), AGT-501 cohort_brain_view (vertical retention if any), AGT-604 strategy_brain_view (VoC themes), Tier 3 cohort/sizing tools where applicable</td><td>Memo: vertical sizing + opportunistic-deals retrospective + 2&ndash;4 entry options (deprioritize, opportunistic continued, lightweight focus, full GTM motion build) + capacity implications</td></tr>
+    <tr><td><strong>Strategic-bet retrospective</strong></td><td>CRO query: "Did the [Q1 last year] [pivot / launch / segment-bet] work?"</td><td>Cohort views since pivot date + win-loss evolution + capacity utilization trajectory + outcome metrics</td><td>Memo: bet vs. counterfactual, what worked, what didn't, what next quarter should change</td></tr>
+    <tr><td><strong>Capacity reallocation modeling</strong></td><td>CRO query: "If I add N reps next year, what's the highest-leverage deployment?"</td><td>AGT-105 strategy_brain_view + AGT-101 strategy_brain_view + AGT-205 TAM coverage + AGT-501 cohort_brain_view by segment</td><td>Memo: 2&ndash;4 deployment scenarios with projected attainment ranges + ramp risk + downside scenarios. Hard refusal to produce a single "best" answer.</td></tr>
+    <tr><td><strong>Pricing/packaging strategic review</strong></td><td>CRO/CFO query: "Are we leaving money on either end of pricing?"</td><td>UsageMeteringLog cohort distribution + win-rate by deal size + competitive loss-reason evolution + VoC pricing themes</td><td>Memo: distribution analysis + 2&ndash;4 packaging options + revenue-impact ranges (with explicit assumption surface, not point estimates)</td></tr>
+    <tr><td><strong>Strategic loss-pattern diagnosis</strong></td><td>CRO query: "We're losing more to [competitor] over 3 quarters. Strategic response?"</td><td>AGT-703 strategy_brain_view (multi-quarter competitive evolution) + AGT-604 strategy_brain_view + AGT-403 competitive intelligence</td><td>Memo: pattern characterization + 2&ndash;4 strategic responses (product gap, positioning, packaging, segment-narrowing) + assumption surface</td></tr>
+    <tr><td><strong>Annual planning narrative</strong></td><td>AGT-704 invokes for annual planning narrative sections (segment outlook, ICP review, competitive posture)</td><td>Strategy brain-ready views across services + prior-year endorsed StrategyRecommendationLog entries</td><td>Narrative content written to BusinessReviewLog narrative fields per AGT-704 charter extension</td></tr>
+    <tr><td><strong>NRR durability assessment</strong></td><td>CRO/CFO query: "Is our NRR durable, or held up by a few accounts?"</td><td>AGT-501 cohort_brain_view + AGT-503 strategy_brain_view + concentration analysis from MetricsCalc.strategy_brain_view</td><td>Memo: concentration/durability decomposition + scenario range + 2&ndash;4 options to broaden expansion base</td></tr>
+  </table>
+  <div class="note">Every use case produces an <em>options-shaped</em> output, not a single recommendation. If the brain finds itself with one obvious answer, it is required to articulate at least one credible alternative and the conditions under which the alternative would be correct &mdash; the discipline is to widen the executive's frame, not narrow it.</div>
+</div>
+
+<!-- ── OUTPUT STRUCTURE ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output structure &mdash; per-query StrategyRecommendationLog row + BrainAnalysisLog row</div>
+  <p class="prose" style="margin-bottom:10px">Every AGT-903 query produces both a <code>BrainAnalysisLog</code> row (shared schema with AGT-901 / AGT-902) and a <code>StrategyRecommendationLog</code> row (new schema, dedicated to strategic memos). See the StrategyRecommendationLog schema doc for field-level detail.</p>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Question</strong> &mdash; the executive query verbatim, or the AGT-704 narrative-job prompt.</li>
+    <li><strong>Scope tags</strong> &mdash; structured: which segments / verticals / time windows the analysis covers.</li>
+    <li><strong>Sources read</strong> &mdash; structured list of (table_name, view_name, last_refresh_timestamp, row_count_consumed). Every numerical claim ties back.</li>
+    <li><strong>Options enumerated</strong> &mdash; 2&ndash;4 options. Each option carries: hypothesis, rough projected impact range (not a point estimate), required investment, capacity implications, dependencies on other Tier 1 services.</li>
+    <li><strong>Tradeoffs matrix</strong> &mdash; per option: upside scenario, downside scenario, what has to be true for the option to work.</li>
+    <li><strong>Risk surface</strong> &mdash; structured enumeration: market risks, execution risks, capacity risks, model-assumption risks. Each risk carries a confidence flag.</li>
+    <li><strong>Assumptions-that-must-hold</strong> &mdash; the falsifiable assumptions underlying the analysis. If any assumption is brittle or based on stale data, surfaced explicitly.</li>
+    <li><strong>Confidence flags</strong> &mdash; per claim: <code>high_confidence</code>, <code>multi_source</code>, <code>inference</code>, <code>speculation</code>. AGT-903 is expected to use <code>speculation</code> more often than AGT-901 / AGT-902; multi-quarter strategic reasoning involves more legitimate uncertainty.</li>
+    <li><strong>Source freshness gate</strong> &mdash; if any strategy brain-ready view was stale, output flagged <code>data_staleness_acknowledged</code> and the staleness surfaced. Per AGT-704 staleness model.</li>
+    <li><strong>Suggested human-led workstream owners</strong> &mdash; if endorsed, which Tier 1 services or cross-functional groups own the resulting workstream.</li>
+    <li><strong>Cost metadata</strong> &mdash; (model, input_tokens, output_tokens, cached_tokens, cost_usd_estimate).</li>
+  </ol>
+</div>
+
+<!-- ── PROPOSED-ACTION TAXONOMY ───────────────────────────── -->
+<div class="section">
+  <div class="section-title">Proposed-action taxonomy</div>
+  <p class="prose" style="margin-bottom:10px">AGT-903's proposed actions are strategic-recommendation shaped, not play-shaped. Every action maps to a downstream human-led workstream, never to a direct table edit.</p>
+  <table>
+    <tr><th>Proposed action</th><th>Maps to downstream workstream</th><th>Approval gate</th></tr>
+    <tr><td><code>propose_icp_revision</code></td><td>AGT-201 ICP rubric redesign cycle</td><td>CRO + RevOps endorse; AGT-201 spec change is the canonical change</td></tr>
+    <tr><td><code>propose_segment_redefinition</code></td><td>AGT-201 segment-band redesign + AGT-202 routing alignment + AGT-101 quota alignment</td><td>CRO + RevOps + Finance endorse; cross-service spec change</td></tr>
+    <tr><td><code>propose_vertical_entry</code></td><td>Cross-functional motion-build: AGT-203 ABM target selection, AGT-205 sizing refresh, AGT-302 cadence orchestration, AGT-403 competitive prep, AGT-105 capacity</td><td>CRO + CFO + (CEO if material) endorse; motion plan owned by RevOps</td></tr>
+    <tr><td><code>propose_capacity_reallocation</code></td><td>AGT-105 capacity plan redesign + AGT-106 territory redesign + AGT-101 quota redesign</td><td>CRO + Finance endorse; AGT-105 owns the plan change</td></tr>
+    <tr><td><code>propose_pricing_packaging_review</code></td><td>Cross-functional pricing committee &mdash; AGT-406 CPQ catalog change + AGT-802 billing alignment + AGT-101 quota model alignment</td><td>CRO + CFO + Product endorse; pricing committee owns</td></tr>
+    <tr><td><code>flag_strategic_risk</code></td><td>n/a &mdash; the brain is naming a risk for executive attention without proposing action</td><td>None &mdash; informational</td></tr>
+    <tr><td><code>recommend_market_research_query</code></td><td>n/a &mdash; the question cannot be answered from internal data; brain is recommending external research</td><td>None &mdash; informational; may trigger external research engagement</td></tr>
+    <tr><td><code>recommend_human_query</code></td><td>n/a &mdash; the brain is saying "this is a judgment call, here's the framing"</td><td>Human picks it up or doesn't</td></tr>
+    <tr><td><code>none</code></td><td>n/a &mdash; the brain found nothing strategically actionable; output is informational</td><td>n/a</td></tr>
+  </table>
+  <div class="note">No proposed action ever bypasses an existing approval gate. AGT-903 cannot directly modify ICP, segments, quotas, capacity, territories, or pricing &mdash; it can only propose redesigns through the owning Tier 1 service's normal cycle.</div>
+</div>
+
+<!-- ── COST GUARDRAILS ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost guardrails</div>
+  <p class="prose" style="margin-bottom:10px">AGT-903 is rare-but-heavy &mdash; few queries per month, large input context, deep analysis. Sizing is unlike AGT-901 / AGT-902.</p>
+  <table>
+    <tr><th>Tactic</th><th>Implementation</th></tr>
+    <tr><td>Default model</td><td>Claude Opus tier &mdash; multi-quarter cohort reasoning is the deep-analysis case where Opus IS the default, not the opt-in. Sonnet is only used for cheap retrospective lookups inside a session (e.g., "list the prior strategic recommendations on this segment").</td></tr>
+    <tr><td>Strategy brain-ready views, not full historical tables</td><td>Cohort and trajectory projections precomputed by Tier 1 services. Without this contract, multi-quarter input would be prohibitive.</td></tr>
+    <tr><td>Prompt caching</td><td>5-minute TTL cache on system prompt + strategy view bundle. Iterative follow-up questions in the same session pay the diff only.</td></tr>
+    <tr><td>Per-query budget cap</td><td>Hard limit: 200K input + 20K output tokens per query. Queries exceeding the limit return a budget-exceeded result. Larger context window than AGT-901 / AGT-902 reflects the multi-quarter scope.</td></tr>
+    <tr><td>Monthly tier budget alert</td><td>Alert at 75% of monthly budget (CRO-configurable, default $300/month for Strategy Brain). Hard stop at 100% requires manual override. Lower volume than 901/902 but higher per-query cost.</td></tr>
+    <tr><td>Sizing ballpark</td><td>10&ndash;30 queries/month at 150K input + 10K output, Opus pricing. Annual planning weeks may concentrate usage; monthly average smooths out.</td></tr>
+    <tr><td>Refusal as cost control</td><td>If a strategy brain-ready view is missing or stale, refusal is cheaper than estimation and is the correct answer. Refusal cost &asymp; one tool-call's tokens, not a full analysis.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <p class="prose" style="margin-bottom:10px">Strategic recommendations have a longer feedback loop than play drafts &mdash; outcomes may take 2&ndash;6 quarters to validate. Eval design balances near-term proxies (option completeness, risk-surface coverage) with longer-horizon retrospective accuracy.</p>
+  <table>
+    <tr><th>Criterion</th><th>Measurement</th><th>Pass threshold</th></tr>
+    <tr><td>Source citation rate</td><td>% of numerical claims with valid source citation pointing to a real strategy brain-ready view row</td><td>&ge; 95%</td></tr>
+    <tr><td>Hallucination rate</td><td>% of outputs containing claims not supported by cited sources</td><td>&le; 2%</td></tr>
+    <tr><td>Staleness recognition</td><td>When a strategy view is stale, % of outputs that surface staleness vs. silently using stale data</td><td>100% &mdash; hard requirement</td></tr>
+    <tr><td>Option completeness</td><td>% of outputs that produce 2&ndash;4 viable options with distinct hypotheses (not minor variants of one option)</td><td>&ge; 90%</td></tr>
+    <tr><td>Risk-surface coverage</td><td>% of outputs that enumerate market risk, execution risk, capacity risk, and model-assumption risk explicitly</td><td>&ge; 90%</td></tr>
+    <tr><td>Assumption-surface honesty</td><td>% of outputs that explicitly list falsifiable assumptions underlying the analysis</td><td>&ge; 90%</td></tr>
+    <tr><td>Refusal correctness</td><td>For queries where required strategy view is missing or stale: % of outputs that refuse and surface the gap vs. estimating</td><td>100% &mdash; hard requirement</td></tr>
+    <tr><td>Retrospective accuracy</td><td>For past strategic recommendations where outcome is now known (4&ndash;6 quarters later): % where the brain's top option matched the path that produced best outcome</td><td>&ge; 50% &mdash; deliberately lower than 901/902 because strategic uncertainty is higher</td></tr>
+    <tr><td>Endorsement rate (calibration)</td><td>% of drafts that reach <code>endorsed</code> state</td><td>10&ndash;30% target band &mdash; too high suggests brain is reading leadership preference; too low suggests options are not credible</td></tr>
+    <tr><td>Decision-quality lift</td><td>Cohort comparison: outcomes following endorsed AGT-903 recommendations vs. comparable historical decisions made without the brain</td><td>Track annually; positive lift expected by Y+2 after launch</td></tr>
+  </table>
+</div>
+
+<!-- ── FAILURE MODES ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Likely cause</th><th>Action</th></tr>
+    <tr><td>Brain produces a single "right answer" instead of options</td><td>Over-confident synthesis; system prompt not enforcing options discipline</td><td>Hard fail. Eval enforces option-count &ge; 2. Tune system prompt to require articulating credible alternatives.</td></tr>
+    <tr><td>Brain estimates a Tier 1 metric instead of refusing on stale view</td><td>Refusal discipline broken; strategy view assumed available</td><td>Hard fail. Sev-2 incident treatment. Source-trace integrity is non-negotiable, same posture as AGT-901 / AGT-902.</td></tr>
+    <tr><td>Brain proposes an action that maps to direct edit of a canonical table</td><td>Action taxonomy violation</td><td>Hard fail. Eval enforces action enum + downstream-workstream mapping. Brain may never propose direct table edits.</td></tr>
+    <tr><td>Endorsement rate trending toward 0% over multiple quarters</td><td>Options not credible to executive review &mdash; brain is missing context the CRO has, or anchoring on stale strategic priors</td><td>Quarterly retrospective working session: refine system prompt, add few-shot examples from prior endorsed recommendations.</td></tr>
+    <tr><td>Endorsement rate &gt; 50%</td><td>Brain is reading leadership preference &mdash; producing options the CRO already wanted to hear</td><td>Tighten eval suite. Add adversarial fixtures where the strategically correct answer is one the operator did NOT prefer at intake.</td></tr>
+    <tr><td>Cost spiking</td><td>Likely cause: queries that should have routed to AGT-901 (current-period operational) running on Opus context unnecessarily, or full historical tables read instead of strategy views</td><td>Audit recent BrainAnalysisLog rows. Enforce strategy view requirement. Tighten intake-routing logic to short-circuit operational queries to AGT-901.</td></tr>
+    <tr><td>Strategy view missing for a Tier 1 service AGT-903 needs</td><td>Tier 1 service has not yet shipped the strategy_brain_view extension</td><td>AGT-903 declines + flags the gap to RevOps + the owning service. Not a brain failure &mdash; a contract gap. Track in upstream service backlog.</td></tr>
+  </table>
+</div>
+
+<!-- ── INVOCATION ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Invocation paths</div>
+  <table>
+    <tr><th>Path</th><th>Frequency</th><th>Initiated by</th></tr>
+    <tr><td>Executive query (chat-style interface)</td><td>Ad-hoc, rare &mdash; concentrated around planning periods</td><td>CRO, CFO, CEO, RevOps strategic leads</td></tr>
+    <tr><td>Annual planning narrative job</td><td>Once annually + mid-year refresh; AGT-704 calls AGT-903 for strategic narrative sections only</td><td>AGT-704</td></tr>
+    <tr><td>Board prep batch</td><td>Per board cycle (typically quarterly), initiated by CRO/CFO</td><td>CRO or CFO (manual trigger)</td></tr>
+    <tr><td>Strategic-bet retrospective batch</td><td>Annual or per-major-pivot retrospective</td><td>RevOps (manual trigger)</td></tr>
+  </table>
+  <div class="note">No cadence-driven invocation, ever. Strategy Brain runs only when explicitly invoked by an executive or by AGT-704 for a planning narrative job. This is the strongest invocation discipline of the three brains &mdash; reflects that strategic churn is a known anti-pattern and brain availability should not lower the cost of strategic second-guessing.</div>
+</div>
+
+<!-- ── DEPENDENCIES ON TIER 1 / TIER 3 ────────────────────── -->
+<div class="section">
+  <div class="section-title">Dependencies and likely Tier 3 tool needs</div>
+  <p class="prose" style="margin-bottom:10px">AGT-903 cannot ship usefully until two contracts are in place: (a) strategy brain-ready view extensions on the Tier 1 services listed in the read contract, and (b) at least a minimal set of cohort/trajectory Tier 3 tools.</p>
+  <table>
+    <tr><th>Dependency</th><th>Owner</th><th>Status</th></tr>
+    <tr><td>Strategy brain-ready view extensions on AGT-201, AGT-205, AGT-501, AGT-503, AGT-702, AGT-703, AGT-105, AGT-101, AGT-404, AGT-604</td><td>Each owning Tier 1 service</td><td>New contract obligation as of v37 spec</td></tr>
+    <tr><td>StrategyRecommendationLog schema (separate doc)</td><td>Schema team, parallels SalesPlayLibrary</td><td>To be drafted</td></tr>
+    <tr><td>Tier 3 cohort retention forecaster (e.g., TOOL-013)</td><td>Tools team, analogous to TOOL-004 Consumption Forecasting</td><td>Likely needed; not yet specced</td></tr>
+    <tr><td>Tier 3 segment-LTV decomposer (e.g., TOOL-014)</td><td>Tools team</td><td>Likely needed for capacity-reallocation and ICP-revision use cases; not yet specced</td></tr>
+    <tr><td>AGT-704 charter extension to delegate annual planning narrative sections to AGT-903</td><td>AGT-704</td><td>Mirrors v26 charter pattern that delegated MBR/QBR narrative to AGT-901 / AGT-902; new addition for v37</td></tr>
+  </table>
+  <div class="alert-box alert-blue"><strong>Spec-first, build-later.</strong> AGT-903 is specced now to anchor the strategy brain-ready view contract obligations on Tier 1 services. Build follows once a critical mass of strategy views ships and at least one Tier 3 cohort tool exists.</div>
+</div>
+
+<div class="footer">
+  AGT-903 Strategy Brain &middot; Layer 9 &middot; Tier 2 Brain Agent &middot; CRO + RevOps owned &middot; Schema v37<br>
+  New tables: <a href="../schema/StrategyRecommendationLog_Schema.html">StrategyRecommendationLog</a> (separate schema doc &mdash; to be drafted). Writes to <a href="../schema/BrainAnalysisLog_Schema.html">BrainAnalysisLog</a> (own log, shared with AGT-901 / AGT-902) and StrategyRecommendationLog (drafts; endorsement is human-gated).<br>
+  Triggered by: executive query &middot; AGT-704 annual planning narrative job &middot; CRO/CFO board prep batch &middot; strategic-bet retrospective batch. <strong>Never on cadence.</strong><br>
+  Reads from: strategy brain-ready views of MetricsCalc, WinLossLog, CustomerHealthLog, Accounts (ICP outcome), MarketAssumptions, VoCSynthesisLog, CapacityPlan, QuotaPlanLog, ExpansionLog, TopDownForecast<br>
+  Writes to: BrainAnalysisLog (own log) &middot; StrategyRecommendationLog (drafts only) &middot; BusinessReviewLog narrative fields (per AGT-704 v37 charter extension)<br>
+  Promotion gate: drafts &rarr; <code>under_review</code> requires CRO pickup; <code>under_review</code> &rarr; <code>endorsed</code> requires CRO + CFO + (CEO if scope warrants) joint approval. Endorsement does not modify canonical tables &mdash; it kicks off a human-led planning workstream owned by the relevant Tier 1 service(s).<br>
+  Companion to AGT-901 (current-period pipeline) and AGT-902 (per-account synthesis) &mdash; multi-quarter portfolio reasoning lives here.
+</div>
+</body>
+</html>

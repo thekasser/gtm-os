@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-014 — Segment-LTV Decomposer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.driver-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;font-family:monospace}
+.d-acv{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.d-tenure{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.d-expansion{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.d-cac{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.d-mix{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+</style>
+</head>
+<body>
+
+<h1>TOOL-014 &mdash; Segment-LTV Decomposer</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Decomposes realized LTV by segment / vertical / ICP-tier into driver components (initial ACV, tenure, expansion realization, CAC, segment mix) with confidence-banded contribution per driver &middot; Closes the LTV-attribution gap AGT-903 needs for capacity-reallocation and ICP-revision use cases</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v37</span>
+  <span class="badge badge-domain">Strategy &middot; Multi-quarter</span>
+  <span class="badge badge-model">Sonnet</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">Reads per-account LTV roll-ups bucketed by segment / vertical / ICP-tier (sourced from AGT-201 icp_outcome_brain_view + AGT-501 cohort_brain_view + AGT-503 expansion_strategy_brain_view + AGT-105 capacity_strategy_brain_view) and decomposes observed LTV deltas across buckets into driver components: initial ACV, tenure-driven retention, expansion realization, CAC, and segment-mix shift. Output is per-bucket LTV with confidence-banded driver attribution and a comparative ranking. Used by AGT-903 Strategy Brain in <code>icp_retrospective</code> ("which dimensions of the rubric correlate with realized LTV?"), <code>capacity_reallocation</code> ("if I deploy 10 reps, where's the highest LTV-per-rep payoff?"), and <code>vertical_entry</code> ("what does opportunistic-fintech LTV look like vs. core-vertical LTV?").</p>
+  <div class="alert-box alert-gold">Closes the LTV-attribution gap AGT-903 needs. Tier 1 services publish LTV rollups; that's deterministic. Decomposing observed LTV gaps between buckets into driver contributions &mdash; with honest uncertainty about which driver is load-bearing &mdash; is a distinct cognition step. Without TOOL-014, AGT-903 is forced either to estimate driver attribution itself (violating its no-recompute rule) or to hand the executive raw LTV deltas without explanation.</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "buckets": [
+    {
+      "bucket_label": "string",                 // e.g., "MM-fintech-T1", "SMB-horizontal-T2"
+      "bucket_dimensions": {
+        "segment": "SMB" | "MM" | "ENT",
+        "vertical": "string | null",
+        "icp_tier": "T1" | "T2" | "T3" | null,
+        "signup_quarter_window": ["YYYY-QN", "YYYY-QN"]   // start / end inclusive
+      },
+      "n_accounts": 0,                            // accounts in bucket; refusal threshold 25
+      "ltv_components": {
+        "initial_acv_mean": 0.0,
+        "initial_acv_p50": 0.0,
+        "initial_acv_p10": 0.0,
+        "initial_acv_p90": 0.0,
+        "observed_tenure_months_mean": 0.0,       // average months retained, observed window
+        "observed_tenure_months_p50": 0.0,
+        "expansion_realized_pct_mean": 0.0,        // 0.0–N (N&gt;1 if net expansion)
+        "expansion_realized_pct_p50": 0.0,
+        "cac_per_logo_mean": 0.0,                  // null if CAC data unavailable for bucket
+        "ltv_observed_mean": 0.0,                  // realized LTV to date
+        "ltv_observed_p50": 0.0,
+        "ltv_observed_p10": 0.0,
+        "ltv_observed_p90": 0.0
+      },
+      "data_quality_notes": ["string"]
+    }
+    // ... 2 to 12 buckets
+  ],
+  "comparison_mode": "rank" | "pairwise" | "decompose_gap",
+  // rank             = rank all buckets by LTV with driver attribution per bucket
+  // pairwise         = decompose LTV gap between two named buckets (must pass exactly 2)
+  // decompose_gap    = decompose LTV gap between best and worst bucket (auto-selected)
+  "drivers_to_include": [                         // subset of supported drivers
+    "initial_acv", "tenure", "expansion", "cac", "segment_mix"
+  ],
+  "context": {
+    "as_of_date": "ISO 8601",
+    "calling_brain": "AGT-903",
+    "calling_use_case": "icp_retrospective" | "capacity_reallocation" | "vertical_entry" | "nrr_durability" | "other"
+  }
+}</div>
+  <div class="note">Refusal triggers: any bucket with <code>n_accounts &lt; 25</code>, fewer than 2 buckets passed (decomposition is comparative by definition), or <code>cac_per_logo_mean = null</code> for buckets when <code>"cac"</code> is requested as a driver. Refusal is structured; the tool returns <code>refusal_reason</code> rather than fabricating attribution on thin data.</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "refusal_reason": "string | null",
+  "per_bucket_ltv": [
+    {
+      "bucket_label": "string",
+      "ltv_p50": 0.0,
+      "ltv_p10": 0.0,
+      "ltv_p90": 0.0,
+      "rank": 0,                                   // 1 = highest LTV
+      "rank_confidence": "high" | "medium" | "low" // low when bucket bands overlap heavily
+    }
+  ],
+  "driver_attribution": [
+    {
+      "comparison_label": "string",                // e.g., "MM-fintech-T1 vs MM-horizontal-T2"
+      "ltv_gap_observed": 0.0,                     // signed; positive = first bucket higher
+      "ltv_gap_p10": 0.0,
+      "ltv_gap_p90": 0.0,
+      "driver_contributions": [
+        {
+          "driver": "initial_acv" | "tenure" | "expansion" | "cac" | "segment_mix",
+          "contribution_p50": 0.0,                 // signed dollars contributed to gap
+          "contribution_p10": 0.0,
+          "contribution_p90": 0.0,
+          "load_bearing": true,                    // true if |p10|/|p90| both same-sign and band excludes zero
+          "rationale": "string"                    // 1–2 sentence grounded explanation
+        }
+      ],
+      "unattributed_residual_p50": 0.0,            // gap not explained by listed drivers
+      "decomposition_quality": "high" | "medium" | "low"
+    }
+  ],
+  "interpretation_for_caller": {
+    "primary_finding": "string",
+    "credible_alternative_finding": "string",      // mandatory — second reading the data also supports
+    "what_would_change_the_finding": "string"      // falsifiable condition
+  },
+  "data_quality": {
+    "buckets_evaluated": 0,
+    "buckets_refused": 0,
+    "smallest_bucket_size": 0,
+    "drivers_with_full_data": [],
+    "drivers_with_partial_data": [],
+    "quality_assessment": "high" | "medium" | "low"
+  },
+  "ungrounded_assumptions": ["string"],
+  "tool_metadata": {
+    "model": "claude-sonnet-4-6",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+  <div class="alert-box alert-red"><strong>Hard rule.</strong> The <code>load_bearing</code> flag is mechanically derived: it is <code>true</code> only when the driver's contribution band excludes zero <em>and</em> p10/p90 share sign. The LLM cannot mark a driver load-bearing on narrative grounds &mdash; the bands have to support it. Drivers with bands crossing zero are reported with <code>load_bearing = false</code> regardless of point estimate magnitude.</div>
+  <div class="alert-box alert-blue"><strong>Mandatory credible alternative.</strong> Same discipline as TOOL-013. Every interpretation includes a second reading the data also supports + a falsifiable condition. Driver attribution is especially prone to over-confident causal narratives ("MM has higher LTV because of expansion"); the alternative reading guards against the brain inheriting a single-narrative input.</div>
+</div>
+
+<!-- ── DRIVER TAXONOMY ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Driver taxonomy</div>
+  <table>
+    <tr><th>Driver</th><th>What it captures</th><th>Caveat</th></tr>
+    <tr><td><span class="driver-pill d-acv">initial_acv</span></td><td>Difference in average initial ACV at signup. Mechanical &mdash; first-period contract value on the bucket.</td><td>Often the largest single contributor. Easy to over-weight in narrative; the executive question is usually "and then what?" &mdash; tenure/expansion drivers carry the rest.</td></tr>
+    <tr><td><span class="driver-pill d-tenure">tenure</span></td><td>Difference in observed tenure (months retained), holding initial ACV constant via stratification.</td><td>Tenure for buckets with short observed windows is right-censored &mdash; tool reports observed tenure, not extrapolated lifetime. AGT-903 caller may layer TOOL-013 projections for forward tenure if needed.</td></tr>
+    <tr><td><span class="driver-pill d-expansion">expansion</span></td><td>Difference in expansion realization (NRR &gt; 100% multiplier on initial ACV).</td><td>Volatile in small buckets &mdash; bands typically wide. Tool surfaces band; brain should not narrate as "expansion is the driver" when band crosses zero.</td></tr>
+    <tr><td><span class="driver-pill d-cac">cac</span></td><td>Difference in CAC per logo. Subtractive on LTV (higher CAC reduces LTV).</td><td>CAC data is bucket-conditional. If CAC is unavailable for a bucket, driver is excluded with note in <code>data_quality</code>. Tool does not estimate missing CAC.</td></tr>
+    <tr><td><span class="driver-pill d-mix">segment_mix</span></td><td>Compositional effect: shift in sub-segment distribution within the bucket explains some/all of the gap.</td><td>Most-overlooked driver. When a "high-LTV bucket" is actually a different mix of sub-segments, attribution to ICP fit or sales motion is misleading. Tool computes segment_mix as a residual decomposition step; if it's load-bearing the brain must say so.</td></tr>
+  </table>
+  <div class="note">Driver attribution uses standard counterfactual decomposition (Oaxaca&ndash;Blinder-style on LTV components, with bootstrap intervals on each contribution). The numerical method runs in code; the LLM characterizes which drivers are operationally meaningful for the caller's use case.</div>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-903 Strategy Brain</td><td>Primary caller. Used in <code>icp_retrospective</code> (which ICP dimensions correlate with realized LTV?), <code>capacity_reallocation</code> (where's the highest LTV-per-rep payoff?), <code>vertical_entry</code> (what's opportunistic-vertical LTV vs core-vertical LTV?), <code>nrr_durability</code> (is concentration in a few high-LTV accounts driving the headline number?). Brain assembles bucket roll-ups from multiple Tier 1 strategy_brain_views, calls TOOL-014 with the assembled bucket set, integrates output into the StrategyRecommendationLog memo.</td></tr>
+    <tr><td>AGT-704 Business Review Orchestrator</td><td>Indirect &mdash; only via AGT-903 narrative jobs (annual planning, mid-year review). AGT-704 does not call TOOL-014 directly.</td></tr>
+    <tr><td>RevOps direct (workspace UI)</td><td>For ad-hoc LTV-decomposition investigations &mdash; e.g., "what's driving the 30% LTV gap between MM-T1 and MM-T2?" Bypasses AGT-903 only when the question is descriptive (not strategic-recommendation-shaped).</td></tr>
+  </table>
+  <div class="alert-box alert-amber"><strong>Out-of-list callers.</strong> AGT-201 ICP Scorer and AGT-105 Sales Capacity Planning do not call TOOL-014. ICP rubric edits go through AGT-201's analyst-input redesign cycle; capacity-plan changes go through AGT-105's deterministic process. TOOL-014 informs strategic recommendations &mdash; it does not feed back into Tier 1 service computations.</div>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Numerical decomposition, not LLM gut feel.</strong> Same as TOOL-004 / TOOL-013. Counterfactual decomposition + bootstrap intervals run in code. The LLM characterizes operational meaning; it does not invent driver contributions.</li>
+    <li><strong>Load-bearing is mechanical, not narrative.</strong> A driver is load-bearing only when its bootstrap band excludes zero with same-sign p10/p90. The LLM cannot promote a driver to load-bearing on storytelling grounds.</li>
+    <li><strong>Mandatory credible alternative.</strong> Same as TOOL-013. Driver narratives are especially prone to spurious causal stories ("we win in fintech because of expansion"); the alternative reading + falsifiable condition is a hard requirement.</li>
+    <li><strong>Refusal on thin buckets and missing drivers.</strong> Buckets &lt; 25 accounts refuse. Drivers without supporting data (e.g., CAC for a bucket without CAC roll-up) are excluded with note, not estimated. Refusal cost ≈ one round-trip's tokens.</li>
+    <li><strong>Segment-mix is a first-class driver.</strong> Segment-mix attribution is the most-overlooked decomposition step and the most common source of false strategic narratives. Tool always evaluates segment_mix when bucket dimensions support it; the LLM must mention it when load-bearing.</li>
+    <li><strong>Right-censoring is honest.</strong> Tenure for buckets with short observed windows is reported as observed tenure, with explicit note that lifetime is right-censored. Tool does not extrapolate to lifetime LTV; that is TOOL-013's job (cohort projection) when the brain layers them.</li>
+    <li><strong>No external data.</strong> Tool reads only the bucket roll-ups passed by the caller. Audit trail traces every contribution back to specific bucket rows.</li>
+  </ol>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>30K tokens (up to 12 buckets × multi-driver components × bootstrap inputs; bounded at 30K)</td></tr>
+    <tr><td>Per-call output budget</td><td>4K tokens (per-bucket rank + driver attribution per comparison + interpretation)</td></tr>
+    <tr><td>Default model</td><td>Sonnet &mdash; multi-bucket attribution and operational interpretation justify the step up from Haiku. Numerical decomposition runs in code.</td></tr>
+    <tr><td>Per-call cost estimate</td><td>~$0.20 per call at Sonnet pricing</td></tr>
+    <tr><td>Monthly cap (default)</td><td>$150/mo &mdash; bounds usage to ~750 calls/month, well above expected AGT-903 query volume</td></tr>
+    <tr><td>Frequency expectation</td><td>Similar to TOOL-013: AGT-903 invokes 10&ndash;30 queries/month, of which roughly half call TOOL-014 (often paired with TOOL-013 in the same query). Annual planning and capacity-reallocation cycles concentrate usage.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Measurement</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>Output validates against output schema</td><td>100% (hard)</td></tr>
+    <tr><td>Decomposition closure</td><td>For each comparison: |ltv_gap_observed − sum(driver_contributions_p50) − unattributed_residual_p50| &lt; 1% of |ltv_gap_observed|</td><td>100% (hard) &mdash; decomposition must add up</td></tr>
+    <tr><td>Load-bearing flag honesty</td><td>For 20 cases with deliberately inserted band-crossing-zero drivers, % where <code>load_bearing = false</code> on those drivers</td><td>100% (hard)</td></tr>
+    <tr><td>Driver attribution calibration</td><td>For 20 retrospective cases with known true drivers (synthetic + simulated), % where the load-bearing driver flagged by the tool matches the synthetic ground truth</td><td>&ge; 75%</td></tr>
+    <tr><td>Refusal correctness</td><td>For deliberately undersized buckets (&lt; 25) or missing CAC when requested, % where tool refuses with structured <code>refusal_reason</code></td><td>100% (hard)</td></tr>
+    <tr><td>Mandatory alternative</td><td>% of non-refusal outputs with non-empty <code>credible_alternative_finding</code> and non-empty <code>what_would_change_the_finding</code></td><td>100% (hard)</td></tr>
+    <tr><td>Segment-mix surfacing</td><td>For 10 cases where segment_mix is constructed to be load-bearing, % where output identifies segment_mix in <code>load_bearing = true</code> drivers and mentions it in <code>primary_finding</code></td><td>&ge; 90%</td></tr>
+    <tr><td>P95 latency</td><td>End-to-end (decomposition + bootstrap + LLM interpretation)</td><td>&le; 6s</td></tr>
+  </table>
+</div>
+
+<!-- ── FAILURE MODES ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Cause</th><th>Action</th></tr>
+    <tr><td>Output marks expansion as load-bearing when contribution band crosses zero</td><td>LLM overriding the mechanical load_bearing rule</td><td>Hard fail. Eval enforces; rule output is source of truth for the flag.</td></tr>
+    <tr><td>Decomposition residual is &gt; 5% of observed LTV gap</td><td>Bug in decomposition math or missing driver</td><td>Hard fail. Decomposition must close. If a driver is missing, it should be added or the gap should be classified as <code>unattributed_residual</code>.</td></tr>
+    <tr><td>Tool reports CAC contribution when bucket CAC was null on input</td><td>Tool fabricating CAC where data was absent</td><td>Hard fail. Drivers without supporting data are excluded with note, never estimated.</td></tr>
+    <tr><td>Output ignores segment_mix when bucket dimensions clearly span sub-segments</td><td>System prompt not enforcing segment_mix evaluation</td><td>Eval includes 10 segment-mix-load-bearing fixtures; ≥ 90% surfacing required.</td></tr>
+    <tr><td>Output produces a single-narrative interpretation without an alternative</td><td>System prompt not enforcing the mandatory credible-alternative field</td><td>Hard fail. Eval enforces non-empty <code>credible_alternative_finding</code>.</td></tr>
+    <tr><td>AGT-903 cost spike traceable to TOOL-014 being called per-bucket-pair instead of per-comparison</td><td>Brain calling tool many times for related comparisons in one session</td><td>Caller responsibility. AGT-903 should pass full bucket sets and use <code>comparison_mode</code> to do all comparisons in one call.</td></tr>
+  </table>
+</div>
+
+<!-- ── INTERACTION WITH TOOL-013 + AGT-903 ──────────────── -->
+<div class="section">
+  <div class="section-title">Interaction with TOOL-013 and AGT-903</div>
+  <p class="prose"><strong>Layered with TOOL-013.</strong> TOOL-014 reports observed LTV with right-censoring honesty; for forward-projected lifetime LTV, AGT-903 is expected to layer TOOL-013 cohort retention forecasts on top. The two tools are not fungible: TOOL-013 projects retention curves forward, TOOL-014 attributes observed LTV gaps. AGT-903 calls one or both depending on whether the strategic question is retrospective (TOOL-014 alone often sufficient) or forward-looking (both).</p>
+  <p class="prose" style="margin-top:8px"><strong>Single-threaded audit trail.</strong> Same as TOOL-013. AGT-903 calls TOOL-014 via Anthropic tool-use; the call ID lands in <code>tool_calls_made</code> on BrainAnalysisLog; driver-attribution numbers cited in StrategyRecommendationLog memos trace back via that ID. AGT-903's source-citation discipline (≥ 95% of numerical claims must cite) treats TOOL-014 outputs as first-class citation targets.</p>
+  <p class="prose" style="margin-top:8px"><strong>Refusal contagion.</strong> When TOOL-014 refuses (thin buckets, missing CAC), AGT-903 either surfaces the gap and declines or proceeds without TOOL-014 input and marks affected claims as <code>speculation</code> confidence. Silently dropping the refusal and producing a confident driver narrative is a hard fail for AGT-903 (Sev-2 incident treatment per its spec).</p>
+  <p class="prose" style="margin-top:8px"><strong>Options-discipline propagation.</strong> When TOOL-014 surfaces multiple plausible load-bearing drivers (e.g., both expansion and segment_mix have bands excluding zero), AGT-903's options-enumeration in the StrategyRecommendationLog memo should reflect both readings. The mandatory <code>credible_alternative_finding</code> field is the explicit handoff the brain uses to populate the alternative option.</p>
+</div>
+
+<div class="footer">
+  TOOL-014 Segment-LTV Decomposer &middot; Tier 3 Specialist Tool &middot; Schema v37<br>
+  Stateless. Reads bucket-rolled LTV components only. Logged via caller's BrainAnalysisLog with <code>tool_calls_made</code> entry.<br>
+  Default model: Sonnet (LLM for characterization + interpretation; numerical decomposition + load-bearing rule in code).<br>
+  Per-call budget: 30K input + 4K output. Monthly cap: $150/mo (~750 calls).<br>
+  Closes: LTV-attribution gap that AGT-903 needs for capacity-reallocation, ICP-revision, and vertical-entry use cases &mdash; specced alongside TOOL-013 (cohort retention forecaster) per v37 changelog ripple.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-903_Strategy_Brain.html">AGT-903 Strategy Brain</a> &middot; <a href="TOOL-013_Cohort_Retention_Forecaster.html">TOOL-013 Cohort Retention Forecaster</a> (forward-projection counterpart) &middot; <a href="TOOL-004_Consumption_Forecasting.html">TOOL-004 Consumption Forecasting</a>
+</div>
+</body>
+</html>

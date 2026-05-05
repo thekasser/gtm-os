@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>StrategyRecommendationLog — Production Schema</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-schema{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.alert-green{background:#E1F5EE;border-left:3px solid #5DCAA5;color:#085041}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.req{color:#712B13;font-weight:700;font-size:10px}
+.opt{color:#888;font-weight:600;font-size:10px}
+.state-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;font-family:monospace}
+.s-draft{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.s-review{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.s-endorsed{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.s-shelved{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.s-retired{background:#f0f0f0;color:#555;border:1px solid #ccc}
+</style>
+</head>
+<body>
+
+<h1>StrategyRecommendationLog &mdash; Production Schema</h1>
+<div class="subtitle">Layer 9 strategic memos &middot; AGT-903 proposes options, executives endorse, Tier 1 services run the redesign cycle &middot; No direct canonical edits &middot; Promotion-gated state machine</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L9 &middot; Schema</span>
+  <span class="badge badge-status">Production &middot; v37</span>
+  <span class="badge badge-schema">Owns: StrategyRecommendationLog</span>
+  <span class="badge badge-owner">AGT-903 (drafts) · CRO + CFO + (CEO if material) (endorsement gate)</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">StrategyRecommendationLog is the workspace where AGT-903 Strategy Brain drafts strategic recommendations for executive review. It is the operational mechanism for the architectural commitment that <em>strategic decisions remain with humans and remain subject to fiduciary deterministic processes</em>. Unlike SalesPlayLibrary, no execution engine reads endorsed rows directly &mdash; endorsement triggers human-led planning workstreams that flow through the relevant Tier 1 service's normal redesign cycle.</p>
+  <div class="alert-box alert-gold"><strong>Workspace, not registry.</strong> StrategyRecommendationLog records strategic memos at every state, but no row is ever read by an execution agent. AGT-302 is irrelevant here. The downstream consumer of an endorsed recommendation is a <em>human-led workstream</em>, owned by the Tier 1 service whose canonical configuration is implicated.</p>
+  </div>
+</div>
+
+<!-- ── STATE MACHINE ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">State machine</div>
+  <table>
+    <tr><th>State</th><th>Meaning</th><th>Who can write/transition</th></tr>
+    <tr><td><span class="state-pill s-draft">draft</span></td><td>AGT-903 has produced a strategic memo with 2&ndash;4 options. Lives in workspace for executive review. No downstream effect.</td><td>AGT-903 inserts. No one else writes to <code>draft</code> rows.</td></tr>
+    <tr><td><span class="state-pill s-review">under_review</span></td><td>CRO has picked up a draft and is refining it. May edit option set, narrow scope, request additional analysis.</td><td>CRO (manual transition from <code>draft</code>). Edits permitted. Re-running additional AGT-903 analysis in this state appends to <code>analysis_iterations</code>, does not create a new row.</td></tr>
+    <tr><td><span class="state-pill s-endorsed">endorsed</span></td><td>Recommendation approved by CRO + CFO (+ CEO if scope warrants). Triggers a human-led planning workstream owned by the relevant Tier 1 service(s). <strong>Does not modify any canonical table directly.</strong></td><td>CRO + CFO joint approval; CEO required if <code>scope_severity = material</code>. Approver fields tracked.</td></tr>
+    <tr><td><span class="state-pill s-shelved">shelved</span></td><td>Recommendation set aside &mdash; not endorsed, not retired. Retained for historical retrospective and future reconsideration.</td><td>CRO. Reversible to <code>under_review</code> if CRO re-engages.</td></tr>
+    <tr><td><span class="state-pill s-retired">retired</span></td><td>Recommendation no longer relevant. Outcomes (if endorsed and acted on) recorded for retrospective.</td><td>RevOps. Terminal except for retrospective annotation.</td></tr>
+  </table>
+  <p class="prose" style="margin-top:12px">Allowed transitions:</p>
+  <ul style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><code>draft</code> &rarr; <code>under_review</code> (CRO pickup)</li>
+    <li><code>draft</code> &rarr; <code>retired</code> (rejected without further work)</li>
+    <li><code>under_review</code> &rarr; <code>endorsed</code> (joint approval; CEO if material)</li>
+    <li><code>under_review</code> &rarr; <code>shelved</code> (CRO sets aside without endorsing)</li>
+    <li><code>under_review</code> &rarr; <code>retired</code> (rejected after review)</li>
+    <li><code>shelved</code> &rarr; <code>under_review</code> (CRO re-engages later)</li>
+    <li><code>endorsed</code> &rarr; <code>retired</code> (workstream complete, retrospective period elapsed)</li>
+    <li>No backward transitions from <code>endorsed</code> to <code>under_review</code>. To revise an endorsed recommendation, copy into a new <code>draft</code>.</li>
+  </ul>
+</div>
+
+<!-- ── NO VOLUME CAP ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">No volume cap &mdash; cadence is the natural limiter</div>
+  <p class="prose" style="margin-bottom:10px">Unlike SalesPlayLibrary, StrategyRecommendationLog has no hard volume cap on endorsed entries. The natural limiter is executive bandwidth and the deliberate rarity of strategic-decision cadence. AGT-903 may draft any volume of recommendations &mdash; CRO pickup time and joint-approval requirements are the bottleneck.</p>
+  <table>
+    <tr><th>Soft monitoring</th><th>Default threshold</th><th>Configurable by</th></tr>
+    <tr><td>Endorsed recommendations per year</td><td>Healthy band: 2&ndash;5 per year. &gt; 8 in a single year flags strategic-churn anti-pattern for review.</td><td>CRO via <code>StrategyRecommendationConfig</code> (L0 table).</td></tr>
+    <tr><td>Drafts pending CRO pickup &gt; 30 days</td><td>Auto-stale flag. CRO dashboard surfaces. Eligible for auto-retirement at 90 days.</td><td>CRO.</td></tr>
+    <tr><td>Strategic-churn pattern (multiple endorsed recommendations on the same canonical config within 4 quarters)</td><td>Flag for retrospective: are we second-guessing?</td><td>RevOps quarterly review.</td></tr>
+  </table>
+  <div class="alert-box alert-amber">Strategic churn is a known anti-pattern. Brain availability should not lower the cost of strategic second-guessing &mdash; the whole point of endorsement gating is to make strategic changes deliberate, not frictionless.</div>
+</div>
+
+<!-- ── SCHEMA DEFINITION ───────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema definition</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+    <tr><td><code>recommendation_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>Primary key.</td></tr>
+    <tr><td><code>state</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td><code>draft</code> / <code>under_review</code> / <code>endorsed</code> / <code>shelved</code> / <code>retired</code>. Transitions enforced via trigger.</td></tr>
+    <tr><td><code>question</code></td><td>TEXT</td><td><span class="req">REQ</span></td><td>The executive query that triggered the analysis, verbatim. Or the AGT-704 narrative-job prompt.</td></tr>
+    <tr><td><code>scope_tags</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Structured: which segments / verticals / time windows the analysis covers. Used for retrospective lookup and to detect strategic-churn pattern.</td></tr>
+    <tr><td><code>scope_severity</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td><code>routine</code> / <code>significant</code> / <code>material</code>. Material requires CEO approval at endorsement. Set by AGT-903 at draft time based on which canonical configs are implicated; CRO may revise during <code>under_review</code>.</td></tr>
+    <tr><td><code>action_type</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td>Per AGT-903 action taxonomy: <code>propose_icp_revision</code> / <code>propose_segment_redefinition</code> / <code>propose_vertical_entry</code> / <code>propose_capacity_reallocation</code> / <code>propose_pricing_packaging_review</code> / <code>flag_strategic_risk</code> / <code>recommend_market_research_query</code> / <code>recommend_human_query</code> / <code>none</code>.</td></tr>
+    <tr><td><code>options_enumerated</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Array of 2&ndash;4 options. Each option carries: <code>option_label</code>, <code>hypothesis</code>, <code>projected_impact_range</code> (NOT a point estimate), <code>required_investment</code>, <code>capacity_implications</code>, <code>tier1_dependencies</code> (array of AGT-IDs whose redesign is implicated). JSON schema validated.</td></tr>
+    <tr><td><code>tradeoffs_matrix</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Per option: <code>upside_scenario</code>, <code>downside_scenario</code>, <code>preconditions_for_success</code>. Structured for matrix rendering in the workspace UI.</td></tr>
+    <tr><td><code>risk_surface</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Structured enumeration: <code>market_risks</code>, <code>execution_risks</code>, <code>capacity_risks</code>, <code>model_assumption_risks</code>. Each risk carries a <code>confidence_flag</code> (<code>high</code> / <code>medium</code> / <code>low</code> / <code>speculation</code>). Eval criterion enforces presence of all four risk classes &ge; 90% of outputs.</td></tr>
+    <tr><td><code>assumptions_must_hold</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Array of falsifiable assumptions underlying the analysis. Each: <code>assumption</code>, <code>evidence_basis</code>, <code>brittleness</code> (<code>brittle</code> / <code>stable</code> / <code>untested</code>), <code>source_ref</code> if applicable. Brittle assumptions surfaced in workspace UI as banners.</td></tr>
+    <tr><td><code>sources_read</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Array of (<code>table_name</code>, <code>view_name</code>, <code>last_refresh_timestamp</code>, <code>row_count_consumed</code>). Every numerical claim in narrative ties back. Same shape as BrainAnalysisLog.sources_read for consistency.</td></tr>
+    <tr><td><code>narrative</code></td><td>TEXT</td><td><span class="req">REQ</span></td><td>Brain's prose memo, with inline source citations matching <code>sources_read</code> (e.g., <code>[src:1]</code>).</td></tr>
+    <tr><td><code>suggested_workstream_owners</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>If endorsed, which Tier 1 services or cross-functional groups own the resulting workstream. Array of (<code>owner</code>, <code>scope_of_responsibility</code>). Example: <code>[{"owner":"AGT-201","scope_of_responsibility":"ICP rubric redesign cycle"}, {"owner":"AGT-202","scope_of_responsibility":"routing alignment"}]</code>.</td></tr>
+    <tr><td><code>data_staleness_acknowledged</code></td><td>BOOLEAN</td><td><span class="req">REQ</span></td><td>TRUE if any strategy brain-ready view consumed was stale. If TRUE, narrative MUST surface staleness explicitly. Hard requirement &mdash; eval enforces.</td></tr>
+    <tr><td><code>originating_proposal_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>FK to BrainAnalysisLog.proposal_id of the AGT-903 output that drafted this recommendation. Lineage anchor.</td></tr>
+    <tr><td><code>writer_agent_id</code></td><td>VARCHAR(16)</td><td><span class="req">REQ</span></td><td>Always <code>AGT-903</code> for this table. Constraint enforced.</td></tr>
+    <tr><td><code>created_at</code></td><td>TIMESTAMPTZ</td><td><span class="req">REQ</span></td><td>DEFAULT NOW().</td></tr>
+    <tr><td><code>analysis_iterations</code></td><td>JSONB</td><td><span class="opt">opt</span></td><td>Append-only log of additional AGT-903 analyses run during <code>under_review</code> (e.g., CRO requests deeper sensitivity analysis on option 2). Each iteration: timestamp, additional question, additional sources read, additional narrative.</td></tr>
+    <tr><td><code>picked_up_by_user_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Set on <code>draft</code> &rarr; <code>under_review</code>. Must be CRO-role user.</td></tr>
+    <tr><td><code>picked_up_at</code></td><td>TIMESTAMPTZ</td><td><span class="opt">opt</span></td><td>Set on <code>draft</code> &rarr; <code>under_review</code>.</td></tr>
+    <tr><td><code>edits_during_review</code></td><td>JSONB</td><td><span class="opt">opt</span></td><td>Diff log of CRO edits during <code>under_review</code> (option-set narrowing, scope changes, risk-surface additions). Calibration signal: heavy edits = brain drafts are starting points; light edits = brain is calibrated.</td></tr>
+    <tr><td><code>cro_approver_user_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Required to transition to <code>endorsed</code>.</td></tr>
+    <tr><td><code>cfo_approver_user_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Required to transition to <code>endorsed</code>.</td></tr>
+    <tr><td><code>ceo_approver_user_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Required to transition to <code>endorsed</code> when <code>scope_severity = material</code>.</td></tr>
+    <tr><td><code>endorsed_option_label</code></td><td>VARCHAR(64)</td><td><span class="opt">opt</span></td><td>Required at <code>endorsed</code>. Identifies which option from <code>options_enumerated</code> the executives endorsed. Workstream proceeds against this option.</td></tr>
+    <tr><td><code>endorsed_at</code></td><td>TIMESTAMPTZ</td><td><span class="opt">opt</span></td><td>Set on <code>under_review</code> &rarr; <code>endorsed</code>.</td></tr>
+    <tr><td><code>shelved_at</code></td><td>TIMESTAMPTZ</td><td><span class="opt">opt</span></td><td>Set on transition to <code>shelved</code>.</td></tr>
+    <tr><td><code>shelved_reason</code></td><td>TEXT</td><td><span class="opt">opt</span></td><td>CRO-provided. Surfaces in retrospective.</td></tr>
+    <tr><td><code>retired_at</code></td><td>TIMESTAMPTZ</td><td><span class="opt">opt</span></td><td>Set on transition to <code>retired</code>.</td></tr>
+    <tr><td><code>retired_by_user_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Set on transition to <code>retired</code>.</td></tr>
+    <tr><td><code>retire_reason</code></td><td>ENUM</td><td><span class="opt">opt</span></td><td><code>workstream_complete</code> / <code>superseded</code> / <code>rejected_at_review</code> / <code>rejected_at_draft</code> / <code>auto_stale</code>.</td></tr>
+    <tr><td><code>retrospective_outcomes</code></td><td>JSONB</td><td><span class="opt">opt</span></td><td>For endorsed recommendations: measured outcomes 4&ndash;6 quarters out vs. projected impact range. Populated by RevOps. Read by AGT-903 in next strategic-bet retrospective batch and used for retrospective-accuracy eval criterion.</td></tr>
+    <tr><td><code>cost_metadata</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>(<code>model</code>, <code>input_tokens</code>, <code>output_tokens</code>, <code>cached_tokens</code>, <code>cost_usd_estimate</code>). Same shape as BrainAnalysisLog cost metadata.</td></tr>
+  </table>
+</div>
+
+<!-- ── KEYS & CONSTRAINTS ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Keys, constraints, indexes</div>
+  <table>
+    <tr><th>Element</th><th>Definition</th><th>Why</th></tr>
+    <tr><td>Primary key</td><td><code>recommendation_id</code></td><td>Surrogate.</td></tr>
+    <tr><td>Index 1</td><td><code>(state, created_at DESC) WHERE state IN ('draft','under_review')</code></td><td>Workspace UI: show pending drafts/reviews to CRO.</td></tr>
+    <tr><td>Index 2</td><td><code>(state, endorsed_at DESC) WHERE state = 'endorsed'</code></td><td>Endorsed recommendations dashboard + retrospective workstream tracking.</td></tr>
+    <tr><td>Index 3</td><td><code>GIN(scope_tags)</code></td><td>Strategic-churn detection: find prior recommendations on the same scope.</td></tr>
+    <tr><td>Index 4</td><td><code>(originating_proposal_id)</code></td><td>BrainAnalysisLog lineage lookup.</td></tr>
+    <tr><td>Index 5</td><td><code>(action_type, created_at DESC)</code></td><td>Per-action-type history (eval, brain calibration).</td></tr>
+    <tr><td>CHECK: writer_agent_id</td><td><code>writer_agent_id = 'AGT-903'</code></td><td>This table is AGT-903 only. AGT-901/902 cannot write here. Hard constraint.</td></tr>
+    <tr><td>CHECK: option count</td><td><code>jsonb_array_length(options_enumerated) BETWEEN 2 AND 4</code> when <code>action_type</code> is one of the <code>propose_*</code> values</td><td>Options discipline &mdash; enforces "produce alternatives, not single answers" architectural commitment. Exempt for <code>flag_strategic_risk</code> / <code>recommend_*</code> / <code>none</code>.</td></tr>
+    <tr><td>CHECK: risk-surface coverage</td><td><code>risk_surface</code> JSONB must have keys <code>market_risks</code>, <code>execution_risks</code>, <code>capacity_risks</code>, <code>model_assumption_risks</code> when <code>action_type</code> is one of the <code>propose_*</code> values</td><td>Risk-surface discipline. Same exemption as above.</td></tr>
+    <tr><td>CHECK: endorsed requires approvers</td><td>If <code>state = 'endorsed'</code>: <code>cro_approver_user_id IS NOT NULL AND cfo_approver_user_id IS NOT NULL AND endorsed_option_label IS NOT NULL AND endorsed_at IS NOT NULL</code>. If <code>scope_severity = 'material'</code>, also require <code>ceo_approver_user_id IS NOT NULL</code>.</td><td>Endorsement gate &mdash; joint approval required.</td></tr>
+    <tr><td>CHECK: endorsed_option_label valid</td><td>If <code>state = 'endorsed'</code>, <code>endorsed_option_label</code> must match an <code>option_label</code> present in <code>options_enumerated</code>.</td><td>Cannot endorse a phantom option.</td></tr>
+    <tr><td>CHECK: state machine</td><td>Trigger validates allowed transitions (per state machine table). Backward transitions from <code>endorsed</code> blocked. <code>shelved</code> &rarr; <code>under_review</code> permitted.</td><td>Auditability + integrity.</td></tr>
+    <tr><td>CHECK: staleness flag</td><td>If <code>data_staleness_acknowledged = TRUE</code>, <code>narrative</code> must contain a staleness-acknowledgement marker (regex check or structured tag in JSONB sources_read). Eval also enforces.</td><td>Source-trace integrity discipline shared across all three brains.</td></tr>
+    <tr><td>FK</td><td><code>originating_proposal_id</code> &rarr; BrainAnalysisLog.proposal_id; user IDs &rarr; Users (with role check on CRO/CFO/CEO fields).</td><td>Referential integrity + role enforcement.</td></tr>
+  </table>
+</div>
+
+<!-- ── DOWNSTREAM WORKSTREAM TRIGGER ──────────────────────── -->
+<div class="section">
+  <div class="section-title">Downstream &mdash; what happens when a recommendation is endorsed</div>
+  <p class="prose" style="margin-bottom:10px">Endorsement does NOT modify any canonical table. It triggers a planning workstream owned by the Tier 1 service(s) named in <code>suggested_workstream_owners</code>. The workstream's outcome may, in turn, propose canonical changes through that service's normal redesign cycle &mdash; with all the deterministic governance that cycle entails.</p>
+  <table>
+    <tr><th>Endorsed action_type</th><th>Workstream owner(s)</th><th>What the owner does</th></tr>
+    <tr><td><code>propose_icp_revision</code></td><td>AGT-201</td><td>Initiates ICP rubric redesign cycle. May result in spec change to AGT-201 + downstream recalibration of routing (AGT-202), prioritization (AGT-206), and TAM sizing (AGT-205).</td></tr>
+    <tr><td><code>propose_segment_redefinition</code></td><td>AGT-201 + AGT-202 + AGT-101</td><td>Cross-service segment-band redesign. May ripple to quota model, territory design (AGT-106), capacity (AGT-105).</td></tr>
+    <tr><td><code>propose_vertical_entry</code></td><td>AGT-203 + AGT-205 + AGT-302 + AGT-403 + AGT-105 (cross-functional motion-build)</td><td>RevOps-led motion plan: ABM target list (AGT-203), TAM/SAM refresh (AGT-205), cadence orchestration (AGT-302), competitive prep (AGT-403), capacity allocation (AGT-105).</td></tr>
+    <tr><td><code>propose_capacity_reallocation</code></td><td>AGT-105 + AGT-106 + AGT-101</td><td>Capacity plan redesign + territory rebalance + quota recalibration. AGT-105 owns the integrated plan output.</td></tr>
+    <tr><td><code>propose_pricing_packaging_review</code></td><td>Cross-functional pricing committee + AGT-406 + AGT-802 + AGT-101</td><td>Pricing committee runs the analysis; CPQ catalog change (AGT-406), billing alignment (AGT-802), quota model recalibration (AGT-101).</td></tr>
+    <tr><td><code>flag_strategic_risk</code></td><td>n/a</td><td>Informational endorsement (rare): executive team acknowledges the risk and may direct attention without triggering a workstream.</td></tr>
+    <tr><td><code>recommend_market_research_query</code></td><td>RevOps strategic research function</td><td>External research engagement. Outcomes may feed back into a future AGT-903 query.</td></tr>
+  </table>
+  <div class="alert-box alert-red"><strong>No row in StrategyRecommendationLog ever directly modifies a canonical table.</strong> Even at the most senior endorsement, the recommendation is an input to a Tier 1 service's redesign cycle, never a substitute for it. This is the strongest separation between Tier 2 reasoning and Tier 1 deterministic governance in the whole OS.</div>
+</div>
+
+<!-- ── BRAIN CALIBRATION FEEDBACK ─────────────────────────── -->
+<div class="section">
+  <div class="section-title">Brain calibration feedback loop</div>
+  <p class="prose" style="margin-bottom:10px">StrategyRecommendationLog closes the loop on AGT-903 quality. Four signals matter:</p>
+  <table>
+    <tr><th>Signal</th><th>What it measures</th><th>Brain calibration use</th></tr>
+    <tr><td>Endorsement rate (per quarter, per action_type)</td><td>How often AGT-903 drafts make it through CRO review to endorsement</td><td>Per AGT-903 eval criterion target band 10&ndash;30%. &lt; 10% &rarr; options not credible. &gt; 30% &rarr; brain may be reading leadership preference.</td></tr>
+    <tr><td>Edit volume in <code>edits_during_review</code></td><td>How heavily CRO rewrites option set or narrows scope during review</td><td>Heavy edits &rarr; drafts are starting points. Light edits &rarr; brain is calibrated. Used to tune system prompt + few-shot examples.</td></tr>
+    <tr><td>Brittle-assumption surfacing rate</td><td>For endorsed recommendations later retrospectively known to have failed: % where brain had flagged the failing assumption as <code>brittle</code> at draft time</td><td>Calibration of assumption-surface honesty. Brain should pre-flag the failure modes that actually materialize.</td></tr>
+    <tr><td>Retrospective outcomes vs projected impact range</td><td>For endorsed recommendations 4&ndash;6 quarters out: did actual outcomes fall within the projected range, above, or below?</td><td>Retrospective accuracy criterion (target &ge; 50%). Read by AGT-903 in next strategic-bet retrospective batch.</td></tr>
+  </table>
+  <div class="alert-box alert-green">Strategic recommendations have a longer feedback loop than play drafts. Calibration is a multi-quarter discipline; expect signal stabilization no earlier than Y+1 after launch and meaningful retrospective accuracy data no earlier than Y+2.</div>
+</div>
+
+<!-- ── RETENTION ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Retention</div>
+  <table>
+    <tr><th>Tier</th><th>Window</th><th>Access</th></tr>
+    <tr><td>Hot</td><td>Active states (<code>draft</code> / <code>under_review</code> / <code>endorsed</code>) or recently retired (last 90 days)</td><td>Workspace UI, CRO dashboard, AGT-704 annual planning narrative job</td></tr>
+    <tr><td>Warm</td><td>Retired or shelved 90 days to 4 years</td><td>Annual retrospective batch, brain calibration analysis, strategic-churn pattern detection</td></tr>
+    <tr><td>Cold</td><td>4 years to 10 years</td><td>Audit access, multi-year strategic retrospective, board historical inquiry</td></tr>
+  </table>
+  <div class="note">Retention windows are longer than SalesPlayLibrary (warm 18mo, cold 7y) because strategic decisions have longer relevance horizons. A vertical-entry recommendation endorsed in year 1 may remain referenceable through year 4 of that vertical's GTM motion.</div>
+</div>
+
+<div class="footer">
+  StrategyRecommendationLog &middot; Production Schema &middot; Layer 9 &middot; Schema v37<br>
+  Owners: AGT-903 (drafts) · CRO + CFO + (CEO if material) (endorsement gate). Retrospective outcomes populated by RevOps.<br>
+  State machine enforces endorsement gate. No volume cap (executive bandwidth + deliberate cadence are the limiters).<br>
+  Read by: workspace UI · CRO dashboard · AGT-704 annual planning narrative job · AGT-903 retrospective batch (own outcomes) · audit.<br>
+  <strong>Never read by an execution engine.</strong> Endorsement triggers human-led workstreams owned by the relevant Tier 1 service(s), which run their normal redesign cycles.<br>
+  Related: <a href="../specs/AGT-903_Strategy_Brain.html">AGT-903 Strategy Brain</a> &middot; <a href="BrainAnalysisLog_Schema.html">BrainAnalysisLog Schema</a> &middot; <a href="SalesPlayLibrary_Schema.html">SalesPlayLibrary Schema</a> (companion workspace for play drafts)
+</div>
+</body>
+</html>
