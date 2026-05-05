@@ -13,14 +13,20 @@
     "term_months": 12,
     "licensed_seats": 141
   },
-  "summary": "Single synthetic MM/FinTech account from inbound lead through close, onboarding, expansion trigger, brain reasoning, human co-definition, play execution, and renewal. Two of the steps below are REAL brain outputs from the prototype's eval harness — captured verbatim from prototype/brain_analysis_log.jsonl. Everything else is deterministic service-handoff narrative based on the canonical Tier 1 schema. Day 0 = contract start (go-live). Negative days are pre-sale (Day -120 = inbound, Day -22 = closed-won, Day -8 = MAP signed). Positive days are the customer lifecycle through renewal at Day +330.",
+  "summary": "Single synthetic MM/FinTech account from inbound lead through close, onboarding, expansion trigger, brain reasoning, human co-definition, play execution, and renewal. Two of the steps below are REAL brain outputs from the prototype's eval harness — captured verbatim from prototype/brain_analysis_log.jsonl. Everything else is deterministic service-handoff narrative based on the canonical Tier 1 schema. Day 0 = Closed Won (the GTM-meaningful moment when CS/onboarding/billing begin treating this as a customer). Negative days are pre-sale prospecting/discovery (Day -98 = inbound, Day -16 = quote sent). Positive days are the customer lifecycle: Day +14 = MAP signed + onboarding kickoff, Day +22 = contract goes live (billing starts), through renewal at Day +352.",
   "steps": [
     {
-      "day_offset": -120,
+      "day_offset": -98,
       "phase": "Lead",
       "title": "Inbound: pricing-page activity + RevOps Director job posting → routed + cadence live within hours",
       "primary_service": "AGT-201",
-      "secondary_services": ["AGT-204", "AGT-202", "AGT-301", "AGT-203", "AGT-302"],
+      "secondary_services": [
+        "AGT-204",
+        "AGT-202",
+        "AGT-301",
+        "AGT-203",
+        "AGT-302"
+      ],
       "what_changed": "Same-day L2 → L3 chain. AGT-204 enriches firmographics + technographics within minutes of form submit. AGT-201 produces ICP score 78/100 → T1. AGT-202 routes to MM AE West with the T1 routing SLA: 2 hours (per AGT-202 spec — T1 ≥80, T2 60-79=24hr, T3 <60=72hr; PLG/inbound override applies same SLA, just routes AE-direct bypassing SDR). AGT-301 generates a 10-step priority sequence. AGT-203 marks abm_active=TRUE. AGT-302 begins executing the cadence with 3-touch/week cap. First touch fires within hours of arrival.",
       "evidence": [
         "Accounts.icp_score=78, icp_tier=T1, segment=MM",
@@ -32,11 +38,14 @@
       "brain_moment": null
     },
     {
-      "day_offset": -90,
+      "day_offset": -68,
       "phase": "Outreach",
       "title": "30 days into the cadence: prospect engages on touch 5/10",
       "primary_service": "AGT-302",
-      "secondary_services": ["AGT-303", "AGT-301"],
+      "secondary_services": [
+        "AGT-303",
+        "AGT-301"
+      ],
       "what_changed": "Sequence is mid-stream — 5 of 10 touches delivered, no AGT-302 gate blocks. Prospect opens email + clicks pricing detail; reply-with-question lands on AE. AGT-303 weekly analysis confirms the sequence is performing within the expected cohort envelope (no veto triggered). Discovery call request sent.",
       "evidence": [
         "CadenceEventLog: 5 events delivered, 0 suppressed, 1 reply received",
@@ -46,11 +55,13 @@
       "brain_moment": null
     },
     {
-      "day_offset": -78,
+      "day_offset": -56,
       "phase": "Discovery",
       "title": "Demo booked; AGT-305 generates discovery brief",
       "primary_service": "AGT-305",
-      "secondary_services": ["AGT-407"],
+      "secondary_services": [
+        "AGT-407"
+      ],
       "what_changed": "Meeting booked event triggers AGT-305. 7-section discovery brief auto-generated (champion hypothesis: VP RevOps; pain hypothesis: cross-team consumption visibility).",
       "evidence": [
         "DiscoveryBriefLog: 7 sections, hypothesis-scored, attached to opp",
@@ -59,11 +70,13 @@
       "brain_moment": null
     },
     {
-      "day_offset": -74,
+      "day_offset": -52,
       "phase": "Discovery",
       "title": "Discovery call: AGT-407 ConvIntelligence — positive sentiment, champion identified",
       "primary_service": "AGT-407",
-      "secondary_services": ["AGT-401"],
+      "secondary_services": [
+        "AGT-401"
+      ],
       "what_changed": "ConvIntelligence emits 5-dimension transcript analysis. Champion confirmed (VP RevOps). 4 next-steps committed. AGT-401 Deal Health = 71 (Yellow → progressing).",
       "evidence": [
         "ConvIntelligence: overall_sentiment=positive, prospect_sentiment=positive",
@@ -73,11 +86,14 @@
       "brain_moment": null
     },
     {
-      "day_offset": -52,
+      "day_offset": -30,
       "phase": "Proposal",
       "title": "AGT-403 surfaces DataDog competitive concern; AGT-405 generates negotiation brief",
       "primary_service": "AGT-403",
-      "secondary_services": ["AGT-401", "AGT-405"],
+      "secondary_services": [
+        "AGT-401",
+        "AGT-405"
+      ],
       "what_changed": "AGT-403 reactive brief: DataDog mentioned in last call ('value-based pricing concern'). CompetitiveKnowledgeBase entry pre-populated. AGT-401 Deal Health rises to 88 (Green) on milestone progress. AGT-405 generates late-stage opportunity brief (QuoteLog + MAP).",
       "evidence": [
         "CompetitiveKnowledgeBase: DataDog vs us, 3 reactive talking points pre-populated",
@@ -87,11 +103,13 @@
       "brain_moment": null
     },
     {
-      "day_offset": -38,
+      "day_offset": -16,
       "phase": "CPQ",
       "title": "AGT-406 quote: $221K ACV / 12mo / consumption-based core SKU",
       "primary_service": "AGT-406",
-      "secondary_services": ["AGT-104"],
+      "secondary_services": [
+        "AGT-104"
+      ],
       "what_changed": "Quote drafted via AGT-406 4-tier approval. 2 procurement revisions accepted. Discount within authority (12% < 15% threshold for AE+SLM gate).",
       "evidence": [
         "QuoteLog: arr_usd=221059, term=12mo, sku='consumption_core' + 141 seats",
@@ -101,28 +119,35 @@
       "brain_moment": null
     },
     {
-      "day_offset": -22,
+      "day_offset": 0,
       "phase": "Close",
       "title": "Closed Won. AGT-801 OrderManagement → AGT-802 begins billing",
       "primary_service": "AGT-801",
-      "secondary_services": ["AGT-802", "AGT-103"],
+      "secondary_services": [
+        "AGT-802",
+        "AGT-103"
+      ],
       "what_changed": "Quote→Order handoff. OrderApprovalLog two-track approval enforced. AGT-103 retires quota; comp payout queued (gated by MAP sign-off via AGT-601 → AGT-104).",
       "evidence": [
         "OrderLog: order_id created, line_items reference QuoteLog",
-        "InvoiceLog: first invoice scheduled for Day -22 + 30 (net-30 terms)",
+        "InvoiceLog: first invoice scheduled for Day 0 + 30 (net-30 terms)",
         "QuotaRetirementLedger: $221,059 retired against MM AE West Q-quota"
       ],
       "brain_moment": null
     },
     {
-      "day_offset": -8,
+      "day_offset": 14,
       "phase": "Onboarding",
       "title": "AGT-601 onboarding kickoff; MAP signed off; AGT-104 lifts comp hold",
       "primary_service": "AGT-601",
-      "secondary_services": ["AGT-602", "AGT-104", "AGT-501"],
+      "secondary_services": [
+        "AGT-602",
+        "AGT-104",
+        "AGT-501"
+      ],
       "what_changed": "AGT-601 launches MAP. Champion + IT Architecture sign off MAP. AGT-104 detects MAP completion, lifts comp payout hold. AGT-602 begins technical implementation (6-milestone track). AGT-501 emits day-one CustomerHealthLog.",
       "evidence": [
-        "OnboardingLog: kickoff_at=Day -8, MAP signature complete",
+        "OnboardingLog: kickoff_at=Day +14, MAP signature complete",
         "TechnicalMilestoneLog: 0/6 milestones complete (kickoff state)",
         "CustomerHealthLog: score=72 (day-one baseline, no NULL state)",
         "ExceptionLog → CompAuditLog: comp hold released for MM AE West"
@@ -130,11 +155,14 @@
       "brain_moment": null
     },
     {
-      "day_offset": 30,
+      "day_offset": 52,
       "phase": "Adoption",
       "title": "Early adoption strong: AGT-501 health 82 (Green); 4 of 6 milestones complete",
       "primary_service": "AGT-501",
-      "secondary_services": ["AGT-602", "AGT-407"],
+      "secondary_services": [
+        "AGT-602",
+        "AGT-407"
+      ],
       "what_changed": "AGT-501 daily score climbs to 82. AGT-602 records 4/6 milestones (data ingestion, SSO, first integration, first dashboard). AGT-407 monthly call summary shows continued positive sentiment, no objections.",
       "evidence": [
         "CustomerHealthLog: score=82, tier=Green, trajectory=improving",
@@ -144,11 +172,15 @@
       "brain_moment": null
     },
     {
-      "day_offset": 120,
+      "day_offset": 142,
       "phase": "Expansion signal",
       "title": "AGT-503 fires: consumption 2.1× baseline. Real expansion or one-time spike?",
       "primary_service": "AGT-503",
-      "secondary_services": ["AGT-501", "AGT-804", "AGT-902"],
+      "secondary_services": [
+        "AGT-501",
+        "AGT-804",
+        "AGT-902"
+      ],
       "what_changed": "UsageMeteringLog: trailing-30 consumption running at 2.1× contract baseline. AGT-503 fires (UsageMeteringLog bypass path, score 70+). RevOps queries the Account Brain to qualify the signal before launching an expansion play.",
       "evidence": [
         "UsageMeteringLog: 30-day consumption 2.1× baseline, consistent_overage=true",
@@ -161,11 +193,13 @@
       }
     },
     {
-      "day_offset": 130,
+      "day_offset": 152,
       "phase": "Cross-team diagnosis",
       "title": "Followup brain query: is the expansion signal cross-team-real or single-team-siloed?",
       "primary_service": "AGT-902",
-      "secondary_services": ["AGT-503"],
+      "secondary_services": [
+        "AGT-503"
+      ],
       "what_changed": "Same account, sharper question. Confirms TOOL-008 detects siloed_by_team adoption — concentration index 0.485, port operations team using 12 features, procurement and 3PL using only 2 each. Brain proposes opening expansion play with cross-team integration angle, NOT a seat-uplift discount.",
       "evidence": [
         "TOOL-008 result: primary_pattern=siloed_by_team, expansion_signal=moderate, churn_signal=none",
@@ -178,11 +212,13 @@
       }
     },
     {
-      "day_offset": 132,
+      "day_offset": 154,
       "phase": "Human co-definition",
       "title": "RevOps picks up the SalesPlayLibrary draft, refines, approves",
       "primary_service": "SalesPlayLibrary",
-      "secondary_services": ["AGT-203"],
+      "secondary_services": [
+        "AGT-203"
+      ],
       "what_changed": "RevOps + MM SLM transition the draft from `draft` → `under_review` → `active`. They edit suggested_cadence to 8 touches with in-app added (TOOL-003 had proposed 6 touches). They tighten target_meeting_rate to 0.65 (TOOL-003 had estimated 0.75). Volume cap (max 5 active plays per segment per quarter) enforced at write — passes.",
       "evidence": [
         "SalesPlayLibrary.state: draft → under_review (picked_up_by_user_id=revops_lead)",
@@ -192,11 +228,15 @@
       "brain_moment": null
     },
     {
-      "day_offset": 150,
+      "day_offset": 172,
       "phase": "Play execution",
       "title": "AGT-302 executes the active play; procurement intro happens; new opp opens",
       "primary_service": "AGT-302",
-      "secondary_services": ["AGT-301", "AGT-401", "AGT-303"],
+      "secondary_services": [
+        "AGT-301",
+        "AGT-401",
+        "AGT-303"
+      ],
       "what_changed": "AGT-302 reads only `active` plays, generates per-account cadence events. Champion (VP RevOps) facilitates intro to procurement. New opportunity opened: $145K incremental ARR for procurement-team consumption tier. AGT-401 emits health=85 (Green) on new opp.",
       "evidence": [
         "CadenceEventLog: 8 events fired across 21 days, all delivered (no AGT-302 gate blocks)",
@@ -206,11 +246,15 @@
       "brain_moment": null
     },
     {
-      "day_offset": 280,
+      "day_offset": 302,
       "phase": "Renewal proximity",
       "title": "T-90 renewal: AGT-502 ChurnRiskLog low risk; AGT-603 schedules QBR",
       "primary_service": "AGT-502",
-      "secondary_services": ["AGT-603", "AGT-501", "AGT-704"],
+      "secondary_services": [
+        "AGT-603",
+        "AGT-501",
+        "AGT-704"
+      ],
       "what_changed": "AGT-502 evaluates with renewal-proximity multiplier; tier=low_risk. AGT-603 dual-trigger schedules QBR (90 days before renewal AND expansion play active). AGT-501 health = 89. AGT-704 will pull QBRLog for the next monthly business review's NRR section.",
       "evidence": [
         "ChurnRiskLog: tier=low_risk, drivers=['expansion_active', 'health_green', 'champion_engaged']",
@@ -220,11 +264,16 @@
       "brain_moment": null
     },
     {
-      "day_offset": 330,
+      "day_offset": 352,
       "phase": "Renewal closed",
       "title": "Renewal + expansion closed at $355K. NRR = 161%.",
       "primary_service": "AGT-801",
-      "secondary_services": ["AGT-804", "AGT-103", "AGT-501", "AGT-702"],
+      "secondary_services": [
+        "AGT-804",
+        "AGT-103",
+        "AGT-501",
+        "AGT-702"
+      ],
       "what_changed": "Original $221K renewal + $145K expansion - $11K seat trim. AGT-804 ASC 606 amortizes new annualized contract value. AGT-103 retires quota. AGT-702 GTM Health Monitor: NRR contribution from this account = 161% (one of MM segment's top 3 expansion outcomes for the period).",
       "evidence": [
         "OrderLog (renewal): arr_usd=354895, term=12mo",
