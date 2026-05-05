@@ -13,33 +13,35 @@
     "term_months": 12,
     "licensed_seats": 141
   },
-  "summary": "Single synthetic MM/FinTech account from inbound lead through close, onboarding, expansion trigger, brain reasoning, human co-definition, play execution, and renewal. Two of the steps below are REAL brain outputs from the prototype's eval harness — captured verbatim from prototype/brain_analysis_log.jsonl. Everything else is deterministic service-handoff narrative based on the canonical Tier 1 schema.",
+  "summary": "Single synthetic MM/FinTech account from inbound lead through close, onboarding, expansion trigger, brain reasoning, human co-definition, play execution, and renewal. Two of the steps below are REAL brain outputs from the prototype's eval harness — captured verbatim from prototype/brain_analysis_log.jsonl. Everything else is deterministic service-handoff narrative based on the canonical Tier 1 schema. Day 0 = contract start (go-live). Negative days are pre-sale (Day -120 = inbound, Day -22 = closed-won, Day -8 = MAP signed). Positive days are the customer lifecycle through renewal at Day +330.",
   "steps": [
     {
       "day_offset": -120,
       "phase": "Lead",
-      "title": "Inbound: pricing-page activity + RevOps Director job posting",
+      "title": "Inbound: pricing-page activity + RevOps Director job posting → routed + cadence live within hours",
       "primary_service": "AGT-201",
-      "secondary_services": ["AGT-204", "AGT-202"],
-      "what_changed": "AGT-204 enriches firmographics + technographics. AGT-201 produces ICP score 78/100 → T1. AGT-202 routes to MM AE West with sequence_type='inbound_high_priority' (3-business-day SLA).",
+      "secondary_services": ["AGT-204", "AGT-202", "AGT-301", "AGT-203", "AGT-302"],
+      "what_changed": "Same-day L2 → L3 chain. AGT-204 enriches firmographics + technographics within minutes of form submit. AGT-201 produces ICP score 78/100 → T1. AGT-202 routes to MM AE West with hot-inbound SLA (5-min auto-response, 24-hour AE follow-up). AGT-301 generates a 10-step priority sequence. AGT-203 marks abm_active=TRUE. AGT-302 begins executing the cadence with 3-touch/week cap. First touch fires within hours of arrival.",
       "evidence": [
         "Accounts.icp_score=78, icp_tier=T1, segment=MM",
         "EnrichmentLog: 6-category enrichment complete, intent decay applied",
-        "Leads: routed to MM AE West, sla=3bd, sequence_type=inbound_high_priority"
+        "Leads: routed to MM AE West, sla='5min auto / 24h AE', sequence_type=inbound_high_priority",
+        "CadenceEventLog: 10-step sequence created, priority_score_at_queue=78, first touch sent",
+        "ABMPlaybook: abm_active=TRUE (suppresses nurture per AGT-304)"
       ],
       "brain_moment": null
     },
     {
       "day_offset": -90,
       "phase": "Outreach",
-      "title": "AGT-301 generates 10-step sequence; AGT-203 ABM playbook applied",
-      "primary_service": "AGT-301",
-      "secondary_services": ["AGT-203", "AGT-302", "AGT-303"],
-      "what_changed": "AGT-301 emits CadenceEventLog rows for a 10-step priority sequence. AGT-203 marks abm_active=TRUE. AGT-302 applies 3-touch/week cap. AGT-303 will analyze sequence performance after 30 events.",
+      "title": "30 days into the cadence: prospect engages on touch 5/10",
+      "primary_service": "AGT-302",
+      "secondary_services": ["AGT-303", "AGT-301"],
+      "what_changed": "Sequence is mid-stream — 5 of 10 touches delivered, no AGT-302 gate blocks. Prospect opens email + clicks pricing detail; reply-with-question lands on AE. AGT-303 weekly analysis confirms the sequence is performing within the expected cohort envelope (no veto triggered). Discovery call request sent.",
       "evidence": [
-        "CadenceEventLog: sequence_type='outbound_high_priority', priority_score_at_queue=78",
-        "ABMPlaybook: abm_active=TRUE (suppresses nurture per AGT-304)",
-        "Suppression check: routing_eligible=TRUE, no AGT-302 gate blocks"
+        "CadenceEventLog: 5 events delivered, 0 suppressed, 1 reply received",
+        "AGT-303 recommendation log: 'continue as-planned' (sample size still <30, no calibration change)",
+        "Opportunities: not yet created — meeting booked event will trigger opp creation"
       ],
       "brain_moment": null
     },
