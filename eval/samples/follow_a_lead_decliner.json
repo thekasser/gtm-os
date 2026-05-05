@@ -1,0 +1,205 @@
+{
+  "narrative_id": "massive-dynamic-holdings-decliner-arc",
+  "narrative_label": "Risk (champion-loss save)",
+  "account": {
+    "company_name": "Massive Dynamic Holdings",
+    "synthetic": true,
+    "archetype_key": "champion_loss_decliner",
+    "segment": "MM",
+    "vertical": "RetailTech",
+    "icp_tier": "T1",
+    "starting_arr_usd": 221059,
+    "ending_arr_usd": 180000,
+    "nrr_pct": 81,
+    "term_months": 12,
+    "licensed_seats": 141
+  },
+  "summary": "Same starting point as Stark Logistics ($221K MM/T1) — but a different story. At Day +210 the original VP RevOps champion leaves the account. Without a deliberate intervention, this is the textbook champion-loss decline: usage tapers, sentiment slips, renewal becomes a fight. Three brain reasoning moments embedded as REAL prototype outputs (EVAL-Q01, EVAL-Q06, EVAL-Q10). The system catches the inflection in time to mitigate — renewal closes at $180K (NRR 81%), a contained loss rather than a churn. Day 0 = contract start (go-live). Negative days are pre-sale; positive days are the customer lifecycle.",
+  "steps": [
+    {
+      "day_offset": -120,
+      "phase": "Lead",
+      "title": "Inbound: M&A activity + new RevOps role posted → routed + cadence live within hours",
+      "primary_service": "AGT-201",
+      "secondary_services": ["AGT-204", "AGT-202", "AGT-301", "AGT-203", "AGT-302"],
+      "what_changed": "Same-day L2 → L3 chain. AGT-204 enriches firmographics — recently acquired, parent co. expanding RetailTech footprint. AGT-201 produces ICP score 81/100 → T1. AGT-202 routes to MM AE (East) with T1 routing SLA: 2 hours (per AGT-202 spec). AGT-301 generates a 10-step priority sequence. AGT-302 begins executing.",
+      "evidence": [
+        "Accounts.icp_score=81, icp_tier=T1, segment=MM",
+        "EnrichmentLog: parent co. M&A flag, expansion-mode posture",
+        "Leads: routed to MM AE East, sla=2hr (T1 tier), motion=Inbound",
+        "CadenceEventLog: 10-step sequence created, first touch sent"
+      ],
+      "brain_moment": null
+    },
+    {
+      "day_offset": -85,
+      "phase": "Discovery",
+      "title": "Discovery: AGT-407 ConvIntel — strong VP RevOps champion identified",
+      "primary_service": "AGT-407",
+      "secondary_services": ["AGT-305", "AGT-401"],
+      "what_changed": "Demo + technical deep-dive over two calls. AGT-407 ConvIntelligence emits 5-dimension transcript analysis. **Champion confirmed: VP RevOps** (recently joined; mandate to consolidate the RetailTech consolidation). Strong sentiment, 6 next-steps committed. AGT-401 health = 84.",
+      "evidence": [
+        "ConvIntelligence: champion_role='VP RevOps', overall_sentiment=positive",
+        "sentiment_drivers: ['budget owner present', 'consolidation mandate', 'strong technical fit']",
+        "Opportunities.health=84"
+      ],
+      "brain_moment": null
+    },
+    {
+      "day_offset": -22,
+      "phase": "Close",
+      "title": "Closed Won at $221K. Champion sets aggressive go-live timeline.",
+      "primary_service": "AGT-801",
+      "secondary_services": ["AGT-802", "AGT-103"],
+      "what_changed": "Quote-to-order handoff. Champion pushes for 30-day implementation. AGT-103 retires quota; AGT-104 holds comp pending MAP sign-off.",
+      "evidence": [
+        "OrderLog: arr_usd=221059, term=12mo",
+        "QuotaRetirementLedger: $221,059 retired against MM AE East Q-quota"
+      ],
+      "brain_moment": null
+    },
+    {
+      "day_offset": 0,
+      "phase": "Go-live",
+      "title": "Contract starts. AGT-601 onboarding kickoff with VP RevOps + IT.",
+      "primary_service": "AGT-601",
+      "secondary_services": ["AGT-602", "AGT-501"],
+      "what_changed": "MAP signed Day -8, AGT-104 lifts comp hold, AGT-602 begins technical implementation. AGT-501 day-one health=74 (Yellow→Green trajectory).",
+      "evidence": [
+        "OnboardingLog: kickoff_at=Day 0, MAP signature complete",
+        "TechnicalMilestoneLog: 0/6 milestones complete",
+        "CustomerHealthLog: score=74, tier=Yellow"
+      ],
+      "brain_moment": null
+    },
+    {
+      "day_offset": 90,
+      "phase": "Healthy quarter",
+      "title": "Strong Q1: AGT-501 health=78 Green, champion driving adoption",
+      "primary_service": "AGT-501",
+      "secondary_services": ["AGT-602", "AGT-407"],
+      "what_changed": "AGT-501 health climbs to 78. AGT-602 records 5/6 milestones complete. AGT-407 monthly summary: champion-led adoption, 3 user training sessions executed. Account in 'ideal trajectory' band.",
+      "evidence": [
+        "CustomerHealthLog: score=78, trajectory=improving",
+        "TechnicalMilestoneLog: 5/6 complete",
+        "ConvIntelligence: 4 calls in window, all overall_sentiment=positive"
+      ],
+      "brain_moment": null
+    },
+    {
+      "day_offset": 210,
+      "phase": "Inflection",
+      "title": "🚨 Champion departure. VP RevOps leaves Massive Dynamic.",
+      "primary_service": "AGT-407",
+      "secondary_services": ["AGT-501", "AGT-502"],
+      "what_changed": "AGT-407 ConvIntelligence picks up the signal first: scheduled QBR cancelled by buyer-side, replacement attendee unfamiliar with the account history, sentiment_driver shifts to ['attendee_unfamiliar', 'next_steps_uncommitted']. AGT-501 starts flagging behavioral decline within the trailing 30-day window. **No replacement champion has yet been identified.**",
+      "evidence": [
+        "ConvIntelligence: scheduled QBR cancelled, day-of substitution by Director (not VP)",
+        "ConvIntelligence: sentiment shift positive → neutral, missing_next_step_flag=TRUE",
+        "CustomerHealthLog: 30-day trajectory inflects from improving → declining"
+      ],
+      "brain_moment": null
+    },
+    {
+      "day_offset": 240,
+      "phase": "Decline",
+      "title": "Health drops 78 → 52 (Amber). AGT-502 ChurnRiskLog tier=moderate.",
+      "primary_service": "AGT-502",
+      "secondary_services": ["AGT-501", "AGT-407"],
+      "what_changed": "Two months post-departure: usage drops 30%, AGT-501 health drops to 52 (Amber). AGT-502 evaluates with renewal-proximity multiplier (T-90 days from renewal kicks the score). Tier transitions to moderate_risk. ConvIntelligence flags low engagement over the trailing window.",
+      "evidence": [
+        "CustomerHealthLog: score=52, tier=Amber, 30-day delta=-26",
+        "ChurnRiskLog: tier=moderate_risk, drivers=['champion_lost', 'usage_decline_30pct', 'renewal_proximity_under_90d']",
+        "UsageMeteringLog: trailing-30 consumption -30% vs. baseline"
+      ],
+      "brain_moment": null
+    },
+    {
+      "day_offset": 275,
+      "phase": "Brain reasoning — diagnosis",
+      "title": "RevOps queries the brain: 'Why is this at renewal risk and what's the play?'",
+      "primary_service": "AGT-902",
+      "secondary_services": ["AGT-501", "AGT-502", "AGT-407"],
+      "what_changed": "T-90 renewal milestone triggers a brain query. AGT-902 reads the full per-account view (health log, churn risk, conv intel, payment, expansion). Brain identifies the champion-loss inflection at Day +210 as the proximate cause, validates the decline pattern, and proposes a coordinated intervention: escalate to SLM + executive customer-communication touch.",
+      "evidence": [
+        "BrainAnalysisLog row written; sources_read includes customer_health, churn_risk, conversation_intel",
+        "Proposed actions: escalate_to_slm, customer_communication (executive outreach)",
+        "Confidence: high — pattern is well-documented in the conv intel"
+      ],
+      "brain_moment": {
+        "fixture_id": "EVAL-Q01",
+        "framing": "Operator query: 'Why is this account at renewal risk and what's the play?' Brain output traces the inflection back to the champion departure and proposes specific next steps. This is an actual passing eval-fixture run."
+      }
+    },
+    {
+      "day_offset": 285,
+      "phase": "Intervention",
+      "title": "SLM escalation. Executive sponsor reaches out to Massive Dynamic CRO.",
+      "primary_service": "AGT-504",
+      "secondary_services": ["AGT-603"],
+      "what_changed": "SLM picks up the brain's recommendation. AGT-504 drafts an executive customer-communication. Sponsor-to-sponsor outreach books a 'state of the relationship' call. AGT-603 schedules an interim QBR ahead of the standard cadence — pulled forward to Day +295.",
+      "evidence": [
+        "CommBriefLog: executive outreach drafted, human-approved, delivered Day +287",
+        "QBRLog: scheduled for Day +295 (pulled forward — standard cadence was Day +320)"
+      ],
+      "brain_moment": null
+    },
+    {
+      "day_offset": 295,
+      "phase": "Account-team rotation",
+      "title": "MM AE rotation: previous AE moved to Enterprise. New AE assigned.",
+      "primary_service": "AGT-106",
+      "secondary_services": ["AGT-104"],
+      "what_changed": "Concurrent with the intervention: territory-design churn assigns a new MM AE East. AGT-106 reroutes the account; AGT-104 ensures comp lineage is preserved. The incoming AE has zero history with the account.",
+      "evidence": [
+        "TerritoryAssignmentLog: account reassigned, previous AE → Enterprise segment",
+        "CompAuditLog: lineage preserved; no quota impact during rotation"
+      ],
+      "brain_moment": null
+    },
+    {
+      "day_offset": 296,
+      "phase": "Brain reasoning — handoff briefing",
+      "title": "Incoming AE asks the brain: 'Brief me on what I'm walking into.'",
+      "primary_service": "AGT-902",
+      "secondary_services": ["AGT-407", "AGT-501"],
+      "what_changed": "Day-one briefing for the new AE. AGT-902 produces a structured handoff covering: account history, the champion-loss inflection, current health trajectory, the active SLM intervention, what's been tried, what's pending, recommended posture for the upcoming QBR.",
+      "evidence": [
+        "BrainAnalysisLog row written; sources_read spans all 11 per-account view components",
+        "Output covers: relationship history, current state, active interventions, recommended next 30 days"
+      ],
+      "brain_moment": {
+        "fixture_id": "EVAL-Q06",
+        "framing": "Operator query: 'A new AE just rotated onto this account today. Brief them on what they're walking into and what to do first.' Real eval-fixture brain output, captured verbatim."
+      }
+    },
+    {
+      "day_offset": 320,
+      "phase": "Renewal negotiation",
+      "title": "Renewal call. Buyer signals seat reduction (-15) but commits to renewal.",
+      "primary_service": "AGT-406",
+      "secondary_services": ["AGT-502", "AGT-407"],
+      "what_changed": "Outcome of the QBR + executive intervention: Massive Dynamic confirms intent to renew but reduces seat count from 141 to 126 (–15 seats reflecting team consolidation post-acquisition). New ARR: $180K. AGT-406 drafts the renewal quote with the reduced commit.",
+      "evidence": [
+        "QuoteLog: renewal_quote drafted, arr_usd=180000, term=12mo, seats=126",
+        "ConvIntelligence: renewal commitment confirmed, no competitor mentioned",
+        "ChurnRiskLog: tier transitions moderate → low (signed-renewal confirmed)"
+      ],
+      "brain_moment": null
+    },
+    {
+      "day_offset": 330,
+      "phase": "Renewal closed",
+      "title": "Renewal closed at $180K (NRR 81%). Contained loss, not churn.",
+      "primary_service": "AGT-801",
+      "secondary_services": ["AGT-804", "AGT-103", "AGT-702"],
+      "what_changed": "Renewal Closed Won at $180K. AGT-804 amortizes new annualized contract. AGT-103 retires quota. AGT-702 GTM Health Monitor records the outcome: NRR contribution = 81% — below 100% but the account is preserved for future expansion under a new champion. Compared to the modeled no-intervention outcome (likely full churn at -100% NRR), the brain-led intervention preserved $180K in renewal ARR.",
+      "evidence": [
+        "OrderLog (renewal): arr_usd=180000, term=12mo",
+        "RevenueRecognitionLog: schedule updated, new committed annualized value",
+        "MetricsCalcLog: NRR contribution captured at 81%"
+      ],
+      "brain_moment": null
+    }
+  ]
+}

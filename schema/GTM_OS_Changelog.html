@@ -84,6 +84,75 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
 <div id="log">
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v35→v36: Decliner narrative + TOOL-010 prototyped + spec-citation discipline -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L9">
+  <div class="version-hdr">
+    <span class="version-pill">v35 → v36</span>
+    <span class="version-date">Follow-a-Lead doubles to two arcs (Growth + Risk) · TOOL-010 Champion Movement Detector prototyped · spec-citation discipline doc</span>
+    <span class="version-summary">CRO walkthrough surfaced two improvements. (1) The Follow-a-Lead walkthrough needed a defensive counterpart to the growth-arc story — added a champion-loss-decliner narrative (Massive Dynamic Holdings, $221K → $180K save at NRR 81%) with sub-tab toggle inside the same explainer tab. (2) The renewal-risk diagnosis would be richer with a champion-movement classifier — TOOL-010 prototyped, wired into AGT-902, used by the decliner-arc brain moments. (3) A CRO-caught SLA drift between narrative and AGT-202 spec produced a standing discipline doc to prevent recurrence.</span>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Follow a Lead — second arc<span class="layer-tag lt-l9">UX</span></span>
+      <span class="agent-name">Risk arc: Massive Dynamic Holdings champion-loss save (NRR 81%)</span>
+      <div class="change-type"><span class="ct ct-new">New narrative</span></div>
+      <span class="entry-summary">Same starting point as the growth arc ($221K MM/T1) but champion departs at Day +210; brain catches the inflection at T-90 renewal, recommends SLM intervention, account renews at $180K (contained loss, not churn). Three brain reasoning moments embedded as real EVAL-Q01 / EVAL-Q06 / EVAL-Q10 brain outputs — captured verbatim from the eval harness.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Why a second arc</div><div class="detail-val">CRO walkthrough of v35 surfaced the demand: "show me the bad case." The growth-arc-only demo answered "does the system work for expansion" but not "does it catch risk humans missed." Both arcs together give the demo CRO conversational range without doubling cost or complexity.</div>
+        <div class="detail-lbl">Sub-tab toggle</div><div class="detail-val">Inside the Follow-a-Lead tab, a two-button selector lets the viewer switch between arcs without leaving the page. Both narratives load on tab open; switching is instant. Stark Logistics (growth) is the default; clicking the Risk button swaps to Massive Dynamic.</div>
+        <div class="detail-lbl">Narrative scaffold</div><div class="detail-val">13 timeline steps: lead → discovery → close → go-live → healthy quarter → champion departure (Day +210) → decline → brain diagnosis → SLM intervention → account-team rotation → brain handoff briefing → renewal negotiation → renewal closed. Three amber brain moments at Day +275 (renewal-risk diagnosis), Day +296 (handoff briefing for new AE), Day +280 (stale-data variant query).</div>
+        <div class="detail-lbl">File layout</div><div class="detail-val"><code>eval/samples/follow_a_lead_growth.json</code> + <code>eval/samples/follow_a_lead_decliner.json</code> (the original was renamed for parallelism). Explainer JS loads both at tab-open, sub-tab toggles between them.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">CRO demo range doubled at minimal complexity cost.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-010<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Champion Movement Detector — status promotion: specced → prototyped</span>
+      <div class="change-type"><span class="ct ct-update">Status promotion</span></div>
+      <span class="entry-summary">Runtime at <code>prototype/tools/tool_010.py</code>. Multi-signal fusion to classify champion movement: left_company / role_changed_internal / stopped_engaging / engagement_declining / no_movement_detected. Hard rule preserved: any classification stronger than no_movement_detected requires at least one moderate-or-stronger contributing signal. Wired into AGT-902 via Anthropic tool-use; called on renewal-risk diagnoses for accounts with engagement-shift signals.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Implementation pattern</div><div class="detail-val">Same shape as TOOL-008 — deterministic core (signal aggregation per contact_id, strength classification per signal type) + LLM characterization (movement_type label + recommended interventions, hard-rule-enforced). Per-call cost ≈ $0.004 (Haiku, ~1K input + 700 output). Spec model was Haiku; matched.</div>
+        <div class="detail-lbl">Graceful degradation</div><div class="detail-val">Synth corpus has no LinkedIn or email-bounce signals → external_signal_coverage="none". Tool reports overall_quality="low" and degrades confidence per spec — left_company classification cannot be high-confidence without external signals. Smoke test on champion_loss_decliner: tool correctly classifies "stopped_engaging" with confidence="medium" (not "left_company" / "high"), surfaces 4 explicit ungrounded_assumptions.</div>
+        <div class="detail-lbl">Wiring</div><div class="detail-val">Registered in <code>prototype/tools/registry.py</code> as <code>tool_010_champion_movement_detector</code>. Per-tool input augmentation in <code>dispatch_tool</code> derives tracked_champions + attendance signals from <code>conversation_intelligence_log</code> at call time (no corpus extension needed; champion roster is inferred from conv intel rather than separately tracked).</div>
+        <div class="detail-lbl">Wired into</div><div class="detail-val">AGT-902 system prompt updated: TOOL-010 listed alongside TOOL-004 + TOOL-008. Brain calls when diagnosing renewal risk on champion_loss-shaped accounts. Will surface in re-curated brain_outputs.json samples after the next eval sweep.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Champion-loss diagnosis is now a structured signal, not narrative speculation.</span> The decliner-arc renewal-risk diagnosis becomes more concrete: brain calls TOOL-010, gets back stopped_engaging classification with cited evidence, factors that into the recommended interventions.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">Spec-citation discipline doc<span class="layer-tag lt-l9">Process</span></span>
+      <span class="agent-name">docs/SPEC_CITATION_DISCIPLINE.md — read-spec-before-quoting rule</span>
+      <div class="change-type"><span class="ct ct-new">New artifact</span></div>
+      <span class="entry-summary">CRO walkthrough caught a drift between narrative ("3-business-day SLA on hot T1 inbound") and the actual AGT-202 spec ("T1 = 2 hours"). Audit found the drift was isolated to one hand-authored narrative file; the spec, the simulator, and all 14 brain-output samples were correct. Standing discipline doc captures the rule: read the spec before writing any narrative that quotes a specific spec value (SLAs, dimension counts, scoring weights, schema fields, action-taxonomy enums).</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">The rule</div><div class="detail-val">Anything that sounds like "X has Y at Z threshold" must be grounded in <code>specs/AGT-NNN_*.html</code>, not working memory. Architectural framing (tier structure, single-writer-per-table) is safe to write from memory; specific spec values are not.</div>
+        <div class="detail-lbl">Audit results (2026-05-04)</div><div class="detail-val">14 brain output samples — 0 spec drift. All proposed_actions[].lever references match spec ownership (AGT-302, AGT-203, AGT-503, AGT-603, AGT-504, AGT-501, AGT-902). The brain narratives are constrained by sources_read citations, so they don't make spec-attribution claims. The vulnerability is hand-authored narrative content (eval/samples/*.json, README.md, follow_a_lead JSONs).</div>
+        <div class="detail-lbl">Files governed</div><div class="detail-val">gtm_os_explainer.html (simulator JS), eval/samples/follow_a_lead*.json, README.md, prototype/README.md, schema/GTM_OS_Changelog.html, prototype/PORT_TO_CORPORATE.md. Exempt: brain runtimes (their system prompts ARE the source of truth for action taxonomies), fixtures.py (test cases not narrative), synth/*.py (generates data not quotes spec).</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Process discipline.</span> Prevents recurrence; gives any future contributor (human or AI) the rule + checklist + audit table.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- v34→v35: Explainer pivot — Brain Outputs gallery + Follow a Lead walkthrough -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="version-block" data-layer="L9">

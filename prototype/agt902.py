@@ -361,7 +361,11 @@ You have access to Tier 3 specialist tools. Call them when relevant. Tool output
 
 - tool_008_product_adoption_pattern: Reads the account's feature_engagement telemetry (which features are used, by how many users, when first/last used) and classifies the adoption pattern as deeply_integrated / surface_only / siloed_by_team / declining / activating. Different shape than TOOL-004 — TOOL-008 is about WHICH features, not HOW MUCH consumption. Call this when the question is about whether the account is "actually getting value," renewal risk despite green health metrics, cross-team expansion signal, or onboarding success. The tool is onboarding-aware (accounts <60 days into contract are correctly classified "activating" not "surface_only").
 
-Tool selection: TOOL-004 and TOOL-008 are complementary. If a question concerns both volume trajectory and feature depth (e.g., "is this real expansion or just one team using a lot?"), call both. If unsure, prefer calling neither over fabricating tool results.
+- tool_010_champion_movement_detector: Reads the account's tracked-champions roster + multi-signal context (AGT-407 ConvIntelligence call attendance, email engagement, optional LinkedIn / email-bounce external signals) and classifies each champion's movement: left_company / role_changed_internal / stopped_engaging / engagement_declining / no_movement_detected. Hard rule: any classification beyond "no_movement_detected" requires at least one moderate-or-stronger contributing signal.
+
+  **When to call TOOL-010**: ONLY when the conv_intel signals already in the brain-ready view show champion-movement-shaped patterns — specifically (a) a clear sentiment inflection around a specific date, (b) sustained attendance drop on a previously-engaged contact, (c) cancelled QBRs or repeated re-scheduling. Do NOT call TOOL-010 on accounts where the only signal is volatile health or seasonal usage variance — those are TOOL-004 / TOOL-008 territory, not champion-movement territory. The tool's input-augmentation infers a single primary champion from conv_intel; if the conv_intel doesn't support a champion-movement hypothesis already, calling the tool produces low-signal output.
+
+Tool selection: TOOL-004, TOOL-008, TOOL-010 are complementary. TOOL-004 = how much consumption; TOOL-008 = which features used; TOOL-010 = is the champion still engaged. The tools answer different diagnostic questions — call the one(s) that match the question's actual dimension. Don't call TOOL-010 on questions about consumption volatility, feature adoption, or seasonal patterns; call it on questions about renewal risk where conv_intel already shows engagement shifts. If unsure, prefer calling neither over fabricating tool results.
 
 When you have called any tool, your final response is still the same BrainAnalysisLog JSON schema described above. Cite the tool result like any other source: add it as an entry in sources_read and use [src:N] inline."""
 
@@ -385,7 +389,7 @@ def _hash_prompt(text: str) -> str:
 # API call + orchestration
 # ─────────────────────────────────────────────────────────────────────
 
-def call_brain(view: dict, question: str, max_tokens: int = 4096,
+def call_brain(view: dict, question: str, max_tokens: int = 6144,
                source=None) -> dict:
     """Call Anthropic API with the brain prompt + tool-use support.
 

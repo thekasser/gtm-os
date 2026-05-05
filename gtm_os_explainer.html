@@ -67,6 +67,13 @@
 .fl-header{padding:24px 0 18px;border-bottom:1px solid var(--border);margin-bottom:24px}
 .fl-headline{font-size:20px;font-weight:700;margin-bottom:6px}
 .fl-sub{font-size:13px;color:var(--text2);max-width:760px;line-height:1.6;margin-bottom:14px}
+.fl-summary{font-size:12px;color:var(--text2);max-width:920px;line-height:1.6;margin-top:14px;padding:10px 14px;background:var(--surface2);border-left:3px solid var(--brand2);border-radius:0 6px 6px 0}
+.fl-subtabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-top:6px;margin-bottom:6px}
+.fl-subtab{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;text-align:left;cursor:pointer;font-family:var(--sans);transition:all .15s}
+.fl-subtab:hover{border-color:var(--brand2)}
+.fl-subtab.active{border-color:var(--brand);background:rgba(15,23,42,.04)}
+.fl-subtab-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.4}
+.fl-subtab-meta{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:4px}
 .fl-account-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:14px}
 .fl-account-stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
 .fl-account-num{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--gold)}
@@ -129,7 +136,7 @@
 </head>
 <body>
 <header class="header">
-<div class="header-brand"><span class="header-title">GTM OS</span><span class="header-version">v35 · Schema</span><a href="schema/GTM_OS_Changelog.html" style="font-family:var(--mono);font-size:11px;color:var(--gold);text-decoration:none;margin-left:8px;padding:2px 8px;border:1px solid rgba(15,23,42,.3);border-radius:4px">Changelog</a></div>
+<div class="header-brand"><span class="header-title">GTM OS</span><span class="header-version">v36 · Schema</span><a href="schema/GTM_OS_Changelog.html" style="font-family:var(--mono);font-size:11px;color:var(--gold);text-decoration:none;margin-left:8px;padding:2px 8px;border:1px solid rgba(15,23,42,.3);border-radius:4px">Changelog</a></div>
 <nav class="nav">
 <button class="nav-btn active" onclick="switchTab('arch',this)">Architecture</button>
 <button class="nav-btn" onclick="switchTab('os',this)">The OS</button>
@@ -141,7 +148,7 @@
 <div class="header-meta"><div class="meta-stat"><span class="meta-num">40</span><span class="meta-label">services (all built)</span></div><div class="meta-stat"><span class="meta-num">2</span><span class="meta-label">agents</span></div><div class="meta-stat"><span class="meta-num">12</span><span class="meta-label">tools</span></div><div class="meta-stat"><span class="meta-num">10</span><span class="meta-label">layers</span></div><div class="meta-stat"><span class="meta-num">L0→L9</span><span class="meta-label">full-cycle</span></div></div>
 </header>
 <main class="main">
-<div id="tab-arch" class="tab active"><div class="flow-strip" id="flow-strip"></div><div class="arch-hero"><div class="arch-eyebrow">Modular · Service-Driven · CRM-Agnostic</div><h1 class="arch-headline">A <em>complete</em> GTM<br>Operating System</h1><p class="arch-desc">40 GTM services + 2 Brain Agents across 10 layers — from market sizing through reasoning. Hybrid B2B SaaS. Click any layer to explore.</p><p class="arch-desc" style="font-size:12px;color:var(--text3);max-width:680px;margin:-12px auto 24px;line-height:1.6"><strong>Three tiers.</strong> 40 <em>GTM Services</em> in L1–L8 (deterministic, single-writer-per-table, audit-grade). 2 <em>Brain Agents</em> in L9 (LLM-native, operator-invoked, read Tier 1 services but never write canonical data; gated by 30-question eval harness — both prototyped, eval-passing). 12 <em>Specialist Tools</em> in <a href="tools/Tools_Index.html" style="color:#7A4A0E;text-decoration:underline">Tier 3</a> across 3 waves — stateless callable functions that brains and services invoke for narrow cognition tasks (TOOL-003, TOOL-004, TOOL-008 prototyped; remaining 9 specced). The distinction is deliberate; brains propose, humans co-define and approve, services execute. See <a href="schema/GTM_OS_Changelog.html" style="color:#7A4A0E;text-decoration:underline">changelog</a> for current state.</p><div class="principles" id="principles-wrap"></div></div><div class="layer-stack" id="layer-stack"></div></div>
+<div id="tab-arch" class="tab active"><div class="flow-strip" id="flow-strip"></div><div class="arch-hero"><div class="arch-eyebrow">Modular · Service-Driven · CRM-Agnostic</div><h1 class="arch-headline">A <em>complete</em> GTM<br>Operating System</h1><p class="arch-desc">40 GTM services + 2 Brain Agents across 10 layers — from market sizing through reasoning. Hybrid B2B SaaS. Click any layer to explore.</p><p class="arch-desc" style="font-size:12px;color:var(--text3);max-width:680px;margin:-12px auto 24px;line-height:1.6"><strong>Three tiers.</strong> 40 <em>GTM Services</em> in L1–L8 (deterministic, single-writer-per-table, audit-grade). 2 <em>Brain Agents</em> in L9 (LLM-native, operator-invoked, read Tier 1 services but never write canonical data; gated by 30-question eval harness — both prototyped, eval-passing). 12 <em>Specialist Tools</em> in <a href="tools/Tools_Index.html" style="color:#7A4A0E;text-decoration:underline">Tier 3</a> across 3 waves — stateless callable functions that brains and services invoke for narrow cognition tasks (TOOL-003, TOOL-004, TOOL-008, TOOL-010 prototyped; remaining 8 specced). The distinction is deliberate; brains propose, humans co-define and approve, services execute. See <a href="schema/GTM_OS_Changelog.html" style="color:#7A4A0E;text-decoration:underline">changelog</a> for current state.</p><div class="principles" id="principles-wrap"></div></div><div class="layer-stack" id="layer-stack"></div></div>
 <div id="tab-os" class="tab"></div>
 <div id="tab-map" class="tab"><div class="map-wrap"><h2 style="font-size:18px;font-weight:700;margin-bottom:8px">Service Connection Map</h2><div class="map-instructions">Click any service or agent to highlight its connections and see wiring details in the sidebar. L9 brain agents (gold) read from L1–L8 services but never write canonical data.</div><div class="map-legend"><div class="map-legend-item"><div class="map-legend-swatch" style="background:#4EDBA8"></div>Feeds (Tier 1 → Tier 1)</div><div class="map-legend-item"><div class="map-legend-swatch" style="background:#5BA3E8"></div>Reads (Tier 1 → Tier 1)</div><div class="map-legend-item"><div class="map-legend-swatch" style="background:#E8A84C"></div>Cross-layer (Tier 1 → Tier 1)</div><div class="map-legend-item"><div class="map-legend-swatch" style="background:#D4A84C"></div>Brain reads (L9 → Tier 1)</div></div><div class="map-layout"><div class="map-svg-pane" id="map-container"></div><div class="map-sidebar" id="map-sidebar"><div class="map-sidebar-empty">Click a service or agent node to see its connections and wiring details</div></div></div></div></div>
 <div id="tab-lead" class="tab"><div class="sim-layout"><div class="sim-form-pane"><div class="sim-pane-title">ICP Scorer Demo</div><p class="sim-pane-sub">Deterministic JS reproduction of AGT-201 6-dimension scoring + AGT-202 routing. Useful for explaining the dimensional model — narrow scope, no LLM, no brain reasoning. For end-to-end reasoning see <a href="#" onclick="document.querySelectorAll('.nav-btn')[3].click();return false;" style="color:var(--gold);text-decoration:underline">Brain Outputs</a> and <a href="#" onclick="document.querySelectorAll('.nav-btn')[4].click();return false;" style="color:var(--gold);text-decoration:underline">Follow a Lead</a>.</p><div class="form-section-label">Company</div><div class="form-group"><label class="form-label">Company</label><input class="form-input" id="l-company" value="Meridian Analytics"></div><div class="form-row"><div class="form-group"><label class="form-label">Employees</label><input class="form-input" id="l-employees" type="number" value="850"></div><div class="form-group"><label class="form-label">Revenue</label><input class="form-input" id="l-revenue" value="$120M"></div></div><div class="form-row"><div class="form-group"><label class="form-label">Vertical</label><select class="form-select" id="l-vertical"><option>FinTech</option><option selected>SaaS</option><option>HealthTech</option><option>RetailTech</option><option>HR Tech</option><option>EdTech</option><option>Cybersecurity</option><option>Logistics</option><option>Other</option></select></div><div class="form-group"><label class="form-label">Geo</label><select class="form-select" id="l-geo"><option selected>US - West</option><option>US - East</option><option>EMEA</option><option>APAC</option></select></div></div><div class="form-section-label">Signals</div><div class="form-row"><div class="form-group"><label class="form-label">Source</label><select class="form-select" id="l-source"><option>Inbound - Demo</option><option selected>Inbound - Content</option><option>PLG Signup</option><option>Outbound</option><option>Partner</option><option>Event</option></select></div><div class="form-group"><label class="form-label">Funding</label><select class="form-select" id="l-funding"><option>Seed</option><option>Series A</option><option selected>Series B</option><option>Series C+</option><option>Public</option><option>Bootstrapped</option></select></div></div><div class="form-group"><label class="form-label">Tech Stack</label><input class="form-input" id="l-tech" value="HubSpot, Snowflake, Looker"></div><div class="form-group"><label class="form-label">Intent</label><textarea class="form-textarea" id="l-intent">Visited pricing 4x this week, posted RevOps Director role, Series B 6mo ago</textarea></div><button class="btn-run" onclick="runLeadSim()">Run ICP Score + Routing →</button></div><div class="sim-output-pane" id="lead-output"><div class="output-placeholder"><div class="output-placeholder-icon">◎</div><div class="output-placeholder-text">Fill in lead profile and click run.</div></div></div></div></div>
@@ -348,15 +355,27 @@ async function runLeadSim(){const btn=document.querySelector('#tab-lead .btn-run
 //  co-definition, play execution, and renewal.
 // ════════════════════════════════════════════════════════════════════
 
-const FOLLOWLEAD_STATE = { narrative: null, error: null };
+const FOLLOWLEAD_STATE = {
+  narratives: {},      // {growth: {...}, decliner: {...}}
+  active: 'growth',    // current sub-tab
+  error: null,
+};
+
+const FOLLOWLEAD_NARRATIVES = [
+  { key: 'growth',   path: 'eval/samples/follow_a_lead_growth.json',
+    label: 'Growth (Stark Logistics — expansion to 161% NRR)' },
+  { key: 'decliner', path: 'eval/samples/follow_a_lead_decliner.json',
+    label: 'Risk (Massive Dynamic — champion-loss save to 81% NRR)' },
+];
 
 async function loadFollowLead() {
   window.__followLeadLoaded = true;
   try {
-    const resp = await fetch('eval/samples/follow_a_lead.json');
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    FOLLOWLEAD_STATE.narrative = await resp.json();
-    // Also need the brain_outputs.json so brain moments can deeplink to modals
+    for (const narrative of FOLLOWLEAD_NARRATIVES) {
+      const resp = await fetch(narrative.path);
+      if (!resp.ok) throw new Error(narrative.path + ': HTTP ' + resp.status);
+      FOLLOWLEAD_STATE.narratives[narrative.key] = await resp.json();
+    }
     if (!BRAIN_STATE.data) {
       const r2 = await fetch('eval/samples/brain_outputs.json');
       if (r2.ok) BRAIN_STATE.data = await r2.json();
@@ -370,24 +389,40 @@ async function loadFollowLead() {
 function renderFollowLead() {
   const root = document.getElementById('followlead-content');
   if (FOLLOWLEAD_STATE.error) {
-    root.innerHTML = '<div class="error-box" style="margin:24px 0">Could not load follow_a_lead.json: ' +
+    root.innerHTML = '<div class="error-box" style="margin:24px 0">Could not load Follow-a-Lead narratives: ' +
       escapeHtmlSafe(FOLLOWLEAD_STATE.error) + '</div>';
     return;
   }
-  if (!FOLLOWLEAD_STATE.narrative) {
+  const n = FOLLOWLEAD_STATE.narratives[FOLLOWLEAD_STATE.active];
+  if (!n) {
     root.innerHTML = '<div class="output-placeholder" style="padding:60px 20px"><div class="output-placeholder-icon">↪</div><div class="output-placeholder-text">Loading narrative…</div></div>';
     return;
   }
-  const n = FOLLOWLEAD_STATE.narrative;
   const a = n.account;
+
+  // Sub-tab selector — toggle between growth and decliner narratives
+  const subtabsHtml = `
+    <div class="fl-subtabs">
+      ${FOLLOWLEAD_NARRATIVES.map(narrative => {
+        const loaded = FOLLOWLEAD_STATE.narratives[narrative.key];
+        const acct = loaded ? loaded.account : null;
+        const cls = FOLLOWLEAD_STATE.active === narrative.key ? 'fl-subtab active' : 'fl-subtab';
+        return `<button class="${cls}" data-narrative="${narrative.key}">
+          <div class="fl-subtab-label">${escapeHtmlSafe(narrative.label)}</div>
+          ${acct ? `<div class="fl-subtab-meta">${escapeHtmlSafe(acct.company_name)} · ${escapeHtmlSafe(acct.archetype_key||'')}</div>` : ''}
+        </button>`;
+      }).join('')}
+    </div>
+  `;
+
   root.innerHTML = `
     <div class="fl-header">
-      <div class="fl-headline">Follow a Lead — ${escapeHtmlSafe(a.company_name)}</div>
-      <div class="fl-sub">${escapeHtmlSafe(n.summary)} <strong>The brain reasoning steps below (highlighted in amber)
-      are real outputs from the prototype</strong> — captured verbatim from
+      <div class="fl-headline">Follow a Lead</div>
+      <div class="fl-sub">Two synthetic accounts walked end-to-end through the system — same starting point ($221K MM/T1), opposite outcomes. <strong>The brain reasoning steps below (highlighted in amber)
+      are real outputs from the prototype</strong>, captured verbatim from
       <code style="font-family:var(--mono);font-size:11px">prototype/brain_analysis_log.jsonl</code>. Click them
-      to see the full BrainAnalysisLog. The other steps are deterministic service handoffs based on the canonical
-      Tier 1 schema.</div>
+      to see the full BrainAnalysisLog. The other steps are deterministic service handoffs based on the canonical Tier 1 schema.</div>
+      ${subtabsHtml}
       <div class="fl-account-strip">
         <div class="fl-account-stat"><div class="fl-account-num">${escapeHtmlSafe(a.segment)}</div><div class="fl-account-label">segment</div></div>
         <div class="fl-account-stat"><div class="fl-account-num">${escapeHtmlSafe(a.vertical)}</div><div class="fl-account-label">vertical</div></div>
@@ -397,11 +432,20 @@ function renderFollowLead() {
         <div class="fl-account-stat"><div class="fl-account-num">${a.nrr_pct}%</div><div class="fl-account-label">NRR</div></div>
         <div class="fl-account-stat"><div class="fl-account-num">${a.licensed_seats}</div><div class="fl-account-label">licensed seats</div></div>
       </div>
+      <div class="fl-summary">${escapeHtmlSafe(n.summary)}</div>
     </div>
     <div class="fl-timeline">
       ${n.steps.map(renderFollowLeadStep).join('')}
     </div>
   `;
+
+  // Wire up sub-tab click handlers
+  document.querySelectorAll('.fl-subtab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      FOLLOWLEAD_STATE.active = btn.dataset.narrative;
+      renderFollowLead();
+    });
+  });
 
   // Wire up brain-moment click handlers
   document.querySelectorAll('.fl-brain-link').forEach(el => {
