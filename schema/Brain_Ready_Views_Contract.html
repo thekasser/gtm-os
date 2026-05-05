@@ -34,6 +34,7 @@ tr:nth-child(even) td{background:#fafafa}
 .view-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;font-family:monospace;display:inline-block}
 .vt-901{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
 .vt-902{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.vt-903{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
 .vt-both{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
 .footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
 code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
@@ -48,13 +49,15 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 
 <div class="meta-row">
   <span class="badge badge-layer">Tier 1 → Tier 2 contract</span>
-  <span class="badge badge-status">Specced &middot; v30</span>
-  <span class="badge badge-schema">20 views catalogued</span>
+  <span class="badge badge-status">Specced &middot; v30 (v37 strategy extension)</span>
+  <span class="badge badge-schema">30 views catalogued</span>
   <span class="badge badge-owner">Tier 1 service owners (per-view)</span>
 </div>
 
 <div class="intro-banner">
-  <strong>Why this document exists.</strong> The L9 brain specs (AGT-901, AGT-902) reference brain-ready views &mdash; <code>MetricsCalc.brain_view</code>, <code>UsageMeteringLog.account_brain_view</code>, the per-account composite view &mdash; as the read contract between Tier 2 brains and Tier 1 services. Until v30, those views existed only as references in the brain specs. This document is where the views actually get defined: which fields, which aggregation, which freshness window, which token budget. Without this, AGT-901 and AGT-902 can't actually run.
+  <strong>Why this document exists.</strong> The L9 brain specs (AGT-901, AGT-902, AGT-903) reference brain-ready views &mdash; <code>MetricsCalc.brain_view</code>, <code>UsageMeteringLog.account_brain_view</code>, the per-account composite view, and the v37 strategy_brain_view extensions &mdash; as the read contract between Tier 2 brains and Tier 1 services. This document is where the views actually get defined: which fields, which aggregation, which freshness window, which token budget. Without this, none of the three brain agents can actually run.
+  <br><br>
+  <strong>v37 update:</strong> AGT-903 Strategy Brain (specced v37, build deferred) introduces a new contract obligation on 10 Tier 1 services to ship <code>strategy_brain_view</code> extensions &mdash; longer time windows (4–12 trailing quarters), cohort axes where applicable, and outcome-correlation projections. Cataloged in the new AGT-903 section below.
 </div>
 
 <!-- ── PURPOSE ─────────────────────────────────────────────── -->
@@ -346,6 +349,116 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
   <div class="note"><strong>Composite total: ~25K tokens typical, ~30K worst case for an account with high-volume ConvIntelligence and dense usage history.</strong> Within AGT-902's 35K input budget per spec. Account synthesis signature caching (per AGT-902 spec) hits the cache for repeat queries within freshness window &mdash; saves cost on iterative meeting-prep workflows.</div>
 </div>
 
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- AGT-903 STRATEGY BRAIN — 10 STRATEGY VIEW EXTENSIONS (v37)               -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
+<div class="section">
+  <div class="section-title">AGT-903 Strategy Brain &mdash; 10 strategy view extensions</div>
+  <p class="prose" style="margin-bottom:10px">Multi-quarter portfolio reasoning. Each <code>strategy_brain_view</code> extension differs from its AGT-901 sibling by (a) longer time window (4&ndash;12 trailing quarters vs current period), (b) cohort axis where applicable (signup-quarter cohorts on AGT-501, AGT-503), and (c) outcome-correlation projections (e.g., ICP score &times; realized LTV on AGT-201). Refresh cadence is at most quarterly &mdash; strategic reasoning operates on durable trends, not week-over-week noise.</p>
+
+  <div class="alert-box alert-blue"><strong>v37 contract obligation on 10 Tier 1 services.</strong> Each owning service ships its strategy view extension independently &mdash; incremental rollout supported. AGT-903 declines on any missing or stale view rather than estimating from raw rows (per AGT-903 spec failure-mode discipline: refusal cost ≈ one tool call, not a full analysis).</div>
+
+  <table>
+    <tr><th>View</th><th>Source</th><th>Owner</th><th>Projection</th><th>Refresh</th><th>Stale &gt;</th><th>Tokens</th></tr>
+    <tr>
+      <td><code>MetricsCalc.strategy_brain_view</code> <span class="view-tag vt-903">903</span></td>
+      <td>MetricsCalc</td>
+      <td>AGT-702</td>
+      <td>Magic Number / NRR / GRR / R40 (3 variants) / CAC Payback by segment + vertical + cohort, trailing 8&ndash;12 quarters. Plan-vs-actual delta history. Multi-quarter trajectory smoothing.</td>
+      <td>Quarterly (post month-3 close)</td>
+      <td>10 business days post quarter close</td>
+      <td>~5K</td>
+    </tr>
+    <tr>
+      <td><code>WinLossLog.strategy_brain_view</code> <span class="view-tag vt-903">903</span></td>
+      <td>WinLossLog</td>
+      <td>AGT-703</td>
+      <td>Loss-reason evolution + competitive mention frequency + forecast-bias evolution by segment, trailing 8 quarters. Multi-quarter pattern surfaces (not week-over-week noise).</td>
+      <td>Quarterly</td>
+      <td>10 business days post quarter close</td>
+      <td>~4K</td>
+    </tr>
+    <tr>
+      <td><code>CustomerHealthLog.cohort_brain_view</code> <span class="view-tag vt-903">903</span></td>
+      <td>CustomerHealthLog</td>
+      <td>AGT-501</td>
+      <td>Cohort retention curves by signup quarter / segment / vertical / ICP tier. Trailing 8 cohorts at quarterly granularity. Late-cohort projections fed by TOOL-013 cohort retention forecaster (when available).</td>
+      <td>Quarterly</td>
+      <td>10 business days post quarter close</td>
+      <td>~5K</td>
+    </tr>
+    <tr>
+      <td><code>Accounts.icp_outcome_brain_view</code> <span class="view-tag vt-903">903</span></td>
+      <td>Accounts</td>
+      <td>AGT-201</td>
+      <td>Correlation of 6-dimension ICP score to realized LTV / NRR / churn / win-rate, by signup-quarter cohort. Per-dimension correlation breakdown — supports propose_icp_revision use case (which dimensions correlate most strongly with realized outcomes?).</td>
+      <td>Quarterly</td>
+      <td>10 business days post quarter close</td>
+      <td>~4K</td>
+    </tr>
+    <tr>
+      <td><code>MarketAssumptions.strategy_brain_view</code> <span class="view-tag vt-903">903</span></td>
+      <td>MarketAssumptions</td>
+      <td>AGT-205</td>
+      <td>TAM / SAM / SOM by product family + vertical + segment with current penetration. Includes annual TAM refresh + quarterly SAM update lineage. Source for vertical-entry sizing (per AGT-903 propose_vertical_entry).</td>
+      <td>Quarterly (TAM annually, SAM quarterly per AGT-205)</td>
+      <td>30 days (vertical sizing changes infrequently)</td>
+      <td>~3K</td>
+    </tr>
+    <tr>
+      <td><code>VoCSynthesisLog.strategy_brain_view</code> <span class="view-tag vt-903">903</span></td>
+      <td>VoCSynthesisLog</td>
+      <td>AGT-604</td>
+      <td>Trailing 8-quarter theme evolution + competitive theme evolution. Cross-vertical theme heat-map. Multi-quarter shifts in customer narrative (not weekly digest noise).</td>
+      <td>Quarterly</td>
+      <td>30 days</td>
+      <td>~3K</td>
+    </tr>
+    <tr>
+      <td><code>CapacityPlan.strategy_brain_view</code> <span class="view-tag vt-903">903</span></td>
+      <td>CapacityPlan</td>
+      <td>AGT-105</td>
+      <td>Deployed eRep + ramp + utilization trajectory by segment, trailing 8 quarters. Hiring plan vs actual. Productivity per eRep / per loaded HC / per loaded GTM+Mktg HC across multi-quarter window.</td>
+      <td>Quarterly (monthly cadence available; quarterly snapshot taken)</td>
+      <td>10 business days post quarter close</td>
+      <td>~3K</td>
+    </tr>
+    <tr>
+      <td><code>QuotaPlanLog.strategy_brain_view</code> <span class="view-tag vt-903">903</span></td>
+      <td>QuotaPlanLog</td>
+      <td>AGT-101</td>
+      <td>Quota attainment distribution + bias by segment, trailing 8 quarters. Coverage ratio history. Amendment frequency + amendment reasons over time. Supports propose_segment_redefinition + propose_capacity_reallocation reasoning.</td>
+      <td>Quarterly</td>
+      <td>10 business days post quarter close</td>
+      <td>~3K</td>
+    </tr>
+    <tr>
+      <td><code>ExpansionLog.strategy_brain_view</code> <span class="view-tag vt-903">903</span></td>
+      <td>ExpansionLog</td>
+      <td>AGT-503</td>
+      <td>Expansion realization rate + cohort upsell trajectory by segment, trailing 8 quarters. Play-type retrospective (which expansion plays converted, which didn't). Land-and-expand bet measurement.</td>
+      <td>Quarterly</td>
+      <td>10 business days post quarter close</td>
+      <td>~3K</td>
+    </tr>
+    <tr>
+      <td><code>TopDownForecast.strategy_brain_view</code> <span class="view-tag vt-903">903</span></td>
+      <td>TopDownForecast</td>
+      <td>AGT-404</td>
+      <td>Top-down vs bottoms-up reconciliation across trailing 4&ndash;8 quarters + segment-level decomposition. Forecast-vs-actual variance history. Multi-quarter forecast bias and structural gaps.</td>
+      <td>Quarterly (per AGT-404 cohort-conversion model)</td>
+      <td>10 business days post quarter close</td>
+      <td>~3K</td>
+    </tr>
+  </table>
+  <div class="note"><strong>AGT-903 query budget:</strong> 10 strategy views × ~3.6K avg ≈ 36K tokens typical. Within AGT-903's 200K input budget per spec — leaves ample headroom for question, system prompt, and multi-turn iteration during CRO review. Per-view stale-flag propagates to <code>data_staleness_acknowledged</code> on BrainAnalysisLog same as AGT-901 / AGT-902.</div>
+
+  <div class="alert-box alert-amber"><strong>Refresh cadence is quarterly, not daily.</strong> Strategic reasoning operates on durable multi-quarter trends. Daily refresh would be expensive without changing the answer to "should we enter this vertical?" or "is the ICP rubric still predicting outcomes?" The 10-business-days post quarter close window covers month-end finance reconciliation and AGT-702 / AGT-703 quarterly snapshots — by then all upstream data is settled.</div>
+
+  <div class="alert-box alert-gold"><strong>Tier 3 tool dependency.</strong> Two strategy views depend on Tier 3 cognition for forward projections: <code>CustomerHealthLog.cohort_brain_view</code> may call TOOL-013 (Cohort Retention Forecaster) for late-cohort projections; vertical-entry analysis on <code>Accounts.icp_outcome_brain_view</code> may call TOOL-014 (Segment-LTV Decomposer) for LTV decomposition by segment / vertical / ICP tier. Both tools specced v37, not yet prototyped. AGT-903 build is gated on these.</div>
+</div>
+
 <!-- ── BACKWARDS COMPATIBILITY ───────────────────────────── -->
 <div class="section">
   <div class="section-title">Backwards compatibility &amp; change management</div>
@@ -396,11 +509,11 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 </div>
 
 <div class="footer">
-  Brain-Ready Views &middot; Contract &amp; Catalog &middot; Tier 1 → Tier 2 contract &middot; Schema v30<br>
+  Brain-Ready Views &middot; Contract &amp; Catalog &middot; Tier 1 → Tier 2 contract &middot; Schema v30 + v37 strategy extension<br>
   Owners: per-view, the underlying Tier 1 service. Brain layer is read-only consumer.<br>
-  20 views catalogued: 9 cross-population (AGT-901), 11 per-account components (AGT-902 composite). Total view payload bounded ~50K tokens for AGT-901, ~30K for AGT-902.<br>
-  Companion: <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902 Account Brain</a> &middot; <a href="BrainAnalysisLog_Schema.html">BrainAnalysisLog</a> &middot; <a href="BrainEvalLog_Schema.html">BrainEvalLog</a><br>
-  This is the load-bearing piece of the brain layer's read contract. Without these views formally defined, AGT-901 and AGT-902 are theory.
+  30 views catalogued: 9 cross-population (AGT-901), 11 per-account components (AGT-902 composite), 10 strategy view extensions (AGT-903, v37). Total view payload bounded ~50K tokens for AGT-901, ~30K for AGT-902, ~36K typical for AGT-903.<br>
+  Companion: <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902 Account Brain</a> &middot; <a href="../specs/AGT-903_Strategy_Brain.html">AGT-903 Strategy Brain</a> &middot; <a href="BrainAnalysisLog_Schema.html">BrainAnalysisLog</a> &middot; <a href="StrategyRecommendationLog_Schema.html">StrategyRecommendationLog</a> &middot; <a href="BrainEvalLog_Schema.html">BrainEvalLog</a><br>
+  This is the load-bearing piece of the brain layer's read contract. Without these views formally defined, the three brain agents are theory.
 </div>
 </body>
 </html>

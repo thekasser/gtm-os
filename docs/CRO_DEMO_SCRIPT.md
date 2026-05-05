@@ -1,31 +1,37 @@
 # CRO Demo Script — gtm-os
 
-**Goal:** in 8–12 minutes, show a CRO that gtm-os is (a) a coherent architecture and (b) a *working system* that produces real reasoning on real-shaped data.
+**Goal:** in 12–15 minutes, show a CRO that gtm-os is (a) a coherent architecture, (b) a *working system* that produces real reasoning on real-shaped data, and (c) actually **interactive** at the planning meeting they actually run.
 
-The repo has six explainer tabs. Click them in **this order**, or you'll tell a worse story:
+The repo has eight explainer tabs. Click them in **this order**, or you'll tell a worse story:
 
-> Architecture → Brain Outputs → Follow a Lead → (optional) The OS / Connection Map / ICP Scorer Demo
+> Architecture → Brain Outputs → Follow a Lead → **Planning → Forecast & WBR** → (optional) The OS / Connection Map / ICP Scorer Demo
+
+The Planning and Forecast/WBR tabs are new in v37.2 and are sized for a **$400M–$1B ARR business with 80–100 sales reps** across new business and existing.
 
 ---
 
 ## Pre-flight (do this 5 minutes before the call)
 
 1. Open https://thekasser.github.io/gtm-os/gtm_os_explainer.html in a fresh tab
-2. Click **Brain Outputs** — confirm the gallery loads (14 cards visible)
-3. Click any card — confirm modal opens with `[src:N]` chips visible inline in the narrative
-4. Press Esc to close, click **Follow a Lead** — confirm the timeline loads with the 7-stat header strip
-5. Scroll to Day +120 — confirm the amber "🧠 See the actual brain reasoning — EVAL-Q04 →" button is visible
-6. Click it — confirm modal opens with EVAL-Q04 brain output
+2. Confirm header reads "v37 · Schema" and meta-stats show **3 agents · 14 tools**
+3. Click **Brain Outputs** — confirm the gallery loads (14 cards visible)
+4. Click any card — confirm modal opens with `[src:N]` chips visible inline in the narrative
+5. Press Esc, click **Follow a Lead** — confirm the timeline loads with the 7-stat header strip
+6. Scroll to Day +120 — confirm the amber "🧠 See the actual brain reasoning — EVAL-Q04 →" button is visible
+7. Click **Planning** — confirm Quota sub-panel loads with sliders and the per-segment quota card
+8. Pull the ARR target slider once — confirm numbers reflow live
+9. Click **Forecast & WBR** — confirm the Forecast sub-panel loads with bottoms-up + top-down + commit + plan card
+10. Click the WBR sub-tab — confirm five canonical metric cards (Magic Number / R40 / NRR / GRR / CAC Payback) render with current values
 
 If any of those fail, the live Pages build is broken. Stop and ping the engineer (you).
 
 ---
 
-## The 8-minute pitch
+## The 12-minute pitch
 
 ### 1. Architecture (90 seconds)
 
-> "This is gtm-os. It's three tiers across ten layers. **Forty GTM Services** in L1 through L8 — these are the deterministic backbone. Single-writer-per-table, audit-grade. Quota math, comp payouts, ASC 606, customer health scoring — anything where a CFO or auditor needs an answer that traces to one source. **Two Brain Agents in L9** — operator-invoked, never on cadence, read Tier 1 services but never write canonical data. **Twelve Specialist Tools** in Tier 3 — narrow LLM functions the brains call for forecasting, adoption pattern recognition, play composition.
+> "This is gtm-os. It's three tiers across ten layers. **Forty GTM Services** in L1 through L8 — these are the deterministic backbone. Single-writer-per-table, audit-grade. Quota math, comp payouts, ASC 606, customer health scoring — anything where a CFO or auditor needs an answer that traces to one source. **Three Brain Agents in L9** — operator-invoked, never on cadence, read Tier 1 services but never write canonical data. AGT-901 cohort, AGT-902 per-account, AGT-903 strategy. **Fourteen Specialist Tools** in Tier 3 — narrow LLM functions the brains call for forecasting, adoption pattern recognition, play composition, cohort retention.
 
 > The line is intentional: **brains propose, humans co-define and approve, services execute.** A brain never bypasses an audit gate."
 
@@ -39,7 +45,7 @@ Click into any **L4** or **L5** layer to show the agent cards inside. Don't dwel
 
 Click **Brain Outputs**. Talk over the stat strip:
 
-> "Eleven from AGT-902 — that's the per-account brain. Three from AGT-901 — that's the cohort brain. Total spend across all of them: a buck-fifty. Each card is a question someone might actually ask the system."
+> "Eleven from AGT-902 — that's the per-account brain. Three from AGT-901 — that's the cohort brain. AGT-903 is the strategy brain, specced but not yet built — that one targets multi-quarter portfolio reasoning. Total spend across all of them: a buck-fifty."
 
 Filter to **AGT-902 (account)**. Then click **EVAL-Q04** (Stark Logistics, expansion_qualification). When the modal opens:
 
@@ -69,9 +75,9 @@ Close the modal. Click **EVAL-Q03** (Strickland Analytics, stalled_onboarding).
 
 Click **Follow a Lead**.
 
-> "The gallery shows breadth — 14 different questions answered. This shows depth. One synthetic account, MM/FinTech, walked end-to-end through the system from inbound lead to renewal. Stark Logistics — 14-month contract starting at $221K, ends at $355K, 161% NRR."
+> "The gallery shows breadth — 14 different questions answered. This shows depth. Two synthetic accounts, walked end-to-end through the system. Same starting point — $221K MM/T1 inbound — opposite outcomes. Let me show you the growth arc first."
 
-Walk through the timeline aloud. Don't read every step — hit the milestones:
+Use the sub-tab toggle to confirm **Stark Logistics (growth)** is selected. Walk through the timeline aloud. Don't read every step — hit the milestones:
 
 - **Day -120**: AGT-201 scores ICP (78/100, T1), AGT-202 routes to MM AE West.
 - **Day -78**: Discovery booked, AGT-305 generates the brief.
@@ -96,14 +102,74 @@ Close the modal. Continue scrolling:
 
 > "Here's the full loop. Brain proposes. Human co-defines and approves. Service executes. The lineage from the brain proposal is preserved end-to-end — every action, every play, every outcome traces back to which brain run drafted it. That's what makes the cohort retrospective possible."
 
+If time permits, switch the sub-tab to **Massive Dynamic (decline)** for 30 seconds:
+
+> "Same starting point, defensive arc. Champion departs Day +210. Brain catches the inflection at T-90 renewal, recommends SLM intervention, account renews at $180K — contained loss, not churn. This is the shape of the second arc."
+
 ---
 
-### 4. Closing (60 seconds)
+### 4. Planning workbench (2.5 minutes — *the "yes that's what I do" tab*)
 
-> "Three things matter here:
+Click **Planning**.
+
+> "Up to here we've shown what the system *did* on real data. This tab is what your planning meeting feels like in this architecture. Three sub-panels: quota, headcount, territory. Sized for a $400M–$1B ARR business with 80–100 reps. Pull a slider — the math respects all the spec guardrails."
+
+Default tab is **Quota**. Talk over the layout:
+
+> "Net-new ARR target sliders, segment mix, ramp factor. Per AGT-101, quota is **bottom-up** — built from eRep capacity, not divided down from a revenue number. Each segment carries an AE quota multiple from spec: SMB 2.9× of OTE, MM 4.0×, Enterprise 5.7×. Pull the ARR target slider — watch the eRep need recompute and the three board scenarios update: base, conservative −15% eRep, stretch +10%."
+
+Pull the ARR target slider from $150M up to $250M. Let it land:
+
+> "Now look at the guardrails. Coverage ratio — that's AGT-101's spec-mandated rule that org capacity × full quota has to be at least 85% of the revenue target. Drop the ramp factor below 0.85 and watch it fail — that's the same gate AGT-101 enforces before publishing a quota plan to four-gate approval."
+
+Pull ramp factor down to 0.70:
+
+> "Coverage ratio fails. Ramp distribution flag fires too. AGT-901 commentary at the bottom adapts to the current state and surfaces what AGT-101 would do — block the publish, route to RevOps."
+
+Click the **Headcount** sub-tab:
+
+> "ARR target carries over — same number from the quota panel. AGT-105 reconciles three independent guardrails: Magic Number, Rule of 40, CAC Payback. The most-conservative signal becomes the binding constraint, highlighted in gold. Pull the FCF margin negative and watch R40 flip from 'invest' to 'backfill only' — that becomes the binding constraint and gates net-new hiring."
+
+Pull FCF margin to −0.05:
+
+> "Hiring constrained to backfill only. The underlying math is straight from the spec — you can verify each formula by hovering the metric cards in the WBR tab next."
+
+Click the **Territory** sub-tab:
+
+> "AGT-106. Sixty territories at default — not 1:1 with reps; at this size, named-account reps cover multiple accounts. Equity weighting slider controls whether you're optimizing for account count or ACV potential. Gini coefficient measures imbalance. Workload outlier flag fires per AGT-106's 1.5 SD rule."
+
+Move the equity weighting slider fully to ACV:
+
+> "Watch the Gini recompute against ACV potential and the outlier count update. AGT-106 enforces the routing_eligible gate — LOA, PIP, assignment_active, capacity — strict AND. Reps that fail any one are removed from routing entirely. That's a real gate, not a softer 'preference.'"
+
+---
+
+### 5. Forecast & WBR (1.5 minutes — *the readout*)
+
+Click **Forecast & WBR**.
+
+Default sub-tab is **Forecast**:
+
+> "AGT-402 bottoms-up plus AGT-404 top-down plus rep commit plus FP&APlan target. Three lenses, one decision. Per AGT-402's v23 spec ripple, bottoms-up decomposes into three components — new logo, renewal, and expansion ACV. Expansion ACV is churn-risk-weighted: Low risk gets 80% weight, Medium 50%, High zero. Pull the risk-mix slider and watch the expansion contribution change."
+
+Pull stage calibration to 0.80:
+
+> "Win rates 20% softer than baseline. Plan-pct drops. Rep commit doesn't move because rep commit is sacred per AGT-402 spec — the brain models it separately, never overrides."
+
+Click the **WBR** sub-tab:
+
+> "This is what AGT-704 produces. Five canonical AGT-702 metrics. Hover any card for the formula. NRR target is 110% per AGT-702 spec — never changes. GRR target is 85% — never changes. Magic Number, Rule of 40, CAC Payback. Each carries plan-vs-actual delta and a status color tied to spec thresholds. Below that, AGT-703 win-loss patterns and a brain narrative banner that adapts to the metric state. The narrative is what AGT-704 stitches together for the MBR."
+
+---
+
+### 6. Closing (60 seconds)
+
+> "Five things matter here:
 > 1. **The deterministic backbone is sacred.** Quota math, comp, rev rec — all stay deterministic. Auditors and the CFO sleep at night.
 > 2. **The brain layer is operator-invoked, not on cadence.** It costs about a buck-fifty per fourteen brain runs. We can run this on demand without exploding token spend.
 > 3. **Humans are the safety mechanism.** The brain never executes a play. It drafts, humans curate, the volume cap is enforced at activation. You can't get a runaway agent in this architecture by design.
+> 4. **The planning meeting is interactive.** Pulling sliders moves the math through every spec guardrail. This isn't a static deck — this is what running the meeting feels like.
+> 5. **Strategy reasoning is specced but build-deferred.** AGT-903 covers the multi-quarter, portfolio-bet questions — ICP rewrites, vertical entry, capacity reallocation. Endorsement requires CRO + CFO + sometimes CEO; endorsement triggers a human-led workstream, never a direct table edit.
 >
 > The system is ready to test against real data. Here's the migration path."
 
@@ -117,19 +183,22 @@ Open `prototype/PORT_TO_CORPORATE.md` in another tab if they want to dig in.
 > The harness has a `must_cite_tool` rule — every numerical claim cites a source. Hallucinations show up as unresolved `[src:N]` chips and the validator catches them. A standing calibration probe verifies the validator catches them — five probes, all passing. We never trust the brain's narrative; we trust the harness that scores the brain.
 
 **"What about the cost at scale?"**
-> Brain calls are operator-invoked, not on cadence. The 14-run sweep cost $1.50. If you ran it 500 times a day across the whole org, that's $50/day, $1,500/month — well under one analyst FTE. And it's bounded with hard ceilings + 75% budget alerts per tier.
+> Brain calls are operator-invoked, not on cadence. The 14-run sweep cost $1.50. If you ran it 500 times a day across the whole org, that's $50/day, $1,500/month — well under one analyst FTE. AGT-903 strategy queries are heavier per-call (Opus default, multi-quarter context) but rare — annual planning, board prep, mid-year inflection — sized for 10–30 queries/month at ~$300/month budget. All bounded with hard ceilings + 75% budget alerts per tier.
 
 **"How do you stop this from drifting over time?"**
 > The 30-question retrospective harness runs quarterly. If accuracy slips, you investigate before promoting any new capability. That's pre-launch gating, not post-hoc cleanup.
 
 **"How long to wire this to our real warehouse?"**
-> The prototype already has a `BrainViewSource` interface. Synth source today, warehouse source tomorrow — single subclass + one factory branch, no brain code changes. Phase plan in `prototype/PORT_TO_CORPORATE.md` walks Phase 0 (eval baseline against real accounts) through Phase 5 (brain agents go live).
+> The prototype already has a `BrainViewSource` interface. Synth source today, warehouse source tomorrow — single subclass + one factory branch, no brain code changes. Phase plan in `prototype/PORT_TO_CORPORATE.md` walks Phase 0 (eval baseline against real accounts) through Phase 5 (brain agents go live). AGT-903 build adds a separate prerequisite — `strategy_brain_view` extensions on ten Tier 1 services, plus the cohort/LTV Tier 3 tools (TOOL-013, TOOL-014).
 
 **"Can a brain accidentally publish bad plays?"**
-> No. Brains write `draft` rows only. The state machine requires SLM + RevOps joint approval to transition `under_review → active`. AGT-302 reads only `active` plays. There's also a hard volume cap per segment per quarter — typically 3-8 plays. Brains can't proliferate plays even if they wanted to.
+> No. AGT-901 / AGT-902 write `draft` rows only to SalesPlayLibrary; AGT-903 writes drafts to StrategyRecommendationLog. Each has its own state machine. SalesPlayLibrary requires SLM + RevOps joint approval to transition `under_review → active`; AGT-302 reads only `active` plays. There's also a hard volume cap per segment per quarter — typically 3–8 plays. StrategyRecommendationLog endorsement requires CRO + CFO + (CEO if material) and triggers a human-led workstream, not a direct table edit anywhere.
 
 **"What's actually built vs. just specced?"**
-> Built (production-deployed): all 40 L1-L8 services. Prototyped (runtime exists, evals pass, not yet on real data): both brain agents, 3 of the 12 tools (TOOL-003 sales play composer, TOOL-004 consumption forecasting, TOOL-008 adoption pattern recognizer). Specced only: the other 9 tools.
+> Built (production-deployed): all 40 L1–L8 services. Prototyped (runtime exists, evals pass, not yet on real data): AGT-901 + AGT-902 brain agents, 4 of the 14 tools (TOOL-003 sales play composer, TOOL-004 consumption forecasting, TOOL-008 adoption pattern recognizer, TOOL-010 champion movement detector). Specced only: AGT-903 strategy brain (build deferred pending strategy_brain_view extensions + Tier 3 cohort tools), 10 of the 14 tools.
+
+**"What's the planning tab actually doing — is it real, or just JS?"**
+> Pure JS, deterministic. Every formula is grounded in spec — AE quota multiples from AGT-101 (2.9× / 4.0× / 5.7×), three guardrails from AGT-105 (Magic Number, R40, CAC Payback), Gini-style equity from AGT-106, expansion ACV churn-risk weights from AGT-402 v23 ripple. Phase 2 (deferred, requires AGT-903 build + API budget) replaces the pre-baked brain commentary banners with live AGT-901 / AGT-903 calls, so the brain critiques your slider state in real time.
 
 ---
 
@@ -139,6 +208,7 @@ Open `prototype/PORT_TO_CORPORATE.md` in another tab if they want to dig in.
 - **The OS tab** if time-constrained. It's the full agent-spec catalog — useful for self-service exploration after the call, not for live walkthrough.
 - **The ICP Scorer Demo.** It's a deterministic JS recreation of the ICP scoring math. CROs aren't there for math; they're there for "does this work end-to-end." If they specifically ask "how does ICP scoring work," then you can pop into it.
 - **The repo source code.** They don't need to see Python. Stay in the explainer.
+- **All five Planning + Forecast/WBR sub-panels at once.** Pick one or two slider moments per panel. The point is to show interactivity, not to walk every formula.
 
 ---
 
@@ -147,3 +217,5 @@ Open `prototype/PORT_TO_CORPORATE.md` in another tab if they want to dig in.
 - "This started as a spec exercise. The point of the brain prototype is to validate that the contracts hold under real reasoning load — not to ship a product."
 - "Every fixture you saw in the gallery is captured verbatim from `prototype/brain_analysis_log.jsonl` — these aren't hand-curated demo answers, they're whatever the eval harness produced last."
 - "The synth corpus has 8 archetypes — power user, activating, surface_only, champion_loss_decliner, expansion_ready, spike_then_crash, seasonal, stalled_onboarding. Brain handles all of them. That's the breadth answer."
+- "The Planning tab is sized for your scale — $400M–$1B ARR, 80–100 reps. Default sliders are net-new ARR, not total revenue, because that's what reps actually work against. If your numbers are different, pull the sliders to match."
+- "The third brain — AGT-903 — is the most architecturally interesting part of v37. Strategy reasoning has the highest stakes (ICP, vertical entry, capacity bets) but also the longest feedback loop. Endorsement triggers a human-led workstream, not a table edit. That's a deliberate design — strategic decisions stay with humans even after AI recommends."
