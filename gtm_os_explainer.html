@@ -824,26 +824,27 @@ renderArch();setTimeout(()=>{document.getElementById('layer-L0').classList.add('
    ───────────────────────────────────────────────────────────────── */
 
 // AGT-101 segment assumptions. AE quota/OTE multiples per AGT-101 spec
-// (SMB 2.9× / MM 4.0× / Ent 5.7×). Productivity per eRep = $/eRep — used
-// for headcount derivation. OTEs are illustrative defaults the CRO can
-// internalize without sliders for every input.
+// (SMB 2.9× / MM 4.0× / Ent 5.7×). Productivity per eRep + OTE sized for a
+// $400M–$1B ARR business with 80–100 sales reps across NB + existing.
+// CROs at that size think in net-new-ARR targets ($80M–$300M for 20–40% growth)
+// against a recurring base, not in total ARR.
 const PLAN_SEG = {
-  smb: { ote: 130000, quotaMult: 2.9, prodPerErep: 800000,  cycleDays: 32  },
-  mm:  { ote: 175000, quotaMult: 4.0, prodPerErep: 1400000, cycleDays: 95  },
-  ent: { ote: 260000, quotaMult: 5.7, prodPerErep: 2600000, cycleDays: 180 }
+  smb: { ote: 130000, quotaMult: 2.9, prodPerErep: 1000000, cycleDays: 32  },
+  mm:  { ote: 200000, quotaMult: 4.0, prodPerErep: 1700000, cycleDays: 95  },
+  ent: { ote: 300000, quotaMult: 5.7, prodPerErep: 3000000, cycleDays: 180 }
 };
 
 const PLANNING_STATE = {
   active: 'quota',
-  arrTarget: 40000000,        // $40M default
-  segmentMixSmb: 0.25,
-  segmentMixMm: 0.45,
+  arrTarget: 150000000,       // $150M net-new ARR (≈ 30% growth on a $500M base)
+  segmentMixSmb: 0.10,
+  segmentMixMm: 0.30,         // ent computed = 0.60 — enterprise-heavy at this scale
   rampFactor: 0.85,           // org-wide deployed productivity %
   productivityCal: 1.0,       // calibration multiplier on PLAN_SEG.prodPerErep
   attritionPct: 0.18,         // 18% annual
   fcfMarginPct: 0.05,         // for R40
   arrGrowthPct: 0.30,         // for R40
-  numTerritories: 24,
+  numTerritories: 60,
   equityWeight: 0.5           // 0 = optimize for account count, 1 = optimize for ACV potential
 };
 
@@ -856,7 +857,7 @@ function renderPlanning(){
   const root = document.getElementById('planning-content');
   root.innerHTML = `<div class="pl-wrap">
     <div class="pl-headline">Planning Workbench</div>
-    <div class="pl-sub">The CRO planning meeting in three sub-panels: <strong>Quota (AGT-101)</strong>, <strong>Headcount/Capacity (AGT-105)</strong>, <strong>Territory (AGT-106)</strong>. Pull a slider in any panel — the math respects all three specs' guardrails. Brain commentary banners at the bottom of each panel show what AGT-901 / AGT-903 would surface about your current allocation.</div>
+    <div class="pl-sub">The CRO planning meeting in three sub-panels: <strong>Quota (AGT-101)</strong>, <strong>Headcount/Capacity (AGT-105)</strong>, <strong>Territory (AGT-106)</strong>. Sized for a <strong>$400M–$1B ARR business with 80–100 sales reps</strong> across new business + existing — defaults model net-new-ARR targets, not total revenue. Pull a slider in any panel; the math respects all three specs' guardrails. Brain commentary banners at the bottom of each panel show what AGT-901 / AGT-903 would surface about your current allocation.</div>
     <div class="fl-subtabs">
       <button class="fl-subtab ${PLANNING_STATE.active==='quota'?'active':''}" data-pl-tab="quota">
         <div class="fl-subtab-label">Quota · AGT-101</div>
@@ -931,17 +932,18 @@ function renderQuotaPanel(){
     <div class="pl-controls">
       <div class="pl-ctrl-section">Top-line target</div>
       <div class="pl-slider-row">
-        <div class="pl-slider-label"><span>ARR target</span><strong>${formatCurrency(s.arrTarget)}</strong></div>
-        <input type="range" class="pl-slider" min="20000000" max="80000000" step="1000000" value="${s.arrTarget}" data-pl-input="arrTarget">
+        <div class="pl-slider-label"><span>Net-new ARR target</span><strong>${formatCurrency(s.arrTarget)}</strong></div>
+        <input type="range" class="pl-slider" min="50000000" max="400000000" step="5000000" value="${s.arrTarget}" data-pl-input="arrTarget">
+        <div style="font-size:10px;color:var(--text3);margin-top:4px">Net-new ARR for the year — not total revenue. Default $150M ≈ 30% growth on a $500M base.</div>
       </div>
       <div class="pl-ctrl-section">Segment mix</div>
       <div class="pl-slider-row">
         <div class="pl-slider-label"><span>SMB share</span><strong>${(s.segmentMixSmb*100).toFixed(0)}%</strong></div>
-        <input type="range" class="pl-slider" min="0.05" max="0.6" step="0.01" value="${s.segmentMixSmb}" data-pl-input="segmentMixSmb">
+        <input type="range" class="pl-slider" min="0.00" max="0.40" step="0.01" value="${s.segmentMixSmb}" data-pl-input="segmentMixSmb">
       </div>
       <div class="pl-slider-row">
         <div class="pl-slider-label"><span>MM share</span><strong>${(s.segmentMixMm*100).toFixed(0)}%</strong></div>
-        <input type="range" class="pl-slider" min="0.10" max="0.70" step="0.01" value="${s.segmentMixMm}" data-pl-input="segmentMixMm">
+        <input type="range" class="pl-slider" min="0.10" max="0.60" step="0.01" value="${s.segmentMixMm}" data-pl-input="segmentMixMm">
       </div>
       <div class="pl-slider-row">
         <div class="pl-slider-label"><span>Ent share <em style="font-style:normal;color:var(--text3)">(computed)</em></span><strong>${(c.ent*100).toFixed(0)}%</strong></div>
@@ -1082,8 +1084,8 @@ function renderHeadcountPanel(){
     <div class="pl-controls">
       <div class="pl-ctrl-section">Top-line target</div>
       <div class="pl-slider-row">
-        <div class="pl-slider-label"><span>ARR target</span><strong>${formatCurrency(s.arrTarget)}</strong></div>
-        <input type="range" class="pl-slider" min="20000000" max="80000000" step="1000000" value="${s.arrTarget}" data-pl-input="arrTarget">
+        <div class="pl-slider-label"><span>Net-new ARR target</span><strong>${formatCurrency(s.arrTarget)}</strong></div>
+        <input type="range" class="pl-slider" min="50000000" max="400000000" step="5000000" value="${s.arrTarget}" data-pl-input="arrTarget">
       </div>
       <div class="pl-ctrl-section">Productivity</div>
       <div class="pl-slider-row">
@@ -1231,7 +1233,8 @@ function renderTerritoryPanel(){
       <div class="pl-ctrl-section">Territory count</div>
       <div class="pl-slider-row">
         <div class="pl-slider-label"><span>Number of territories</span><strong>${Math.round(s.numTerritories)}</strong></div>
-        <input type="range" class="pl-slider" min="8" max="48" step="1" value="${s.numTerritories}" data-pl-input="numTerritories">
+        <input type="range" class="pl-slider" min="30" max="120" step="1" value="${s.numTerritories}" data-pl-input="numTerritories">
+        <div style="font-size:10px;color:var(--text3);margin-top:4px">Carve unit — distinct from rep count. 80–100 reps may serve 50–80 territories (named-account reps cover multiple accounts).</div>
       </div>
       <div class="pl-ctrl-section">Equity weighting</div>
       <div class="pl-slider-row">
@@ -1288,10 +1291,12 @@ function territoryCommentary(s,t,giniLabel){
 
 const FORECAST_STATE = {
   active: 'forecast',
-  pipelineCoverage: 3.5,        // pipeline-to-quota coverage ratio
+  // Pipeline derived internally at 3.5× quarterly target — coverage-ratio
+  // slider was removed per CRO feedback (it's a contested rule-of-thumb;
+  // CROs at this scale think in deal counts and stage health, not ratios).
   stageCalibration: 1.0,         // multiplier on stage win rates
   forecastBiasPct: 0.27,         // historical AE forecast bias (over-call)
-  expansionPipelineUsd: 8000000,
+  expansionPipelineUsd: 30000000, // sized for $400M–$1B ARR business
   expansionRiskMix: 0.6           // 0=all Low (80% weight), 1=all High (0% weight)
 };
 
@@ -1342,8 +1347,10 @@ function computeForecast(){
   const arrTarget = PLANNING_STATE.arrTarget;
   // Quarterly target = annual / 4
   const qTarget = arrTarget / 4;
-  // Pipeline = coverage × target
-  const pipeline = qTarget * f.pipelineCoverage;
+  // Pipeline derived internally — fixed multiple, no longer surfaced as a
+  // slider. CROs at this size measure pipeline health by stage progression
+  // and deal count, not coverage-ratio rule-of-thumb.
+  const pipeline = qTarget * 3.5;
   // Stage breakdown (illustrative): early 50% / mid 30% / late 20% of pipeline
   const stages = {
     early: { pipe: pipeline*0.50, baseWinRate: 0.08 },
@@ -1385,11 +1392,6 @@ function renderForecastSubPanel(){
 
   return `<div class="pl-layout">
     <div class="pl-controls">
-      <div class="pl-ctrl-section">Pipeline</div>
-      <div class="pl-slider-row">
-        <div class="pl-slider-label"><span>Coverage ratio</span><strong>${f.pipelineCoverage.toFixed(1)}×</strong></div>
-        <input type="range" class="pl-slider" min="2.0" max="5.0" step="0.1" value="${f.pipelineCoverage}" data-fc-input="pipelineCoverage">
-      </div>
       <div class="pl-ctrl-section">Stage calibration</div>
       <div class="pl-slider-row">
         <div class="pl-slider-label"><span>Win rate adjustment</span><strong>${(f.stageCalibration*100).toFixed(0)}%</strong></div>
@@ -1403,7 +1405,7 @@ function renderForecastSubPanel(){
       <div class="pl-ctrl-section">Expansion (AGT-503)</div>
       <div class="pl-slider-row">
         <div class="pl-slider-label"><span>Expansion pipeline</span><strong>${formatCurrency(f.expansionPipelineUsd)}</strong></div>
-        <input type="range" class="pl-slider" min="2000000" max="20000000" step="500000" value="${f.expansionPipelineUsd}" data-fc-input="expansionPipelineUsd">
+        <input type="range" class="pl-slider" min="5000000" max="80000000" step="1000000" value="${f.expansionPipelineUsd}" data-fc-input="expansionPipelineUsd">
       </div>
       <div class="pl-slider-row">
         <div class="pl-slider-label"><span>Risk mix</span><strong>${f.expansionRiskMix < 0.33 ? 'Low' : f.expansionRiskMix < 0.66 ? 'Medium' : 'High'}</strong></div>
