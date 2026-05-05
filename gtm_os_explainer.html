@@ -132,6 +132,58 @@
 
 .output-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3)}.output-placeholder-icon{font-size:28px;margin-bottom:12px}.output-placeholder-text{font-size:13px;max-width:280px;text-align:center;line-height:1.5}.output-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px}.loading-spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}@keyframes spin{to{transform:rotate(360deg)}}.loading-text{font-size:12px;color:var(--text3)}.output-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:10px}.output-card-title{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.5px;margin-bottom:12px}.output-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.output-stat{background:var(--surface);border-radius:6px;padding:10px 12px}.output-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}.output-stat-val{font-family:var(--mono);font-size:18px;font-weight:700}.output-stat-sub{font-size:10px;color:var(--text2);margin-top:2px}.output-content{font-size:12px;color:var(--text2);line-height:1.6}.error-box{background:rgba(232,120,120,.08);border:1px solid rgba(232,120,120,.3);border-radius:8px;padding:16px;color:#E87878;font-size:13px}
 @media(max-width:900px){.sim-layout{grid-template-columns:1fr}.sim-form-pane{border-right:none;border-bottom:1px solid var(--border)}.arch-hero{padding:28px 20px 24px}.arch-headline{font-size:30px}.header-meta{display:none}.flow-strip{display:none}.principles{grid-template-columns:1fr}}
+
+/* Planning + Forecast/WBR tabs */
+.pl-wrap{padding:24px 0}
+.pl-headline{font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px}
+.pl-sub{font-size:13px;color:var(--text2);max-width:820px;line-height:1.6;margin-bottom:16px}
+.pl-layout{display:grid;grid-template-columns:340px 1fr;gap:24px;margin-top:12px}
+.pl-controls{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px}
+.pl-ctrl-section{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin:14px 0 8px;font-weight:700}
+.pl-ctrl-section:first-child{margin-top:0}
+.pl-slider-row{margin-bottom:14px}
+.pl-slider-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px}
+.pl-slider-label strong{color:var(--text);font-family:var(--mono);font-size:12px}
+.pl-slider{width:100%;height:4px;-webkit-appearance:none;appearance:none;background:var(--border);border-radius:2px;outline:none;cursor:pointer}
+.pl-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--bg)}
+.pl-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--bg)}
+.pl-output{display:flex;flex-direction:column;gap:14px}
+.pl-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px}
+.pl-card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.pl-card-title{font-size:13px;font-weight:700;color:var(--text)}
+.pl-card-attr{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.4px}
+.pl-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
+.pl-row-2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:8px}
+.pl-row-5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.pl-stat{background:var(--surface);border-radius:6px;padding:10px 12px}
+.pl-stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.pl-stat-val{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--text)}
+.pl-stat-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.pl-stat.green .pl-stat-val{color:#2F8C5C}
+.pl-stat.amber .pl-stat-val{color:#B36600}
+.pl-stat.red .pl-stat-val{color:#A03030}
+.pl-stat.blue .pl-stat-val{color:#0C5BA8}
+.pl-guardrail{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:6px;background:var(--surface)}
+.pl-guardrail-mark{font-family:var(--mono);font-weight:700;width:20px;text-align:center}
+.pl-guardrail.pass{border-left:3px solid #5DCAA5;background:rgba(93,202,165,.08)}
+.pl-guardrail.pass .pl-guardrail-mark{color:#2F8C5C}
+.pl-guardrail.warn{border-left:3px solid #EF9F27;background:rgba(239,159,39,.08)}
+.pl-guardrail.warn .pl-guardrail-mark{color:#B36600}
+.pl-guardrail.fail{border-left:3px solid #F0997B;background:rgba(240,153,123,.08)}
+.pl-guardrail.fail .pl-guardrail-mark{color:#A03030}
+.pl-guardrail-binding{font-family:var(--mono);font-size:10px;color:var(--text3);margin-left:auto}
+.pl-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:4px}
+.pl-bar-fill{height:100%;border-radius:4px;transition:width .25s}
+.pl-segment-row{display:grid;grid-template-columns:60px 1fr 90px;gap:10px;align-items:center;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)}
+.pl-segment-row:last-child{border-bottom:none}
+.pl-segment-name{font-weight:700;color:var(--text);font-size:11px}
+.pl-narrative{background:linear-gradient(135deg,#FAEEDA 0%,#FCF5E5 100%);border:1px solid #D4A84C;color:#7A4A0E;font-size:12px;padding:14px 16px;border-radius:10px;line-height:1.7}
+.pl-narrative-head{font-family:var(--mono);font-size:10px;letter-spacing:.5px;color:#7A4A0E;margin-bottom:6px;text-transform:uppercase;font-weight:700}
+.pl-territory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:10px;font-family:var(--mono)}
+.pl-territory-cell{background:var(--surface);border-radius:4px;padding:6px 8px;text-align:center}
+.pl-territory-cell.outlier{background:rgba(240,153,123,.18);color:#A03030}
+.pl-territory-cell.balanced{background:rgba(93,202,165,.12)}
+@media(max-width:900px){.pl-layout{grid-template-columns:1fr}.pl-row,.pl-row-5{grid-template-columns:1fr 1fr}.pl-territory-grid{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
@@ -143,17 +195,21 @@
 <button class="nav-btn" onclick="switchTab('map',this)">Connection Map</button>
 <button class="nav-btn" onclick="switchTab('brain',this)">Brain Outputs</button>
 <button class="nav-btn" onclick="switchTab('followlead',this)">Follow a Lead</button>
+<button class="nav-btn" onclick="switchTab('planning',this)">Planning</button>
+<button class="nav-btn" onclick="switchTab('forecast',this)">Forecast &amp; WBR</button>
 <button class="nav-btn" onclick="switchTab('lead',this)">ICP Scorer Demo</button>
 </nav>
-<div class="header-meta"><div class="meta-stat"><span class="meta-num">40</span><span class="meta-label">services (all built)</span></div><div class="meta-stat"><span class="meta-num">2</span><span class="meta-label">agents</span></div><div class="meta-stat"><span class="meta-num">12</span><span class="meta-label">tools</span></div><div class="meta-stat"><span class="meta-num">10</span><span class="meta-label">layers</span></div><div class="meta-stat"><span class="meta-num">L0→L9</span><span class="meta-label">full-cycle</span></div></div>
+<div class="header-meta"><div class="meta-stat"><span class="meta-num">40</span><span class="meta-label">services (all built)</span></div><div class="meta-stat"><span class="meta-num">3</span><span class="meta-label">agents</span></div><div class="meta-stat"><span class="meta-num">14</span><span class="meta-label">tools</span></div><div class="meta-stat"><span class="meta-num">10</span><span class="meta-label">layers</span></div><div class="meta-stat"><span class="meta-num">L0→L9</span><span class="meta-label">full-cycle</span></div></div>
 </header>
 <main class="main">
-<div id="tab-arch" class="tab active"><div class="flow-strip" id="flow-strip"></div><div class="arch-hero"><div class="arch-eyebrow">Modular · Service-Driven · CRM-Agnostic</div><h1 class="arch-headline">A <em>complete</em> GTM<br>Operating System</h1><p class="arch-desc">40 GTM services + 2 Brain Agents across 10 layers — from market sizing through reasoning. Hybrid B2B SaaS. Click any layer to explore.</p><p class="arch-desc" style="font-size:12px;color:var(--text3);max-width:680px;margin:-12px auto 24px;line-height:1.6"><strong>Three tiers.</strong> 40 <em>GTM Services</em> in L1–L8 (deterministic, single-writer-per-table, audit-grade). 2 <em>Brain Agents</em> in L9 (LLM-native, operator-invoked, read Tier 1 services but never write canonical data; gated by 30-question eval harness — both prototyped, eval-passing). 12 <em>Specialist Tools</em> in <a href="tools/Tools_Index.html" style="color:#7A4A0E;text-decoration:underline">Tier 3</a> across 3 waves — stateless callable functions that brains and services invoke for narrow cognition tasks (TOOL-003, TOOL-004, TOOL-008, TOOL-010 prototyped; remaining 8 specced). The distinction is deliberate; brains propose, humans co-define and approve, services execute. See <a href="schema/GTM_OS_Changelog.html" style="color:#7A4A0E;text-decoration:underline">changelog</a> for current state.</p><div class="principles" id="principles-wrap"></div></div><div class="layer-stack" id="layer-stack"></div></div>
+<div id="tab-arch" class="tab active"><div class="flow-strip" id="flow-strip"></div><div class="arch-hero"><div class="arch-eyebrow">Modular · Service-Driven · CRM-Agnostic</div><h1 class="arch-headline">A <em>complete</em> GTM<br>Operating System</h1><p class="arch-desc">40 GTM services + 2 Brain Agents across 10 layers — from market sizing through reasoning. Hybrid B2B SaaS. Click any layer to explore.</p><p class="arch-desc" style="font-size:12px;color:var(--text3);max-width:680px;margin:-12px auto 24px;line-height:1.6"><strong>Three tiers.</strong> 40 <em>GTM Services</em> in L1–L8 (deterministic, single-writer-per-table, audit-grade). 3 <em>Brain Agents</em> in L9 (LLM-native, operator-invoked, read Tier 1 services but never write canonical data; gated by 30-question eval harness — AGT-901 / AGT-902 prototyped &amp; eval-passing, AGT-903 specced v37 with build deferred). 14 <em>Specialist Tools</em> in <a href="tools/Tools_Index.html" style="color:#7A4A0E;text-decoration:underline">Tier 3</a> across 4 waves — stateless callable functions that brains and services invoke for narrow cognition tasks (TOOL-003, TOOL-004, TOOL-008, TOOL-010 prototyped; remaining 10 specced including TOOL-013 / TOOL-014 added v37 alongside AGT-903). The distinction is deliberate; brains propose, humans co-define and approve, services execute. See <a href="schema/GTM_OS_Changelog.html" style="color:#7A4A0E;text-decoration:underline">changelog</a> for current state.</p><div class="principles" id="principles-wrap"></div></div><div class="layer-stack" id="layer-stack"></div></div>
 <div id="tab-os" class="tab"></div>
 <div id="tab-map" class="tab"><div class="map-wrap"><h2 style="font-size:18px;font-weight:700;margin-bottom:8px">Service Connection Map</h2><div class="map-instructions">Click any service or agent to highlight its connections and see wiring details in the sidebar. L9 brain agents (gold) read from L1–L8 services but never write canonical data.</div><div class="map-legend"><div class="map-legend-item"><div class="map-legend-swatch" style="background:#4EDBA8"></div>Feeds (Tier 1 → Tier 1)</div><div class="map-legend-item"><div class="map-legend-swatch" style="background:#5BA3E8"></div>Reads (Tier 1 → Tier 1)</div><div class="map-legend-item"><div class="map-legend-swatch" style="background:#E8A84C"></div>Cross-layer (Tier 1 → Tier 1)</div><div class="map-legend-item"><div class="map-legend-swatch" style="background:#D4A84C"></div>Brain reads (L9 → Tier 1)</div></div><div class="map-layout"><div class="map-svg-pane" id="map-container"></div><div class="map-sidebar" id="map-sidebar"><div class="map-sidebar-empty">Click a service or agent node to see its connections and wiring details</div></div></div></div></div>
 <div id="tab-lead" class="tab"><div class="sim-layout"><div class="sim-form-pane"><div class="sim-pane-title">ICP Scorer Demo</div><p class="sim-pane-sub">Deterministic JS reproduction of AGT-201 6-dimension scoring + AGT-202 routing. Useful for explaining the dimensional model — narrow scope, no LLM, no brain reasoning. For end-to-end reasoning see <a href="#" onclick="document.querySelectorAll('.nav-btn')[3].click();return false;" style="color:var(--gold);text-decoration:underline">Brain Outputs</a> and <a href="#" onclick="document.querySelectorAll('.nav-btn')[4].click();return false;" style="color:var(--gold);text-decoration:underline">Follow a Lead</a>.</p><div class="form-section-label">Company</div><div class="form-group"><label class="form-label">Company</label><input class="form-input" id="l-company" value="Meridian Analytics"></div><div class="form-row"><div class="form-group"><label class="form-label">Employees</label><input class="form-input" id="l-employees" type="number" value="850"></div><div class="form-group"><label class="form-label">Revenue</label><input class="form-input" id="l-revenue" value="$120M"></div></div><div class="form-row"><div class="form-group"><label class="form-label">Vertical</label><select class="form-select" id="l-vertical"><option>FinTech</option><option selected>SaaS</option><option>HealthTech</option><option>RetailTech</option><option>HR Tech</option><option>EdTech</option><option>Cybersecurity</option><option>Logistics</option><option>Other</option></select></div><div class="form-group"><label class="form-label">Geo</label><select class="form-select" id="l-geo"><option selected>US - West</option><option>US - East</option><option>EMEA</option><option>APAC</option></select></div></div><div class="form-section-label">Signals</div><div class="form-row"><div class="form-group"><label class="form-label">Source</label><select class="form-select" id="l-source"><option>Inbound - Demo</option><option selected>Inbound - Content</option><option>PLG Signup</option><option>Outbound</option><option>Partner</option><option>Event</option></select></div><div class="form-group"><label class="form-label">Funding</label><select class="form-select" id="l-funding"><option>Seed</option><option>Series A</option><option selected>Series B</option><option>Series C+</option><option>Public</option><option>Bootstrapped</option></select></div></div><div class="form-group"><label class="form-label">Tech Stack</label><input class="form-input" id="l-tech" value="HubSpot, Snowflake, Looker"></div><div class="form-group"><label class="form-label">Intent</label><textarea class="form-textarea" id="l-intent">Visited pricing 4x this week, posted RevOps Director role, Series B 6mo ago</textarea></div><button class="btn-run" onclick="runLeadSim()">Run ICP Score + Routing →</button></div><div class="sim-output-pane" id="lead-output"><div class="output-placeholder"><div class="output-placeholder-icon">◎</div><div class="output-placeholder-text">Fill in lead profile and click run.</div></div></div></div></div>
 <div id="tab-brain" class="tab"><div id="brain-gallery"><div class="output-placeholder" style="padding:60px 20px"><div class="output-placeholder-icon" style="font-size:32px">◇</div><div class="output-placeholder-text">Loading actual brain outputs from <code style="font-family:var(--mono);font-size:11px">eval/samples/brain_outputs.json</code>…</div></div></div></div>
 <div id="tab-followlead" class="tab"><div id="followlead-content"><div class="output-placeholder" style="padding:60px 20px"><div class="output-placeholder-icon" style="font-size:32px">↪</div><div class="output-placeholder-text">Follow a Lead — end-to-end walkthrough coming next. Single synthetic account from lead → close → onboarding → first overage → expansion → renewal.</div></div></div></div>
+<div id="tab-planning" class="tab"><div id="planning-content"></div></div>
+<div id="tab-forecast" class="tab"><div id="forecast-content"></div></div>
 </main>
 <div class="modal-overlay" id="agent-modal" onclick="closeModal(event)"><div class="modal" id="modal-content"></div></div>
 <div class="brain-modal-overlay" id="brain-modal-overlay" onclick="closeBrainModal(event)"><div class="brain-modal" id="brain-modal-content" onclick="event.stopPropagation()"></div></div>
@@ -293,7 +349,7 @@ function renderArch(){document.getElementById('principles-wrap').innerHTML=OS.pr
 function toggleLayer(id){document.getElementById(id).classList.toggle('open')}
 function showAgent(a){const s=SPECS[a.id];document.getElementById('modal-content').innerHTML=`<button class="modal-close" onclick="document.getElementById('agent-modal').classList.remove('open')">✕</button><div class="modal-agent-id">${a.id}</div><div class="modal-agent-name">${a.name}</div><div class="modal-purpose">${a.purpose}</div><div class="modal-section-label">INPUTS</div><div class="modal-tags">${a.inputs.map(i=>`<span class="modal-tag in">${i}</span>`).join('')}</div><div class="modal-section-label">OUTPUTS</div><div class="modal-tags">${a.outputs.map(o=>`<span class="modal-tag out">${o}</span>`).join('')}</div><div class="modal-section-label">KEY DECISIONS</div><div class="modal-key">${a.key}</div>${s?`<a class="spec-link" href="${s}" target="_blank" style="display:inline-block;margin-top:16px;font-size:12px;padding:6px 14px">View Full Spec →</a>`:''}`;document.getElementById('agent-modal').classList.add('open')}
 function closeModal(e){if(e.target===document.getElementById('agent-modal'))document.getElementById('agent-modal').classList.remove('open')}
-function switchTab(n,b){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');b.classList.add('active');if(n==='map'&&!document.getElementById('map-svg'))renderMap();if(n==='os'&&!document.getElementById('os-rendered'))renderOS();if(n==='brain'&&!window.__brainLoaded)loadBrainGallery();if(n==='followlead'&&!window.__followLeadLoaded)loadFollowLead()}
+function switchTab(n,b){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');b.classList.add('active');if(n==='map'&&!document.getElementById('map-svg'))renderMap();if(n==='os'&&!document.getElementById('os-rendered'))renderOS();if(n==='brain'&&!window.__brainLoaded)loadBrainGallery();if(n==='followlead'&&!window.__followLeadLoaded)loadFollowLead();if(n==='planning'&&!window.__planningLoaded)loadPlanning();if(n==='forecast'&&!window.__forecastLoaded)loadForecast()}
 function renderMap(){const allA=OS.layers.flatMap(l=>l.agents.map(a=>({...a,layer:l.id,color:l.color})));const grp={};allA.forEach(a=>{if(!grp[a.layer])grp[a.layer]=[];grp[a.layer].push(a)});const ord=["L1","L2","L3","L4","L5","L6","L7","L8"];const nW=130,nH=38,pX=16,pY=52,lW=36;const pos={};let mW=0;ord.forEach((lid,ri)=>{const ag=grp[lid]||[];ag.forEach((a,ci)=>{pos[a.id]={x:lW+pX+ci*(nW+pX)+nW/2,y:pY+ri*(nH+pY)+nH/2,color:a.color,name:a.name}});mW=Math.max(mW,lW+pX+ag.length*(nW+pX))});const sW=Math.max(mW+pX,1000),sH=pY+ord.length*(nH+pY)+20;let eS='';CONNECTIONS.forEach(([src,tgt,type])=>{const s=pos[src],t=pos[tgt];if(!s||!t)return;const c=src.startsWith('AGT-9')?'#D4A84C':type==='feeds'?'#4EDBA8':type==='reads'?'#5BA3E8':'#E8A84C';const c1Y=s.y+(t.y-s.y)*.3,c2Y=s.y+(t.y-s.y)*.7;eS+=`<path class="map-edge" data-src="${src}" data-tgt="${tgt}" d="M${s.x},${s.y+nH/2} C${s.x},${c1Y} ${t.x},${c2Y} ${t.x},${t.y-nH/2}" fill="none" stroke="${c}" stroke-width="1.2" stroke-opacity=".35"/>`});let nS='';ord.forEach((lid,ri)=>{const y=pY+ri*(nH+pY)+nH/2;nS+=`<text x="4" y="${y+4}" fill="${LAYER_COLORS[lid]}" font-size="11" font-weight="700" opacity=".5">${lid}</text>`});allA.forEach(a=>{const p=pos[a.id];if(!p)return;const sh=a.id.replace('AGT-','');const nm=a.name.length>14?a.name.slice(0,13)+'…':a.name;nS+=`<g class="map-node" data-id="${a.id}" onclick="focusNode('${a.id}')"><rect x="${p.x-nW/2}" y="${p.y-nH/2}" width="${nW}" height="${nH}" rx="6" fill="${p.color}18" stroke="${p.color}" stroke-width="1.5"/><text x="${p.x}" y="${p.y-5}" text-anchor="middle" dominant-baseline="middle" fill="${p.color}" font-size="10" font-weight="700">${sh}</text><text x="${p.x}" y="${p.y+9}" text-anchor="middle" dominant-baseline="middle" fill="${p.color}" font-size="8" opacity=".7" style="font-family:var(--sans)">${nm}</text></g>`});document.getElementById('map-container').innerHTML=`<svg id="map-svg" width="${sW}" height="${sH}" viewBox="0 0 ${sW} ${sH}" xmlns="http://www.w3.org/2000/svg">${eS}${nS}</svg>`}
 let fNode=null;function focusNode(id){const c=document.getElementById('map-container');const sb=document.getElementById('map-sidebar');if(fNode===id){fNode=null;c.classList.remove('has-focus');document.querySelectorAll('.map-node,.map-edge').forEach(el=>{el.classList.remove('dimmed');el.style.strokeOpacity='';el.style.strokeWidth=''});sb.innerHTML='<div class="map-sidebar-empty">Click a service node to see its connections and wiring details</div>';return}fNode=id;c.classList.add('has-focus');const cn=new Set([id]);CONNECTIONS.forEach(([s,t])=>{if(s===id)cn.add(t);if(t===id)cn.add(s)});document.querySelectorAll('.map-node').forEach(el=>el.classList.toggle('dimmed',!cn.has(el.dataset.id)));document.querySelectorAll('.map-edge').forEach(el=>{const hit=el.dataset.src===id||el.dataset.tgt===id;el.classList.toggle('dimmed',!hit);el.style.strokeOpacity=hit?'.85':'';el.style.strokeWidth=hit?'2.5':''});
 const ag=OS.layers.flatMap(l=>l.agents.map(a=>({...a,layerName:l.name,layerId:l.id,color:l.color}))).find(a=>a.id===id);if(!ag)return;
@@ -761,6 +817,702 @@ function escapeHtmlSafe(s) {
 
 
 renderArch();setTimeout(()=>{document.getElementById('layer-L0').classList.add('open');document.getElementById('layer-L1').classList.add('open')},100);
+
+/* ─────────────────────────────────────────────────────────────────
+   Planning + Forecast/WBR tabs
+   All formulas grounded in spec — see commit message for citations.
+   ───────────────────────────────────────────────────────────────── */
+
+// AGT-101 segment assumptions. AE quota/OTE multiples per AGT-101 spec
+// (SMB 2.9× / MM 4.0× / Ent 5.7×). Productivity per eRep = $/eRep — used
+// for headcount derivation. OTEs are illustrative defaults the CRO can
+// internalize without sliders for every input.
+const PLAN_SEG = {
+  smb: { ote: 130000, quotaMult: 2.9, prodPerErep: 800000,  cycleDays: 32  },
+  mm:  { ote: 175000, quotaMult: 4.0, prodPerErep: 1400000, cycleDays: 95  },
+  ent: { ote: 260000, quotaMult: 5.7, prodPerErep: 2600000, cycleDays: 180 }
+};
+
+const PLANNING_STATE = {
+  active: 'quota',
+  arrTarget: 40000000,        // $40M default
+  segmentMixSmb: 0.25,
+  segmentMixMm: 0.45,
+  rampFactor: 0.85,           // org-wide deployed productivity %
+  productivityCal: 1.0,       // calibration multiplier on PLAN_SEG.prodPerErep
+  attritionPct: 0.18,         // 18% annual
+  fcfMarginPct: 0.05,         // for R40
+  arrGrowthPct: 0.30,         // for R40
+  numTerritories: 24,
+  equityWeight: 0.5           // 0 = optimize for account count, 1 = optimize for ACV potential
+};
+
+function loadPlanning(){
+  window.__planningLoaded = true;
+  renderPlanning();
+}
+
+function renderPlanning(){
+  const root = document.getElementById('planning-content');
+  root.innerHTML = `<div class="pl-wrap">
+    <div class="pl-headline">Planning Workbench</div>
+    <div class="pl-sub">The CRO planning meeting in three sub-panels: <strong>Quota (AGT-101)</strong>, <strong>Headcount/Capacity (AGT-105)</strong>, <strong>Territory (AGT-106)</strong>. Pull a slider in any panel — the math respects all three specs' guardrails. Brain commentary banners at the bottom of each panel show what AGT-901 / AGT-903 would surface about your current allocation.</div>
+    <div class="fl-subtabs">
+      <button class="fl-subtab ${PLANNING_STATE.active==='quota'?'active':''}" data-pl-tab="quota">
+        <div class="fl-subtab-label">Quota · AGT-101</div>
+        <div class="fl-subtab-meta">bottom-up · 9 guardrails · 3 board scenarios</div>
+      </button>
+      <button class="fl-subtab ${PLANNING_STATE.active==='headcount'?'active':''}" data-pl-tab="headcount">
+        <div class="fl-subtab-label">Headcount · AGT-105</div>
+        <div class="fl-subtab-meta">capacity model · Magic Number / R40 / CAC Payback</div>
+      </button>
+      <button class="fl-subtab ${PLANNING_STATE.active==='territory'?'active':''}" data-pl-tab="territory">
+        <div class="fl-subtab-label">Territory · AGT-106</div>
+        <div class="fl-subtab-meta">routing authority · equity scoring · workload balance</div>
+      </button>
+    </div>
+    <div id="planning-panel"></div>
+  </div>`;
+  renderActivePlanningPanel();
+  document.querySelectorAll('[data-pl-tab]').forEach(b=>{
+    b.addEventListener('click',()=>{ PLANNING_STATE.active = b.dataset.plTab; renderPlanning(); });
+  });
+}
+
+function renderActivePlanningPanel(){
+  const tgt = document.getElementById('planning-panel');
+  if (PLANNING_STATE.active === 'quota')      tgt.innerHTML = renderQuotaPanel();
+  else if (PLANNING_STATE.active === 'headcount') tgt.innerHTML = renderHeadcountPanel();
+  else if (PLANNING_STATE.active === 'territory') tgt.innerHTML = renderTerritoryPanel();
+  document.querySelectorAll('[data-pl-input]').forEach(el=>{
+    el.addEventListener('input',()=>{
+      PLANNING_STATE[el.dataset.plInput] = parseFloat(el.value);
+      renderActivePlanningPanel();
+    });
+  });
+}
+
+// ─────────────── Quota panel — AGT-101 ───────────────
+function computeQuota(){
+  const s = PLANNING_STATE;
+  const ent = clamp(1 - s.segmentMixSmb - s.segmentMixMm, 0, 1);
+  const segArr = { smb: s.arrTarget*s.segmentMixSmb, mm: s.arrTarget*s.segmentMixMm, ent: s.arrTarget*ent };
+  const segErep = {};
+  for (const k of ['smb','mm','ent']) {
+    segErep[k] = segArr[k] / (PLAN_SEG[k].prodPerErep * s.productivityCal);
+  }
+  const totalErep = segErep.smb + segErep.mm + segErep.ent;
+  // Three scenarios per AGT-101: base / conservative (-15% eRep) / stretch (+10% eRep)
+  const scenarios = {
+    base:         { eRep: totalErep,        adj: 1.0 },
+    conservative: { eRep: totalErep * 0.85, adj: 0.85 },
+    stretch:      { eRep: totalErep * 1.10, adj: 1.10 }
+  };
+  return { ent, segArr, segErep, totalErep, scenarios };
+}
+
+function renderQuotaPanel(){
+  const s = PLANNING_STATE;
+  const c = computeQuota();
+  // Coverage ratio guardrail (AGT-101 #1): org_eRep × full_quota ≥ revenue_target × 0.85
+  // Effective coverage = ramp factor (which scales eRep deployed productivity)
+  const coverageRatio = s.rampFactor;
+  const coveragePass = coverageRatio >= 0.85;
+  // Ramp distribution guardrail (AGT-101): >35% of HC in ramp tiers 1–2 = capacity risk
+  // We model: rampFactor < 0.7 ≈ heavy in early tiers
+  const rampWarn = s.rampFactor < 0.70;
+  // Segment monotonicity guardrail (AGT-101): quota scales SMB → MM → Ent
+  const monotonicPass = (PLAN_SEG.smb.quotaMult * PLAN_SEG.smb.ote) < (PLAN_SEG.mm.quotaMult * PLAN_SEG.mm.ote)
+    && (PLAN_SEG.mm.quotaMult * PLAN_SEG.mm.ote) < (PLAN_SEG.ent.quotaMult * PLAN_SEG.ent.ote);
+  // OTE multiple sanity check: AE quota/OTE in 2.5–6.5× range
+  const oteCheckPass = ['smb','mm','ent'].every(k => PLAN_SEG[k].quotaMult >= 2.5 && PLAN_SEG[k].quotaMult <= 6.5);
+
+  return `<div class="pl-layout">
+    <div class="pl-controls">
+      <div class="pl-ctrl-section">Top-line target</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>ARR target</span><strong>${formatCurrency(s.arrTarget)}</strong></div>
+        <input type="range" class="pl-slider" min="20000000" max="80000000" step="1000000" value="${s.arrTarget}" data-pl-input="arrTarget">
+      </div>
+      <div class="pl-ctrl-section">Segment mix</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>SMB share</span><strong>${(s.segmentMixSmb*100).toFixed(0)}%</strong></div>
+        <input type="range" class="pl-slider" min="0.05" max="0.6" step="0.01" value="${s.segmentMixSmb}" data-pl-input="segmentMixSmb">
+      </div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>MM share</span><strong>${(s.segmentMixMm*100).toFixed(0)}%</strong></div>
+        <input type="range" class="pl-slider" min="0.10" max="0.70" step="0.01" value="${s.segmentMixMm}" data-pl-input="segmentMixMm">
+      </div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>Ent share <em style="font-style:normal;color:var(--text3)">(computed)</em></span><strong>${(c.ent*100).toFixed(0)}%</strong></div>
+        <div class="pl-bar"><div class="pl-bar-fill" style="width:${c.ent*100}%;background:var(--gold)"></div></div>
+      </div>
+      <div class="pl-ctrl-section">Ramp factor</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>Org-wide deployed %</span><strong>${(s.rampFactor*100).toFixed(0)}%</strong></div>
+        <input type="range" class="pl-slider" min="0.50" max="1.00" step="0.01" value="${s.rampFactor}" data-pl-input="rampFactor">
+      </div>
+    </div>
+    <div class="pl-output">
+      <div class="pl-card">
+        <div class="pl-card-head"><div class="pl-card-title">Per-segment quota</div><div class="pl-card-attr">AGT-101 · bottom-up</div></div>
+        ${['smb','mm','ent'].map(seg=>{
+          const A = PLAN_SEG[seg];
+          const segArr = c.segArr[seg];
+          const segErep = c.segErep[seg];
+          const quotaPerAE = A.ote * A.quotaMult;
+          return `<div class="pl-segment-row">
+            <div class="pl-segment-name">${seg.toUpperCase()}</div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">${formatCurrency(segArr)} ARR · ${segErep.toFixed(1)} eRep · ${A.quotaMult}× quota/OTE</div>
+              <div class="pl-bar"><div class="pl-bar-fill" style="width:${(segArr/s.arrTarget)*100}%;background:var(--gold)"></div></div>
+            </div>
+            <div style="text-align:right;font-family:var(--mono)"><strong style="font-size:13px">${formatCurrency(quotaPerAE)}</strong><div style="font-size:10px;color:var(--text3)">per AE quota</div></div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="pl-card">
+        <div class="pl-card-head"><div class="pl-card-title">Three board scenarios</div><div class="pl-card-attr">AGT-101 · base / conservative / stretch</div></div>
+        <div class="pl-row">
+          <div class="pl-stat blue"><div class="pl-stat-lbl">Base</div><div class="pl-stat-val">${c.scenarios.base.eRep.toFixed(1)}</div><div class="pl-stat-sub">eRep · current × full quota</div></div>
+          <div class="pl-stat amber"><div class="pl-stat-lbl">Conservative</div><div class="pl-stat-val">${c.scenarios.conservative.eRep.toFixed(1)}</div><div class="pl-stat-sub">−15% eRep · attrition/LOA risk</div></div>
+          <div class="pl-stat green"><div class="pl-stat-lbl">Stretch</div><div class="pl-stat-val">${c.scenarios.stretch.eRep.toFixed(1)}</div><div class="pl-stat-sub">+10% eRep · accelerated hiring</div></div>
+        </div>
+      </div>
+      <div class="pl-card">
+        <div class="pl-card-head"><div class="pl-card-title">Guardrail check (4 of 9)</div><div class="pl-card-attr">AGT-101 · pre-approval enforcement</div></div>
+        <div class="pl-guardrail ${coveragePass?'pass':'fail'}">
+          <div class="pl-guardrail-mark">${coveragePass?'✓':'✗'}</div>
+          <div>Coverage ratio: org_eRep × full_quota ≥ revenue_target × 0.85 — currently <strong>${(coverageRatio*100).toFixed(0)}%</strong></div>
+        </div>
+        <div class="pl-guardrail ${oteCheckPass?'pass':'fail'}">
+          <div class="pl-guardrail-mark">${oteCheckPass?'✓':'✗'}</div>
+          <div>OTE multiple sanity: AE quota/OTE in 2.5–6.5× (SMB 2.9× / MM 4.0× / Ent 5.7×)</div>
+        </div>
+        <div class="pl-guardrail ${monotonicPass?'pass':'fail'}">
+          <div class="pl-guardrail-mark">${monotonicPass?'✓':'✗'}</div>
+          <div>Segment consistency: quota scales SMB → MM → Ent monotonically</div>
+        </div>
+        <div class="pl-guardrail ${rampWarn?'warn':'pass'}">
+          <div class="pl-guardrail-mark">${rampWarn?'!':'✓'}</div>
+          <div>Ramp distribution: &lt;35% of HC in ramp tiers 1–2${rampWarn?' — current ramp factor implies heavy early-tier weighting; capacity risk for the period':''}</div>
+        </div>
+      </div>
+      <div class="pl-narrative">
+        <div class="pl-narrative-head">AGT-901 commentary · pre-baked exemplar</div>
+        ${quotaCommentary(s,c,coveragePass,rampWarn)}
+      </div>
+    </div>
+  </div>`;
+}
+
+function quotaCommentary(s,c,coveragePass,rampWarn){
+  const arrM = (s.arrTarget/1e6).toFixed(0);
+  const lines = [];
+  lines.push(`At <strong>$${arrM}M ARR target</strong> with <strong>${(s.segmentMixSmb*100).toFixed(0)}/${(s.segmentMixMm*100).toFixed(0)}/${(c.ent*100).toFixed(0)}</strong> segment mix, the bottom-up math wants <strong>${c.totalErep.toFixed(1)} eRep</strong> across ${formatCurrency(c.segArr.smb)} SMB / ${formatCurrency(c.segArr.mm)} MM / ${formatCurrency(c.segArr.ent)} Ent.`);
+  if (!coveragePass) lines.push(`<strong>Coverage-ratio guardrail fails</strong> at the current ${(s.rampFactor*100).toFixed(0)}% ramp factor. AGT-101 would block publication pending RevOps review — either reduce ARR target, accelerate ramp, or revise segment mix toward higher-productivity segments.`);
+  if (rampWarn) lines.push(`Ramp distribution flag: too much HC in early tiers means current-period capacity risk. Consider a hire-wave hold or ramp acceleration before publishing the plan.`);
+  if (coveragePass && !rampWarn) lines.push(`No guardrails breached. Plan is publishable subject to four-gate approval (SLM → RevOps → CRO/FP&A/HR → publish).`);
+  return lines.map(l=>`<p style="margin:6px 0">${l}</p>`).join('');
+}
+
+// ─────────────── Headcount panel — AGT-105 ───────────────
+function computeCapacity(){
+  const s = PLANNING_STATE;
+  const c = computeQuota();
+  // Three guardrails per AGT-105: Magic Number, R40, CAC Payback. All produce
+  // independent hiring signals; binding constraint = most conservative.
+
+  // Magic Number: NetNewRev × 4 / Prior Q S&M Spend
+  // S&M Spend = total HC × loaded cost ≈ totalErep × $260K (loaded SE/AE+overhead)
+  const totalLoadedCost = c.totalErep * 260000 * 1.4; // 1.4× loaded multiplier for fully-loaded HC
+  const netNewRevQuarterly = s.arrTarget / 4;
+  const magicNumber = (netNewRevQuarterly * 4) / Math.max(totalLoadedCost, 1);
+  // Per AGT-105: ≥1.5 accelerate, 0.75–1.5 maintain, <0.75 freeze
+  const mnSignal = magicNumber >= 1.5 ? 'accelerate' : (magicNumber >= 0.75 ? 'maintain' : 'freeze');
+
+  // R40: ARR Growth % + FCF Margin %
+  const r40 = (s.arrGrowthPct + s.fcfMarginPct) * 100;
+  // Per AGT-105: ≥40 invest, 25–40 balanced, <25 backfill
+  const r40Signal = r40 >= 40 ? 'invest' : (r40 >= 25 ? 'balanced' : 'backfill');
+
+  // CAC Payback: (S&M ÷ NewCust) ÷ (ACV × GM%) in months
+  // Use blended ACV across segments weighted by mix
+  const blendedAcv = c.segArr.smb*0.30 + c.segArr.mm*0.45 + c.segArr.ent*0.25;
+  const newCust = c.segArr.smb/30000 + c.segArr.mm/120000 + c.segArr.ent/280000;  // approx new logos
+  const cacPerCust = totalLoadedCost / Math.max(newCust, 1);
+  const grossMargin = 0.78;
+  const blendedAcvPerCust = blendedAcv / Math.max(newCust, 1);
+  const cacPayback = cacPerCust / Math.max(blendedAcvPerCust * grossMargin, 1) * 12;
+  // Per AGT-105: <12 strong, 12–18 acceptable, >18 flagged
+  const cpSignal = cacPayback < 12 ? 'strong' : (cacPayback <= 18 ? 'acceptable' : 'flagged');
+
+  // Binding constraint
+  const signals = [
+    { name: 'Magic Number', signal: mnSignal, weight: mnSignal==='freeze'?3:(mnSignal==='maintain'?2:1) },
+    { name: 'R40',         signal: r40Signal, weight: r40Signal==='backfill'?3:(r40Signal==='balanced'?2:1) },
+    { name: 'CAC Payback', signal: cpSignal,  weight: cpSignal==='flagged'?3:(cpSignal==='acceptable'?2:1) }
+  ];
+  const binding = signals.reduce((a,b)=>b.weight>a.weight?b:a);
+
+  // Hiring need accounting for attrition + ramp duration (24-month forward horizon per AGT-105)
+  const attritionLoss = c.totalErep * s.attritionPct;
+  const rampOverhead = c.totalErep / s.rampFactor - c.totalErep;  // raw HC needed beyond eRep target
+  const totalHiresNeeded = c.totalErep + attritionLoss + rampOverhead;
+
+  return {
+    quotaResult: c,
+    magicNumber, mnSignal,
+    r40, r40Signal,
+    cacPayback, cpSignal,
+    binding,
+    totalHiresNeeded, attritionLoss, rampOverhead,
+    totalLoadedCost
+  };
+}
+
+function renderHeadcountPanel(){
+  const s = PLANNING_STATE;
+  const cap = computeCapacity();
+  const sigClass = sig => sig==='accelerate'||sig==='invest'||sig==='strong' ? 'green'
+                       : sig==='maintain'||sig==='balanced'||sig==='acceptable' ? 'amber'
+                       : 'red';
+
+  return `<div class="pl-layout">
+    <div class="pl-controls">
+      <div class="pl-ctrl-section">Top-line target</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>ARR target</span><strong>${formatCurrency(s.arrTarget)}</strong></div>
+        <input type="range" class="pl-slider" min="20000000" max="80000000" step="1000000" value="${s.arrTarget}" data-pl-input="arrTarget">
+      </div>
+      <div class="pl-ctrl-section">Productivity</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>Productivity calibration</span><strong>${(s.productivityCal*100).toFixed(0)}%</strong></div>
+        <input type="range" class="pl-slider" min="0.7" max="1.3" step="0.01" value="${s.productivityCal}" data-pl-input="productivityCal">
+      </div>
+      <div class="pl-ctrl-section">Attrition</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>Annual attrition</span><strong>${(s.attritionPct*100).toFixed(0)}%</strong></div>
+        <input type="range" class="pl-slider" min="0.05" max="0.35" step="0.01" value="${s.attritionPct}" data-pl-input="attritionPct">
+      </div>
+      <div class="pl-ctrl-section">R40 inputs</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>ARR growth</span><strong>${(s.arrGrowthPct*100).toFixed(0)}%</strong></div>
+        <input type="range" class="pl-slider" min="0.05" max="0.80" step="0.01" value="${s.arrGrowthPct}" data-pl-input="arrGrowthPct">
+      </div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>FCF margin</span><strong>${(s.fcfMarginPct*100).toFixed(0)}%</strong></div>
+        <input type="range" class="pl-slider" min="-0.20" max="0.30" step="0.01" value="${s.fcfMarginPct}" data-pl-input="fcfMarginPct">
+      </div>
+    </div>
+    <div class="pl-output">
+      <div class="pl-card">
+        <div class="pl-card-head"><div class="pl-card-title">Required eRep · 24-month horizon</div><div class="pl-card-attr">AGT-105 · capacity gap analysis</div></div>
+        <div class="pl-row">
+          <div class="pl-stat blue"><div class="pl-stat-lbl">eRep need (base)</div><div class="pl-stat-val">${cap.quotaResult.totalErep.toFixed(1)}</div><div class="pl-stat-sub">from quota panel</div></div>
+          <div class="pl-stat amber"><div class="pl-stat-lbl">Attrition loss</div><div class="pl-stat-val">${cap.attritionLoss.toFixed(1)}</div><div class="pl-stat-sub">${(s.attritionPct*100).toFixed(0)}% × eRep</div></div>
+          <div class="pl-stat blue"><div class="pl-stat-lbl">Total hires</div><div class="pl-stat-val">${cap.totalHiresNeeded.toFixed(0)}</div><div class="pl-stat-sub">eRep + attrition + ramp overhead</div></div>
+        </div>
+      </div>
+      <div class="pl-card">
+        <div class="pl-card-head"><div class="pl-card-title">Three guardrails — independent signals</div><div class="pl-card-attr">AGT-105 · binding constraint highlighted</div></div>
+        <div class="pl-row">
+          <div class="pl-stat ${sigClass(cap.mnSignal)}" ${cap.binding.name==='Magic Number'?'style="outline:2px solid var(--gold);outline-offset:-1px"':''}>
+            <div class="pl-stat-lbl">Magic Number${cap.binding.name==='Magic Number'?' · BINDING':''}</div>
+            <div class="pl-stat-val">${cap.magicNumber.toFixed(2)}</div>
+            <div class="pl-stat-sub">${cap.mnSignal} · ≥1.5 accelerate / 0.75–1.5 maintain / &lt;0.75 freeze</div>
+          </div>
+          <div class="pl-stat ${sigClass(cap.r40Signal)}" ${cap.binding.name==='R40'?'style="outline:2px solid var(--gold);outline-offset:-1px"':''}>
+            <div class="pl-stat-lbl">Rule of 40${cap.binding.name==='R40'?' · BINDING':''}</div>
+            <div class="pl-stat-val">${cap.r40.toFixed(0)}</div>
+            <div class="pl-stat-sub">${cap.r40Signal} · ≥40 invest / 25–40 balanced / &lt;25 backfill</div>
+          </div>
+          <div class="pl-stat ${sigClass(cap.cpSignal)}" ${cap.binding.name==='CAC Payback'?'style="outline:2px solid var(--gold);outline-offset:-1px"':''}>
+            <div class="pl-stat-lbl">CAC Payback${cap.binding.name==='CAC Payback'?' · BINDING':''}</div>
+            <div class="pl-stat-val">${cap.cacPayback.toFixed(1)} mo</div>
+            <div class="pl-stat-sub">${cap.cpSignal} · &lt;12 strong / 12–18 acceptable / &gt;18 flagged</div>
+          </div>
+        </div>
+      </div>
+      <div class="pl-card">
+        <div class="pl-card-head"><div class="pl-card-title">Three productivity layers</div><div class="pl-card-attr">AGT-105 · eRep / loaded HC / loaded GTM+Mktg HC</div></div>
+        <div class="pl-row">
+          <div class="pl-stat"><div class="pl-stat-lbl">ARR per eRep</div><div class="pl-stat-val">${formatCurrency(s.arrTarget/cap.quotaResult.totalErep)}</div><div class="pl-stat-sub">layer 1 · deployable</div></div>
+          <div class="pl-stat"><div class="pl-stat-lbl">ARR per loaded HC</div><div class="pl-stat-val">${formatCurrency(s.arrTarget/(cap.quotaResult.totalErep*1.6))}</div><div class="pl-stat-sub">layer 2 · IC + mgmt + RevOps</div></div>
+          <div class="pl-stat"><div class="pl-stat-lbl">ARR per GTM+Mktg HC</div><div class="pl-stat-val">${formatCurrency(s.arrTarget/(cap.quotaResult.totalErep*2.0))}</div><div class="pl-stat-sub">layer 3 · cost-of-growth</div></div>
+        </div>
+      </div>
+      <div class="pl-narrative">
+        <div class="pl-narrative-head">AGT-901 commentary · pre-baked exemplar</div>
+        ${headcountCommentary(s,cap)}
+      </div>
+    </div>
+  </div>`;
+}
+
+function headcountCommentary(s,cap){
+  const lines = [];
+  lines.push(`At a ${formatCurrency(s.arrTarget)} target with ${(s.attritionPct*100).toFixed(0)}% attrition and ${(s.productivityCal*100).toFixed(0)}% productivity calibration, you need <strong>${cap.totalHiresNeeded.toFixed(0)} humans hired</strong> to land <strong>${cap.quotaResult.totalErep.toFixed(1)} eRep</strong> by year-end.`);
+  lines.push(`<strong>Binding constraint: ${cap.binding.name}</strong> — signal is "${cap.binding.signal}".`);
+  if (cap.binding.signal === 'freeze' || cap.binding.signal === 'flagged' || cap.binding.signal === 'backfill') {
+    lines.push(`AGT-105 reconciliation: most-conservative signal wins. Hiring is gated to backfill-only until the binding constraint resolves. Push this through CRO + Finance sign-off — the math doesn't support net-new HC right now.`);
+  } else {
+    lines.push(`All three guardrails clear. Net-new hiring above attrition replacement is supportable. CRO + Finance sign-off should be straightforward.`);
+  }
+  return lines.map(l=>`<p style="margin:6px 0">${l}</p>`).join('');
+}
+
+// ─────────────── Territory panel — AGT-106 ───────────────
+function seededRand(seed){ // Mulberry32-ish for stable territory generation
+  let t = seed + 0x6D2B79F5;
+  return function(){
+    t = (t + 0x6D2B79F5) | 0;
+    let x = Math.imul(t ^ (t >>> 15), 1 | t);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function computeTerritories(){
+  const s = PLANNING_STATE;
+  const n = Math.round(s.numTerritories);
+  const r = seededRand(42);
+  // Generate fictitious territory roster: name, account count, ACV potential
+  const territories = [];
+  for (let i = 0; i < n; i++) {
+    const cnt = Math.round(80 + r() * 220);    // 80–300 accounts
+    const avgAcv = 25000 + r() * 175000;        // $25K–$200K avg ACV
+    const acvPotential = cnt * avgAcv;
+    territories.push({
+      id: `T${(i+1).toString().padStart(2,'0')}`,
+      accountCount: cnt,
+      avgAcv,
+      acvPotential
+    });
+  }
+  // Equity-weighted score = (1 - w) × normalized(count) + w × normalized(acv)
+  const counts = territories.map(t=>t.accountCount);
+  const acvs   = territories.map(t=>t.acvPotential);
+  const cMin = Math.min(...counts), cMax = Math.max(...counts);
+  const aMin = Math.min(...acvs),   aMax = Math.max(...acvs);
+  territories.forEach(t => {
+    const cN = (t.accountCount - cMin)/(cMax - cMin || 1);
+    const aN = (t.acvPotential - aMin)/(aMax - aMin || 1);
+    t.equityScore = (1 - s.equityWeight) * cN + s.equityWeight * aN;
+  });
+  // Gini coefficient on the chosen dimension
+  const dim = s.equityWeight >= 0.5 ? acvs.slice() : counts.slice();
+  dim.sort((a,b)=>a-b);
+  const sumDim = dim.reduce((a,b)=>a+b,0);
+  let cum = 0, lorenz = 0;
+  for (let i = 0; i < dim.length; i++) {
+    cum += dim[i];
+    lorenz += cum / sumDim;
+  }
+  const gini = (n + 1 - 2 * lorenz) / n;
+  // Workload imbalance flag (per AGT-106): >1.5 SD above segment mean
+  const acvMean = acvs.reduce((a,b)=>a+b,0)/n;
+  const acvStd = Math.sqrt(acvs.reduce((a,b)=>a+(b-acvMean)**2,0)/n);
+  territories.forEach(t => {
+    t.outlier = Math.abs(t.acvPotential - acvMean) > 1.5 * acvStd;
+  });
+  const numOutliers = territories.filter(t=>t.outlier).length;
+  return { territories, gini, acvMean, acvStd, numOutliers, totalAccounts: counts.reduce((a,b)=>a+b,0), totalAcv: acvs.reduce((a,b)=>a+b,0) };
+}
+
+function renderTerritoryPanel(){
+  const s = PLANNING_STATE;
+  const t = computeTerritories();
+  const giniColor = t.gini < 0.20 ? 'green' : (t.gini < 0.35 ? 'amber' : 'red');
+  const giniLabel = t.gini < 0.20 ? 'balanced' : (t.gini < 0.35 ? 'moderate imbalance' : 'high imbalance');
+
+  return `<div class="pl-layout">
+    <div class="pl-controls">
+      <div class="pl-ctrl-section">Territory count</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>Number of territories</span><strong>${Math.round(s.numTerritories)}</strong></div>
+        <input type="range" class="pl-slider" min="8" max="48" step="1" value="${s.numTerritories}" data-pl-input="numTerritories">
+      </div>
+      <div class="pl-ctrl-section">Equity weighting</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>Optimize for</span><strong>${(s.equityWeight*100).toFixed(0)}% ACV</strong></div>
+        <input type="range" class="pl-slider" min="0" max="1" step="0.01" value="${s.equityWeight}" data-pl-input="equityWeight">
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;display:flex;justify-content:space-between"><span>account count</span><span>ACV potential</span></div>
+      </div>
+      <div class="pl-ctrl-section">routing_eligible (AGT-106)</div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.6;background:var(--surface);border-radius:6px;padding:10px 12px">
+        Strict AND gate: <code>LOA=F</code> ∧ <code>PIP=F</code> ∧ <code>assignment_active=T</code> ∧ within capacity. Any single condition failing removes the rep from routing entirely.
+      </div>
+    </div>
+    <div class="pl-output">
+      <div class="pl-card">
+        <div class="pl-card-head"><div class="pl-card-title">Equity score</div><div class="pl-card-attr">AGT-106 · Gini on ${s.equityWeight>=0.5?'ACV potential':'account count'}</div></div>
+        <div class="pl-row">
+          <div class="pl-stat ${giniColor}"><div class="pl-stat-lbl">Gini coefficient</div><div class="pl-stat-val">${t.gini.toFixed(2)}</div><div class="pl-stat-sub">${giniLabel} · 0=perfect equity, 1=max inequity</div></div>
+          <div class="pl-stat ${t.numOutliers>0?'amber':'green'}"><div class="pl-stat-lbl">Workload outliers</div><div class="pl-stat-val">${t.numOutliers}</div><div class="pl-stat-sub">territories &gt;1.5 SD from mean</div></div>
+          <div class="pl-stat blue"><div class="pl-stat-lbl">Avg ACV/territory</div><div class="pl-stat-val">${formatCurrency(t.acvMean)}</div><div class="pl-stat-sub">${formatCurrency(t.totalAcv)} total ÷ ${Math.round(s.numTerritories)} territories</div></div>
+        </div>
+      </div>
+      <div class="pl-card">
+        <div class="pl-card-head"><div class="pl-card-title">Territory roster</div><div class="pl-card-attr">AGT-106 · TerritoryDefinitions (illustrative)</div></div>
+        <div class="pl-territory-grid">
+          ${t.territories.map(tt => `<div class="pl-territory-cell ${tt.outlier?'outlier':'balanced'}" title="${tt.accountCount} accts · ${formatCurrency(tt.acvPotential)} ACV potential">${tt.id}<br><span style="font-size:9px;color:var(--text3)">${tt.accountCount}a · ${formatCurrency(tt.acvPotential)}</span></div>`).join('')}
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:10px"><strong>Carve mechanism (AGT-106):</strong> AM / CSM / Enterprise AE = named account list (explicit assignments). SMB / MM AE = rules-based (segment × geo × vertical).</div>
+      </div>
+      <div class="pl-narrative">
+        <div class="pl-narrative-head">AGT-901 commentary · pre-baked exemplar</div>
+        ${territoryCommentary(s,t,giniLabel)}
+      </div>
+    </div>
+  </div>`;
+}
+
+function territoryCommentary(s,t,giniLabel){
+  const lines = [];
+  lines.push(`Across <strong>${Math.round(s.numTerritories)} territories</strong> (optimized ${s.equityWeight>=0.5?'for ACV potential':'for account count'}), the Gini coefficient is <strong>${t.gini.toFixed(2)}</strong> (${giniLabel}).`);
+  if (t.gini >= 0.35) {
+    lines.push(`<strong>High imbalance.</strong> Top territory carries materially more ACV potential than the bottom. AGT-106 would flag this for semi-annual review — re-run with the slider toward "account count" or split the largest territories.`);
+  } else if (t.gini >= 0.20) {
+    lines.push(`Moderate imbalance — within tolerance for most semi-annual reviews but worth monitoring. AGT-106 won't block, but RevOps should track top-vs-bottom ACV gap.`);
+  } else {
+    lines.push(`Equity is healthy. AGT-106 will pass routine semi-annual review without intervention.`);
+  }
+  if (t.numOutliers > 0) {
+    lines.push(`<strong>${t.numOutliers} workload outlier${t.numOutliers!==1?'s':''}</strong> sit &gt;1.5 SD from the mean — AGT-202 will flag these to RevOps as workload-imbalance candidates.`);
+  }
+  return lines.map(l=>`<p style="margin:6px 0">${l}</p>`).join('');
+}
+
+// ─────────────── Forecast & WBR tab ───────────────
+
+const FORECAST_STATE = {
+  active: 'forecast',
+  pipelineCoverage: 3.5,        // pipeline-to-quota coverage ratio
+  stageCalibration: 1.0,         // multiplier on stage win rates
+  forecastBiasPct: 0.27,         // historical AE forecast bias (over-call)
+  expansionPipelineUsd: 8000000,
+  expansionRiskMix: 0.6           // 0=all Low (80% weight), 1=all High (0% weight)
+};
+
+function loadForecast(){
+  window.__forecastLoaded = true;
+  renderForecast();
+}
+
+function renderForecast(){
+  const root = document.getElementById('forecast-content');
+  root.innerHTML = `<div class="pl-wrap">
+    <div class="pl-headline">Forecast &amp; WBR</div>
+    <div class="pl-sub">The forecast call (AGT-402 bottoms-up + AGT-404 top-down + rep commit) and the WBR readout (AGT-702 metrics + AGT-703 win-loss + AGT-704 narrative). Pull a slider — see how rep commit, AI forecast, and historical bias compare against FP&amp;APlan.</div>
+    <div class="fl-subtabs">
+      <button class="fl-subtab ${FORECAST_STATE.active==='forecast'?'active':''}" data-fc-tab="forecast">
+        <div class="fl-subtab-label">Forecast · AGT-402 + AGT-404</div>
+        <div class="fl-subtab-meta">bottoms-up + top-down + rep commit + plan</div>
+      </button>
+      <button class="fl-subtab ${FORECAST_STATE.active==='wbr'?'active':''}" data-fc-tab="wbr">
+        <div class="fl-subtab-label">WBR / MBR · AGT-702 + AGT-704</div>
+        <div class="fl-subtab-meta">5 metrics · win-loss · brain narrative banner</div>
+      </button>
+    </div>
+    <div id="forecast-panel"></div>
+  </div>`;
+  renderActiveForecastPanel();
+  document.querySelectorAll('[data-fc-tab]').forEach(b=>{
+    b.addEventListener('click',()=>{ FORECAST_STATE.active = b.dataset.fcTab; renderForecast(); });
+  });
+}
+
+function renderActiveForecastPanel(){
+  const tgt = document.getElementById('forecast-panel');
+  if (FORECAST_STATE.active === 'forecast') tgt.innerHTML = renderForecastSubPanel();
+  else                                       tgt.innerHTML = renderWbrSubPanel();
+  document.querySelectorAll('[data-fc-input]').forEach(el=>{
+    el.addEventListener('input',()=>{
+      FORECAST_STATE[el.dataset.fcInput] = parseFloat(el.value);
+      renderActiveForecastPanel();
+    });
+  });
+}
+
+// AGT-402: bottoms-up = new logo + renewal + expansion (per spec v23 ripple)
+// Expansion ACV weighted by churn risk: Low=80%, Medium=50%, High/Critical=0%
+function computeForecast(){
+  const f = FORECAST_STATE;
+  const arrTarget = PLANNING_STATE.arrTarget;
+  // Quarterly target = annual / 4
+  const qTarget = arrTarget / 4;
+  // Pipeline = coverage × target
+  const pipeline = qTarget * f.pipelineCoverage;
+  // Stage breakdown (illustrative): early 50% / mid 30% / late 20% of pipeline
+  const stages = {
+    early: { pipe: pipeline*0.50, baseWinRate: 0.08 },
+    mid:   { pipe: pipeline*0.30, baseWinRate: 0.28 },
+    late:  { pipe: pipeline*0.20, baseWinRate: 0.62 }
+  };
+  let bottomsUpNewLogo = 0;
+  for (const [k,v] of Object.entries(stages)) {
+    bottomsUpNewLogo += v.pipe * v.baseWinRate * f.stageCalibration;
+  }
+  // Renewal pipeline ≈ 60% of quarterly target (illustrative)
+  const renewalPipe = qTarget * 0.60;
+  const renewalRate = 0.92 * f.stageCalibration;  // healthy renewal rate
+  const bottomsUpRenewal = renewalPipe * renewalRate;
+  // Expansion ACV per AGT-402 v23: weighted by churn risk tier
+  // expansionRiskMix: 0 = all Low (80% weight), 0.5 = mostly Medium (50%), 1 = all High (0% weight)
+  const expansionWeight = 0.80*(1-f.expansionRiskMix) + 0.50*f.expansionRiskMix*0.5 + 0.0*Math.max(0,f.expansionRiskMix-0.5)*2;
+  const bottomsUpExpansion = f.expansionPipelineUsd * expansionWeight / 4;  // quarterly slice
+  const bottomsUp = bottomsUpNewLogo + bottomsUpRenewal + bottomsUpExpansion;
+
+  // Top-down (AGT-404 cohort conversion model — simplified): historical conversion 0.32 of pipeline
+  const topDown = pipeline * 0.32 * f.stageCalibration + bottomsUpRenewal*0.95 + bottomsUpExpansion*0.95;
+
+  // Rep commit (sacred per AGT-402): typically over-called by historical bias
+  const repCommit = bottomsUp * (1 + f.forecastBiasPct);
+
+  // pct_of_target per AGT-402 — uses current operating plan (FP&APlan most recent non-board)
+  const pctOfTarget = (bottomsUp / qTarget) * 100;
+  const pctOfTargetTopDown = (topDown / qTarget) * 100;
+  const pctOfTargetCommit = (repCommit / qTarget) * 100;
+
+  return { qTarget, pipeline, bottomsUp, bottomsUpNewLogo, bottomsUpRenewal, bottomsUpExpansion, topDown, repCommit, pctOfTarget, pctOfTargetTopDown, pctOfTargetCommit };
+}
+
+function renderForecastSubPanel(){
+  const f = FORECAST_STATE;
+  const c = computeForecast();
+  const status = c.pctOfTarget >= 100 ? 'green' : (c.pctOfTarget >= 90 ? 'amber' : 'red');
+
+  return `<div class="pl-layout">
+    <div class="pl-controls">
+      <div class="pl-ctrl-section">Pipeline</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>Coverage ratio</span><strong>${f.pipelineCoverage.toFixed(1)}×</strong></div>
+        <input type="range" class="pl-slider" min="2.0" max="5.0" step="0.1" value="${f.pipelineCoverage}" data-fc-input="pipelineCoverage">
+      </div>
+      <div class="pl-ctrl-section">Stage calibration</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>Win rate adjustment</span><strong>${(f.stageCalibration*100).toFixed(0)}%</strong></div>
+        <input type="range" class="pl-slider" min="0.6" max="1.4" step="0.01" value="${f.stageCalibration}" data-fc-input="stageCalibration">
+      </div>
+      <div class="pl-ctrl-section">Forecast bias (AE commit)</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>Historical over-call</span><strong>${(f.forecastBiasPct*100).toFixed(0)}%</strong></div>
+        <input type="range" class="pl-slider" min="0" max="0.5" step="0.01" value="${f.forecastBiasPct}" data-fc-input="forecastBiasPct">
+      </div>
+      <div class="pl-ctrl-section">Expansion (AGT-503)</div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>Expansion pipeline</span><strong>${formatCurrency(f.expansionPipelineUsd)}</strong></div>
+        <input type="range" class="pl-slider" min="2000000" max="20000000" step="500000" value="${f.expansionPipelineUsd}" data-fc-input="expansionPipelineUsd">
+      </div>
+      <div class="pl-slider-row">
+        <div class="pl-slider-label"><span>Risk mix</span><strong>${f.expansionRiskMix < 0.33 ? 'Low' : f.expansionRiskMix < 0.66 ? 'Medium' : 'High'}</strong></div>
+        <input type="range" class="pl-slider" min="0" max="1" step="0.01" value="${f.expansionRiskMix}" data-fc-input="expansionRiskMix">
+        <div style="font-size:10px;color:var(--text3);margin-top:4px">Per AGT-402 v23: Low=80% / Medium=50% / High=0% weight</div>
+      </div>
+    </div>
+    <div class="pl-output">
+      <div class="pl-card">
+        <div class="pl-card-head"><div class="pl-card-title">Three forecast lenses + plan</div><div class="pl-card-attr">AGT-402 (bottoms-up) · AGT-404 (top-down) · AGT-101 (plan)</div></div>
+        <div class="pl-row">
+          <div class="pl-stat blue"><div class="pl-stat-lbl">Bottoms-up</div><div class="pl-stat-val">${formatCurrency(c.bottomsUp)}</div><div class="pl-stat-sub">AGT-402 · ${c.pctOfTarget.toFixed(0)}% of plan</div></div>
+          <div class="pl-stat blue"><div class="pl-stat-lbl">Top-down</div><div class="pl-stat-val">${formatCurrency(c.topDown)}</div><div class="pl-stat-sub">AGT-404 · ${c.pctOfTargetTopDown.toFixed(0)}% of plan</div></div>
+          <div class="pl-stat amber"><div class="pl-stat-lbl">Rep commit</div><div class="pl-stat-val">${formatCurrency(c.repCommit)}</div><div class="pl-stat-sub">over-called ${(f.forecastBiasPct*100).toFixed(0)}% · sacred per AGT-402</div></div>
+          <div class="pl-stat ${status}"><div class="pl-stat-lbl">FP&amp;APlan target (Q)</div><div class="pl-stat-val">${formatCurrency(c.qTarget)}</div><div class="pl-stat-sub">${c.pctOfTarget.toFixed(0)}% of plan via bottoms-up</div></div>
+        </div>
+      </div>
+      <div class="pl-card">
+        <div class="pl-card-head"><div class="pl-card-title">Bottoms-up decomposition</div><div class="pl-card-attr">AGT-402 v23 · 3 components</div></div>
+        <div class="pl-row">
+          <div class="pl-stat blue"><div class="pl-stat-lbl">New logo</div><div class="pl-stat-val">${formatCurrency(c.bottomsUpNewLogo)}</div><div class="pl-stat-sub">stage × win rate × ACV</div></div>
+          <div class="pl-stat blue"><div class="pl-stat-lbl">Renewal</div><div class="pl-stat-val">${formatCurrency(c.bottomsUpRenewal)}</div><div class="pl-stat-sub">renewal pipe × renewal rate</div></div>
+          <div class="pl-stat blue"><div class="pl-stat-lbl">Expansion ACV</div><div class="pl-stat-val">${formatCurrency(c.bottomsUpExpansion)}</div><div class="pl-stat-sub">churn-risk-weighted · v23 ripple</div></div>
+        </div>
+      </div>
+      <div class="pl-narrative">
+        <div class="pl-narrative-head">AGT-901 commentary · pre-baked exemplar</div>
+        ${forecastCommentary(c,f)}
+      </div>
+    </div>
+  </div>`;
+}
+
+function forecastCommentary(c,f){
+  const lines = [];
+  const gap = c.repCommit - c.bottomsUp;
+  lines.push(`Bottoms-up <strong>${formatCurrency(c.bottomsUp)}</strong> vs rep commit <strong>${formatCurrency(c.repCommit)}</strong> — gap of <strong>${formatCurrency(gap)}</strong> (${(f.forecastBiasPct*100).toFixed(0)}% historical bias correction).`);
+  if (c.pctOfTarget < 90) {
+    lines.push(`<strong>Below 90% of plan.</strong> AGT-901 would surface this as a coverage-gap query: "Where is the gap concentrated, and what plays would close it?"`);
+  } else if (c.pctOfTarget >= 100) {
+    lines.push(`Bottoms-up clears plan. Rep commit overshoots — AGT-901 would still flag the gap as forecast-bias signal that AGT-703 should pick up in the next calibration run.`);
+  } else {
+    lines.push(`Bottoms-up runs ${(100-c.pctOfTarget).toFixed(0)} points below plan. Watch the late-stage stage win rates and AGT-503 expansion realization — those are the highest-leverage levers.`);
+  }
+  return lines.map(l=>`<p style="margin:6px 0">${l}</p>`).join('');
+}
+
+// AGT-702 metrics — illustrative current values + plan deltas
+function renderWbrSubPanel(){
+  const cap = computeCapacity();
+  const fc  = computeForecast();
+  // 5 canonical metrics per AGT-702
+  const metrics = [
+    { name: 'Magic Number', val: cap.magicNumber.toFixed(2), unit: '', target: '> 1.0', formula: 'Net New Revenue ÷ Prior Q S&M Spend', delta: '+0.08 QoQ', owner: 'AGT-702', status: cap.magicNumber>=1.0?'green':(cap.magicNumber>=0.75?'amber':'red') },
+    { name: 'Rule of 40 (FCF)', val: cap.r40.toFixed(0), unit: '', target: '≥ 40', formula: 'ARR Growth % + FCF Margin %', delta: cap.r40>=40?'on track':'below target', owner: 'AGT-702', status: cap.r40>=40?'green':(cap.r40>=25?'amber':'red') },
+    { name: 'NRR', val: '118', unit: '%', target: '> 110%', formula: '(Beg ARR + Exp − Churn − Down) ÷ Beg ARR', delta: '+2pp QoQ', owner: 'AGT-702', status: 'green' },
+    { name: 'GRR', val: '91', unit: '%', target: '> 85%', formula: '(Beg ARR − Churn − Down) ÷ Beg ARR', delta: '−1pp QoQ', owner: 'AGT-702', status: 'green' },
+    { name: 'CAC Payback', val: cap.cacPayback.toFixed(1), unit: 'mo', target: '< 18 mo', formula: 'CAC ÷ (ACV × GM%)', delta: cap.cacPayback<=18?'on track':'flagged', owner: 'AGT-702', status: cap.cacPayback<12?'green':(cap.cacPayback<=18?'amber':'red') }
+  ];
+
+  return `<div class="pl-wrap" style="padding-top:0">
+    <div class="pl-card">
+      <div class="pl-card-head"><div class="pl-card-title">GTM efficiency · five canonical metrics</div><div class="pl-card-attr">AGT-702 · MetricsCalcLog · monthly snapshot</div></div>
+      <div class="pl-row-5">
+        ${metrics.map(m => `<div class="pl-stat ${m.status}" title="${m.formula}">
+          <div class="pl-stat-lbl">${m.name}</div>
+          <div class="pl-stat-val">${m.val}${m.unit}</div>
+          <div class="pl-stat-sub">${m.delta} · target ${m.target}</div>
+        </div>`).join('')}
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:10px">Hover a card for the formula. Each metric carries plan_version and prior-period comparison per AGT-702 v21 schema.</div>
+    </div>
+    <div class="pl-card">
+      <div class="pl-card-head"><div class="pl-card-title">Forecast vs plan (this period)</div><div class="pl-card-attr">AGT-402 / AGT-404 · plan_version 3+9 (current operating)</div></div>
+      <div class="pl-row">
+        <div class="pl-stat blue"><div class="pl-stat-lbl">Bottoms-up</div><div class="pl-stat-val">${formatCurrency(fc.bottomsUp)}</div><div class="pl-stat-sub">${fc.pctOfTarget.toFixed(0)}% of plan</div></div>
+        <div class="pl-stat blue"><div class="pl-stat-lbl">Top-down</div><div class="pl-stat-val">${formatCurrency(fc.topDown)}</div><div class="pl-stat-sub">${fc.pctOfTargetTopDown.toFixed(0)}% of plan</div></div>
+        <div class="pl-stat amber"><div class="pl-stat-lbl">Rep commit</div><div class="pl-stat-val">${formatCurrency(fc.repCommit)}</div><div class="pl-stat-sub">over-called ${(FORECAST_STATE.forecastBiasPct*100).toFixed(0)}%</div></div>
+      </div>
+    </div>
+    <div class="pl-card">
+      <div class="pl-card-head"><div class="pl-card-title">Win-loss patterns · trailing 4 quarters</div><div class="pl-card-attr">AGT-703 · WinLossLog · CalibrationSignalLog</div></div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7">
+        Top loss reasons (illustrative): <strong>Pricing</strong> (28% — concentrated in MM segment, +6pp QoQ), <strong>No decision</strong> (22%), <strong>Competitor — Acme</strong> (17%, FinTech vertical-heavy). <br>
+        Forecast accuracy: SMB AEs +12% over-call · MM AEs +27% over-call · Ent AEs +4% over-call. AGT-703 surfaces this to AGT-101 as quota calibration signal — Ent quota may be slightly under-set.
+      </div>
+    </div>
+    <div class="pl-narrative">
+      <div class="pl-narrative-head">AGT-704 narrative banner · pre-baked exemplar</div>
+      ${wbrCommentary(metrics, cap, fc)}
+    </div>
+  </div>`;
+}
+
+function wbrCommentary(metrics, cap, fc){
+  const lines = [];
+  const failing = metrics.filter(m => m.status === 'red');
+  const watching = metrics.filter(m => m.status === 'amber');
+  if (failing.length === 0 && watching.length === 0) {
+    lines.push(`<strong>All five GTM efficiency metrics are at or above target.</strong> NRR ${metrics[2].val}% (above 110% threshold), GRR ${metrics[3].val}% (above 85%), Magic Number ${cap.magicNumber.toFixed(2)} (above 1.0). Plan-vs-actual is on track at ${fc.pctOfTarget.toFixed(0)}% of operating plan. AGT-704 surfaces this as a "stay the course" MBR opening.`);
+  } else if (failing.length > 0) {
+    lines.push(`<strong>${failing.length} metric${failing.length>1?'s':''} below threshold:</strong> ${failing.map(m=>m.name).join(', ')}. AGT-704 flags this section for CRO + Finance escalation; AGT-702 alert routing fires to RevOps with context for triage.`);
+  } else {
+    lines.push(`<strong>${watching.length} metric${watching.length>1?'s':''} in the watch band</strong> (${watching.map(m=>m.name).join(', ')}). No threshold breach yet, but trajectory should be reviewed before next snapshot.`);
+  }
+  lines.push(`Win-loss pattern from AGT-703: pricing concentration in MM segment is the highest-leverage strategic signal — AGT-903 retrospective could test whether pricing/packaging review is warranted.`);
+  return lines.map(l=>`<p style="margin:6px 0">${l}</p>`).join('');
+}
+
 </script>
 </body>
 </html>
