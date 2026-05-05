@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-013 — Cohort Retention Forecaster</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-domain{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.badge-model{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.alert-red{background:#FAECE7;border-left:3px solid #F0997B;color:#712B13}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+.pattern-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;font-family:monospace}
+.p-stable{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.p-degrading{background:#FAECE7;color:#712B13;border:1px solid #F0997B}
+.p-improving{background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB}
+.p-mixed{background:#FAEEDA;color:#633806;border:1px solid #EF9F27}
+.p-insufficient{background:#f0f0f0;color:#555;border:1px solid #c4c4c4}
+</style>
+</head>
+<body>
+
+<h1>TOOL-013 &mdash; Cohort Retention Forecaster</h1>
+<div class="subtitle">Tier 3 Specialist Tool &middot; Stateless &middot; Reads cohort retention curves from AGT-501 cohort_brain_view, projects forward with confidence bands &middot; Cohort-level analogue of TOOL-004 &middot; Closes the multi-quarter retention-projection gap that AGT-903 needs</div>
+
+<div class="meta-row">
+  <span class="badge badge-tier">Tier 3 &middot; Tool</span>
+  <span class="badge badge-status">Specced &middot; v37</span>
+  <span class="badge badge-domain">Strategy &middot; Multi-quarter</span>
+  <span class="badge badge-model">Sonnet</span>
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">Reads observed retention curves for one or more signup-quarter cohorts (from AGT-501 cohort_brain_view) and produces forward projections with confidence bands per cohort, plus a cohort-comparison characterization (stable / degrading / improving / mixed). Used by AGT-903 Strategy Brain when answering "are customers we're winning today retaining better or worse than 2 years ago?", "is the retention curve flattening?", and "what's the projected NRR floor on the 2024 cohort?". Cohort-level analogue of TOOL-004 (which forecasts a single account's consumption); TOOL-013 forecasts a population's retention curve. Numerical model in code (cohort survival / decay fits with bootstrapped intervals); LLM portion produces structured characterization + interpretation, never the projection itself.</p>
+  <div class="alert-box alert-gold">Closes the cohort-projection gap that AGT-903 strategic reasoning needs. AGT-501's <code>cohort_brain_view</code> publishes observed retention by signup quarter; that's deterministic. Forward projection with calibrated uncertainty is a distinct cognition step, and the spec is explicit that AGT-903 must not estimate from raw rows itself &mdash; that's TOOL-013's job. Without it, AGT-903 declines on every "did the bet work / what's next?" retrospective.</div>
+</div>
+
+<!-- ── INPUT SCHEMA ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "cohorts": [
+    {
+      "cohort_label": "string",              // e.g., "2023-Q3 SMB", "2024-Q1 MM"
+      "cohort_dimensions": {                  // free-form structured tags from cohort_brain_view
+        "signup_quarter": "YYYY-QN",
+        "segment": "SMB" | "MM" | "ENT",
+        "vertical": "string | null",
+        "icp_tier": "T1" | "T2" | "T3" | null,
+        "pricing_model": "flat" | "consumption" | "hybrid" | null
+      },
+      "cohort_size_at_t0": 0,                 // accounts in cohort at signup
+      "retention_curve_observed": [           // per period since signup
+        {
+          "period_index": 0,                   // 0 = signup
+          "period_label": "M0" | "Q1" | "Y1",
+          "logos_retained": 0,
+          "logo_retention_pct": 0.0,           // 0.0–1.0
+          "nrr_pct": 0.0,                      // optional, null if unavailable
+          "grr_pct": 0.0                       // optional
+        }
+        // ... observed periods only; projection horizon picks up where this ends
+      ],
+      "data_quality_notes": ["string"]        // e.g., "small cohort", "missing Q3 nrr"
+    }
+    // ... 1 to 16 cohorts
+  ],
+  "projection_horizon_periods": 8,            // default 8 quarters; max 16
+  "comparison_mode": "single" | "pairwise" | "trend",
+  // single   = forecast each cohort independently
+  // pairwise = forecast + compare two named cohorts (must pass exactly 2)
+  // trend    = forecast + characterize cross-cohort trajectory (signup-quarter drift)
+  "context": {
+    "as_of_date": "ISO 8601",
+    "calling_brain": "AGT-903",                // for audit
+    "calling_use_case": "icp_retrospective" | "vertical_entry" | "capacity_reallocation" | "strategic_retrospective" | "nrr_durability" | "other"
+  }
+}</div>
+  <div class="note">The tool refuses if any cohort has &lt; 4 observed periods (insufficient signal for projection) or if <code>cohort_size_at_t0 &lt; 25</code> (small-cohort variance overwhelms signal). Refusal is structured &mdash; the tool returns <code>refusal_reason</code> rather than fabricating wide-band noise. AGT-903 is expected to handle the refusal by surfacing the gap, per its own refusal discipline.</div>
+</div>
+
+<!-- ── OUTPUT SCHEMA ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output schema</div>
+  <div class="code-block">{
+  "tool_call_id": "uuid",
+  "refusal_reason": "string | null",          // populated only on refusal; rest of payload null
+  "per_cohort_forecast": [
+    {
+      "cohort_label": "string",
+      "fit_method": "kaplan_meier" | "exponential_decay" | "weibull" | "loess",
+      "projection": [
+        {
+          "period_index": 0,
+          "period_label": "string",
+          "logo_retention_pct_p50": 0.0,        // median projection
+          "logo_retention_pct_p10": 0.0,        // lower band
+          "logo_retention_pct_p90": 0.0,        // upper band
+          "nrr_pct_p50": 0.0,                   // null if no nrr observations
+          "nrr_pct_p10": 0.0,
+          "nrr_pct_p90": 0.0
+        }
+        // ... up to projection_horizon_periods
+      ],
+      "asymptote_estimate": {                   // long-run retention floor; null if no asymptote indicated
+        "logo_retention_pct_floor_p50": 0.0,
+        "logo_retention_pct_floor_p10": 0.0,
+        "logo_retention_pct_floor_p90": 0.0
+      },
+      "fit_quality": "high" | "medium" | "low",
+      "fit_quality_reasons": ["string"]
+    }
+  ],
+  "cohort_comparison": {                        // populated when comparison_mode != single
+    "primary_pattern": "stable" | "degrading" | "improving" | "mixed" | "insufficient_signal",
+    "drift_direction": "newer_better" | "newer_worse" | "no_drift" | "insufficient_signal",
+    "drift_magnitude_pct_per_cohort": 0.0,      // signed; positive = newer cohorts retain better
+    "load_bearing_periods": ["string"],         // which periods drive the comparison conclusion
+    "anomaly_cohorts": ["string"]               // cohorts flagged as outliers vs. peers
+  },
+  "interpretation_for_caller": {
+    "primary_finding": "string",                // 1–2 sentence summary grounded in numbers
+    "credible_alternative_finding": "string",   // mandatory — second reading the data also supports
+    "what_would_change_the_finding": "string"   // falsifiable condition
+  },
+  "data_quality": {
+    "cohorts_evaluated": 0,
+    "cohorts_refused": 0,
+    "smallest_cohort_size": 0,
+    "shortest_observed_window_periods": 0,
+    "quality_assessment": "high" | "medium" | "low"
+  },
+  "ungrounded_assumptions": ["string"],
+  "tool_metadata": {
+    "model": "claude-sonnet-4-6",
+    "input_tokens": 0, "output_tokens": 0,
+    "cost_usd_estimate": 0.0,
+    "latency_ms": 0
+  }
+}</div>
+  <div class="alert-box alert-red"><strong>Hard rule.</strong> Confidence intervals must scale with observed-window length and cohort size. A 4-period observation on a 30-account cohort cannot produce a tight band &mdash; the tool widens p10/p90 mechanically based on bootstrap variance, and the LLM characterization cannot override the numerical bounds. If the caller wants a tighter answer, the answer is "wait for more periods or pool cohorts," not "lie about uncertainty."</div>
+  <div class="alert-box alert-blue"><strong>Mandatory credible alternative.</strong> Mirrors AGT-903's options-discipline at the tool layer. Every interpretation includes a second reading the data also supports, plus a falsifiable condition that would distinguish them. This prevents the tool from feeding AGT-903 single-narrative inputs that the brain then dresses up as options.</div>
+</div>
+
+<!-- ── PATTERN TAXONOMY ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cohort-comparison pattern taxonomy</div>
+  <table>
+    <tr><th>Pattern</th><th>What it looks like</th><th>Implication for AGT-903</th></tr>
+    <tr><td><span class="pattern-pill p-stable">stable</span></td><td>Cross-cohort retention curves fall within each other's confidence bands across the observed window</td><td>No retention-side signal of strategic shift. Other diagnostics (LTV, expansion) drive the strategic question. Brain should not over-claim a "retention is fine" finding &mdash; the alternative reading is "we don't have enough signal to detect drift yet."</td></tr>
+    <tr><td><span class="pattern-pill p-degrading">degrading</span></td><td>Newer cohorts consistently retain worse than older cohorts at matched periods, beyond confidence bands</td><td>Strategic risk signal. Possible drivers: ICP drift, product fit erosion, segment-mix shift, onboarding regression. Brain must enumerate which driver(s) the cohort dimensions support &mdash; not assert one.</td></tr>
+    <tr><td><span class="pattern-pill p-improving">improving</span></td><td>Newer cohorts retain better than older cohorts at matched periods, beyond confidence bands</td><td>Strategic-bet validation signal &mdash; the system improvements (better ICP, better onboarding, better product) are showing up in retention. Brain should still flag confounds: cohort-mix changes, survivorship, or a new selection bias in who closes.</td></tr>
+    <tr><td><span class="pattern-pill p-mixed">mixed</span></td><td>Pattern is non-monotonic across cohorts, or different metrics (logo vs. NRR) tell different stories</td><td>The honest case. Brain articulates both readings; the strategic call hinges on which story the executive prioritizes. This is where AGT-903's options-discipline is most load-bearing &mdash; do not collapse to a single answer.</td></tr>
+    <tr><td><span class="pattern-pill p-insufficient">insufficient_signal</span></td><td>Cohorts too small, observation windows too short, or variance too wide to support any cross-cohort claim</td><td>Refusal-shaped. Brain surfaces the gap rather than estimating. Retry when more periods land or more cohorts are pooled.</td></tr>
+  </table>
+  <div class="note">Pattern selection is rule-based (not LLM judgment): the tool computes signed drift across cohorts at matched periods, compares to bootstrapped null bands, and assigns the pattern. The LLM portion writes the interpretation; it does not re-decide the pattern. This protects against the failure mode where Sonnet pattern-matches "retention" to a confident narrative absent supporting variance bounds.</div>
+</div>
+
+<!-- ── CALLED BY ──────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Called by</div>
+  <table>
+    <tr><th>Caller</th><th>Invocation context</th></tr>
+    <tr><td>AGT-903 Strategy Brain</td><td>Primary caller. Used in <code>icp_retrospective</code>, <code>strategic_retrospective</code> (e.g., "did the consumption-pricing pivot work?"), <code>nrr_durability</code>, <code>vertical_entry</code> (when retention data exists for the vertical's opportunistic cohorts). Brain reads AGT-501 cohort_brain_view, calls TOOL-013 with relevant cohort subset + comparison_mode, integrates output into the StrategyRecommendationLog memo as one of several inputs.</td></tr>
+    <tr><td>AGT-704 Business Review Orchestrator</td><td>Secondary caller, only via the AGT-903 narrative job. AGT-704 does not call TOOL-013 directly &mdash; it invokes AGT-903 for annual-planning narrative sections, and AGT-903 calls TOOL-013 from there. Keeps the audit trail single-threaded through AGT-903.</td></tr>
+    <tr><td>RevOps direct (workspace UI)</td><td>For ad-hoc cohort retention investigations &mdash; e.g., "what does the 2024-Q2 MM cohort look like projected forward?" Bypasses AGT-903 only when the question is descriptive (not strategic-recommendation-shaped).</td></tr>
+  </table>
+  <div class="alert-box alert-amber"><strong>Out-of-list callers should be a code-review concern.</strong> Per Tier 3 contract. AGT-901 (current-period pipeline) and AGT-902 (per-account) should not call TOOL-013 &mdash; their horizons don't justify the cost or model tier. If they need cohort context, they should narrow scope or hand off to AGT-903.</div>
+</div>
+
+<!-- ── DESIGN PRINCIPLES ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Design principles</div>
+  <ol style="font-size:12px;color:#333;line-height:1.8;padding-left:20px">
+    <li><strong>Numerical model, not LLM gut feel.</strong> Same as TOOL-004. Survival/decay fits + bootstrap intervals run in code. The LLM characterizes the result and writes the interpretation. The LLM does not invent the projection number, does not pick the pattern label, does not narrow the confidence band.</li>
+    <li><strong>Confidence intervals scale with observed window and cohort size.</strong> A 4-period observation is not the same as a 12-period observation. The tool reports honestly; tight bands on thin data are a hard fail in eval.</li>
+    <li><strong>Mandatory credible alternative.</strong> Output always includes a second reading the data also supports + a falsifiable condition. Mirrors AGT-903's options-discipline at the tool layer; prevents the brain from collapsing tool output into a single narrative.</li>
+    <li><strong>Refusal is a first-class result.</strong> When cohorts are too small or windows too short, the tool returns <code>refusal_reason</code> and stops. Refusal cost ≈ one round-trip's tokens, far cheaper than fabricating noise that AGT-903 then has to discount.</li>
+    <li><strong>No external data.</strong> Tool reads only cohort retention rows passed by the caller. Does not query AGT-501 directly; does not enrich with industry retention benchmarks. Audit trail traces every projection to specific input rows.</li>
+    <li><strong>Pattern label is rule-based, not LLM-chosen.</strong> The taxonomy (stable / degrading / improving / mixed / insufficient_signal) is assigned by the numerical core based on signed drift vs. bootstrap null. The LLM cannot override the label &mdash; it can only describe what the label means for the caller.</li>
+  </ol>
+  <div class="alert-box alert-amber"><strong>Implementation note for go-live.</strong> Principles 1 and 6 mean the tool is partly numerical (cohort-survival fits + bootstrap intervals + rule-based pattern assignment in code) and partly LLM (interpretation + structured output + ungrounded-assumption surfacing). The LLM does not invent numbers and does not pick the pattern. This is enforceable in implementation but not in spec alone &mdash; the eval harness must cross-check that <code>primary_pattern</code> matches the rule output.</div>
+</div>
+
+<!-- ── COST CEILING ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost ceiling</div>
+  <table>
+    <tr><th>Constraint</th><th>Value</th></tr>
+    <tr><td>Per-call input budget</td><td>40K tokens (up to 16 cohorts × 16 periods × multi-metric rows; bounded at 40K). Larger than TOOL-004 because cohort comparison is multi-population.</td></tr>
+    <tr><td>Per-call output budget</td><td>4K tokens (per-cohort projections + comparison + interpretation + assumptions)</td></tr>
+    <tr><td>Default model</td><td>Sonnet &mdash; multi-cohort pattern characterization and interpretation justify the step up from Haiku. Numerical forecasting still runs in code.</td></tr>
+    <tr><td>Per-call cost estimate</td><td>~$0.25 per call at Sonnet pricing</td></tr>
+    <tr><td>Monthly cap (default)</td><td>$200/mo &mdash; bounds usage to ~800 calls/month, well above expected AGT-903 query volume</td></tr>
+    <tr><td>Frequency expectation</td><td>Lowest-frequency tool in Tier 3. AGT-903 invokes 10&ndash;30 queries/month, of which roughly half call TOOL-013. Annual planning weeks concentrate usage; off-cycle months may see &lt; 5 calls.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL CRITERIA ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Measurement</th><th>Pass threshold</th></tr>
+    <tr><td>Schema compliance</td><td>Output validates against output schema</td><td>100% (hard)</td></tr>
+    <tr><td>Pattern label accuracy</td><td>20 historical cohort sets with known retrospective pattern; % where <code>primary_pattern</code> matches</td><td>&ge; 80% &mdash; pattern is rule-assigned, so this is mostly a regression test on the rule + corner cases</td></tr>
+    <tr><td>Projection calibration</td><td>For 20 cases with retrospectively-known retention outcomes within the projection horizon: % where actual outcome fell within the [p10, p90] band</td><td>&ge; 80%</td></tr>
+    <tr><td>Confidence band width discipline</td><td>For cases with &le; 6 observed periods, % where p90 − p10 width is at least 15 percentage points (i.e., honest about uncertainty on thin data)</td><td>100% (hard)</td></tr>
+    <tr><td>Refusal correctness</td><td>For deliberately-undersized cohorts (&lt; 25 accounts) or short windows (&lt; 4 periods), % where tool refuses with structured <code>refusal_reason</code></td><td>100% (hard)</td></tr>
+    <tr><td>Mandatory alternative</td><td>% of non-refusal outputs with non-empty <code>credible_alternative_finding</code> and non-empty <code>what_would_change_the_finding</code></td><td>100% (hard)</td></tr>
+    <tr><td>Hallucinated drift</td><td>% of outputs claiming <code>drift_direction</code> in (newer_better, newer_worse) when bootstrap null bands are not crossed</td><td>0% (hard)</td></tr>
+    <tr><td>P95 latency</td><td>End-to-end (numerical fit + bootstrap + LLM interpretation)</td><td>&le; 6s</td></tr>
+  </table>
+</div>
+
+<!-- ── FAILURE MODES ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Cause</th><th>Action</th></tr>
+    <tr><td>Tool reports tight confidence bands on 4-period observations</td><td>Bootstrap variance not properly scaled to window length</td><td>Hard fail in eval. Confidence intervals must mechanically widen with shorter observed windows.</td></tr>
+    <tr><td>Tool calls a cohort comparison "degrading" when the cross-cohort delta lies inside bootstrap null bands</td><td>Pattern-assignment rule too aggressive, or LLM overriding the rule</td><td>Hard fail. Rule output is the source of truth for the label; LLM cannot override.</td></tr>
+    <tr><td>Tool produces a single-narrative interpretation without an alternative</td><td>System prompt not enforcing the mandatory credible-alternative field</td><td>Hard fail. Eval enforces non-empty <code>credible_alternative_finding</code>.</td></tr>
+    <tr><td>Tool projects a non-physical retention curve (e.g., logo retention rising over time within a cohort)</td><td>Bad fit method choice for the data shape</td><td>Numerical guard: projections are clamped monotonic-non-increasing for logo retention; NRR can rise (expansion). Catch in code, not LLM.</td></tr>
+    <tr><td>AGT-903 cost spike traceable to TOOL-013 pooling redundant cohort sets per query</td><td>Brain calling TOOL-013 multiple times in one session with overlapping cohort definitions</td><td>Caller responsibility. AGT-903 should consolidate cohort sets per session; not TOOL-013's concern.</td></tr>
+    <tr><td>Tool refuses on cohorts AGT-903 needs for the question</td><td>Cohort sizes legitimately too small, or AGT-501 cohort_brain_view contract not yet shipping the relevant cohorts</td><td>Surface gap to AGT-903; AGT-903 surfaces gap to the operator. Working as designed &mdash; refusal is correct when data doesn't support a forecast.</td></tr>
+  </table>
+</div>
+
+<!-- ── INTERACTION WITH AGT-903 ──────────────────────────── -->
+<div class="section">
+  <div class="section-title">Interaction with AGT-903</div>
+  <p class="prose"><strong>Single-threaded audit trail.</strong> AGT-903 calls TOOL-013 via Anthropic tool-use; the call ID lands in <code>tool_calls_made</code> on the BrainAnalysisLog row, and the projection numbers cited in the StrategyRecommendationLog memo trace back via that ID. Per AGT-903's source-citation discipline (≥ 95% of numerical claims must cite a source), TOOL-013 outputs are first-class citation targets.</p>
+  <p class="prose" style="margin-top:8px"><strong>Pattern label propagation.</strong> The <code>primary_pattern</code> from TOOL-013 propagates into AGT-903's <code>options_enumerated</code> as a load-bearing input &mdash; e.g., a "degrading" pattern on the post-pivot cohorts in <code>strategic_retrospective</code> shapes whether <code>flag_strategic_risk</code> or <code>propose_pricing_packaging_review</code> is the right action. AGT-903 is required to articulate the alternative reading TOOL-013 surfaced; if the brain ignores the alternative, the eval fixture EVAL-S04 anti-confirmation-bias check fails.</p>
+  <p class="prose" style="margin-top:8px"><strong>Refusal contagion.</strong> When TOOL-013 refuses, AGT-903 is expected to either (a) surface the gap to the operator and decline the strategic question, or (b) proceed without TOOL-013 input and explicitly mark the affected claims as <code>speculation</code> confidence. Silently dropping the refusal and producing a confident narrative is a hard fail for AGT-903 (Sev-2 incident treatment per its spec).</p>
+</div>
+
+<div class="footer">
+  TOOL-013 Cohort Retention Forecaster &middot; Tier 3 Specialist Tool &middot; Schema v37<br>
+  Stateless. Reads cohort retention input only. Logged via caller's BrainAnalysisLog with <code>tool_calls_made</code> entry.<br>
+  Default model: Sonnet (LLM for characterization + interpretation; numerical forecasting + pattern assignment in code).<br>
+  Per-call budget: 40K input + 4K output. Monthly cap: $200/mo (~800 calls).<br>
+  Closes: cohort-projection gap that AGT-903 strategic reasoning needs &mdash; specced alongside TOOL-014 (segment-LTV decomposer) per v37 changelog ripple.<br>
+  Companion: <a href="Tools_Index.html">Tier 3 Tools Index</a> &middot; <a href="../specs/AGT-903_Strategy_Brain.html">AGT-903 Strategy Brain</a> &middot; <a href="TOOL-004_Consumption_Forecasting.html">TOOL-004 Consumption Forecasting</a> (per-account analogue) &middot; <a href="TOOL-014_Segment_LTV_Decomposer.html">TOOL-014 Segment-LTV Decomposer</a>
+</div>
+</body>
+</html>

@@ -50,7 +50,7 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 <div class="section">
   <div class="section-title">Purpose</div>
   <p class="prose">BrainAnalysisLog is the canonical record of every Brain Agent query. It is how the L9 reasoning layer earns audit-grade reasoning out of a non-deterministic substrate: every numerical claim a brain makes ties back to a Tier 1 source row read at a specific timestamp, every proposed action carries a <code>proposal_id</code> that downstream actions inherit, and every output is reproducible with the same source data.</p>
-  <div class="alert-box alert-blue">Single-writer per row. Each row is written by exactly one Brain Agent (AGT-901 or AGT-902 today; future brains add their own writer identity). No agent ever updates another agent's BrainAnalysisLog row. Append-only.</div>
+  <div class="alert-box alert-blue">Single-writer per row. Each row is written by exactly one Brain Agent (AGT-901, AGT-902, or AGT-903). No agent ever updates another agent's BrainAnalysisLog row. Append-only.</div>
 </div>
 
 <!-- ── WHY IT MATTERS ─────────────────────────────────────── -->
@@ -71,10 +71,10 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
     <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
     <tr><td><code>analysis_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>Primary key. Generated at write.</td></tr>
     <tr><td><code>proposal_id</code></td><td>UUID</td><td><span class="req">REQ</span></td><td>Stable identifier shared by every downstream action that traces to this analysis. Action records (in Tier 1 systems) carry this ID for retrospective cohorting.</td></tr>
-    <tr><td><code>writer_agent_id</code></td><td>VARCHAR(16)</td><td><span class="req">REQ</span></td><td>Which Brain Agent wrote this row. Today: <code>AGT-901</code> or <code>AGT-902</code>. CHECK constraint enforces enum.</td></tr>
-    <tr><td><code>invocation_path</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td><code>operator_query</code> / <code>narrative_job</code> / <code>play_refresh_batch</code> / <code>handoff_briefing</code> / <code>renewal_prep_batch</code> / <code>anomaly_explanation</code></td></tr>
+    <tr><td><code>writer_agent_id</code></td><td>VARCHAR(16)</td><td><span class="req">REQ</span></td><td>Which Brain Agent wrote this row. <code>AGT-901</code> / <code>AGT-902</code> / <code>AGT-903</code>. CHECK constraint enforces enum.</td></tr>
+    <tr><td><code>invocation_path</code></td><td>ENUM</td><td><span class="req">REQ</span></td><td><code>operator_query</code> / <code>narrative_job</code> / <code>play_refresh_batch</code> / <code>handoff_briefing</code> / <code>renewal_prep_batch</code> / <code>anomaly_explanation</code> / <code>board_prep_batch</code> / <code>strategic_retrospective_batch</code></td></tr>
     <tr><td><code>operator_user_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>The human who initiated the query (NULL for AGT-704/AGT-603-invoked narrative jobs).</td></tr>
-    <tr><td><code>account_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Populated for AGT-902 outputs (per-account scope). NULL for AGT-901 cross-account outputs.</td></tr>
+    <tr><td><code>account_id</code></td><td>UUID</td><td><span class="opt">opt</span></td><td>Populated for AGT-902 outputs (per-account scope). NULL for AGT-901 cross-account outputs and AGT-903 multi-quarter portfolio outputs.</td></tr>
     <tr><td><code>question</code></td><td>TEXT</td><td><span class="req">REQ</span></td><td>The operator query verbatim, or the narrative-job prompt verbatim. Audit input.</td></tr>
     <tr><td><code>system_prompt_hash</code></td><td>VARCHAR(64)</td><td><span class="req">REQ</span></td><td>SHA-256 of the system prompt used. Enables eval comparison across prompt versions.</td></tr>
     <tr><td><code>sources_read</code></td><td>JSONB</td><td><span class="req">REQ</span></td><td>Array of {table_name, view_name, last_refresh_timestamp, row_count_consumed, source_index}. <code>source_index</code> is the citation key used in narrative_output (e.g., <code>[src:1]</code>).</td></tr>
@@ -108,10 +108,10 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
     <tr><td>Index 4</td><td><code>(operator_user_id, created_at DESC)</code> WHERE operator_user_id IS NOT NULL</td><td>"Show me my recent brain queries."</td></tr>
     <tr><td>Index 5</td><td><code>(account_synthesis_signature)</code> WHERE account_synthesis_signature IS NOT NULL</td><td>Synthesis-signature cache lookup for AGT-902.</td></tr>
     <tr><td>Index 6</td><td><code>(data_staleness_acknowledged, created_at)</code> WHERE data_staleness_acknowledged = TRUE</td><td>Operations alert: how often are brains operating on stale data?</td></tr>
-    <tr><td>CHECK: writer_agent_id</td><td><code>writer_agent_id IN ('AGT-901','AGT-902')</code> (extensible as new brains added)</td><td>Enforces the single-writer-identity contract.</td></tr>
+    <tr><td>CHECK: writer_agent_id</td><td><code>writer_agent_id IN ('AGT-901','AGT-902','AGT-903')</code> (extensible as new brains added)</td><td>Enforces the single-writer-identity contract.</td></tr>
     <tr><td>CHECK: staleness disclosure</td><td>If <code>data_staleness_acknowledged = TRUE</code>, <code>narrative_output</code> must contain at least one occurrence of any staleness phrase from a configured list (e.g., 'stale', 'last refreshed', 'data may be out of date'). Enforced via trigger.</td><td>Hard rule: stale data without disclosure is a sev-2 incident. Trigger catches at write.</td></tr>
     <tr><td>CHECK: source citations</td><td>Every <code>[src:N]</code> citation in <code>narrative_output</code> must reference a valid <code>source_index</code> in <code>sources_read</code>. Enforced via trigger.</td><td>Audit integrity.</td></tr>
-    <tr><td>CHECK: action enum</td><td>Each <code>proposed_actions[].action_type</code> must be in the action taxonomy enum (per AGT-902 spec). Enforced via JSON schema.</td><td>Brain cannot invent action types.</td></tr>
+    <tr><td>CHECK: action enum</td><td>Each <code>proposed_actions[].action_type</code> must be in the action taxonomy enum for the row's <code>writer_agent_id</code> (AGT-901: <code>draft_play</code> / <code>flag_coverage_gap</code> / <code>recommend_query_for_human</code> / <code>none</code>; AGT-902: per AGT-902 spec; AGT-903: per AGT-903 spec — <code>propose_*</code> family + <code>flag_strategic_risk</code> / <code>recommend_*</code> / <code>none</code>). Enforced via JSON schema dispatched on writer_agent_id.</td><td>Brain cannot invent action types; each brain has its own taxonomy.</td></tr>
     <tr><td>Append-only</td><td>UPDATE and DELETE blocked at row level via row-level security (RLS). Only INSERT permitted.</td><td>Audit integrity.</td></tr>
   </table>
 </div>
@@ -141,7 +141,7 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
     <tr><td><code>high_confidence</code></td><td>Direct citation of a Tier 1 source value. Single source supports the claim.</td><td>Should be &ge; 60% of claims in a typical output.</td></tr>
     <tr><td><code>multi_source</code></td><td>Multiple Tier 1 sources corroborate the claim.</td><td>Common in synthesis outputs &mdash; "usage up AND seat util up AND positive sentiment trajectory" pattern.</td></tr>
     <tr><td><code>inference</code></td><td>Reasoning beyond direct source. The brain combined inputs to draw a conclusion not literally present in any single source.</td><td>Should be &le; 25% of claims. Watch for drift &mdash; inference-heavy outputs may signal sources are insufficient and brain is filling gaps.</td></tr>
-    <tr><td><code>speculation</code></td><td>The brain explicitly marks where it's guessing. Used for forward-looking statements without telemetry support, or for hypotheses about external factors (competitive moves, customer org dynamics) not in any Tier 1 system.</td><td>Should be &le; 10% of claims. Brain is honest about what it doesn't know.</td></tr>
+    <tr><td><code>speculation</code></td><td>The brain explicitly marks where it's guessing. Used for forward-looking statements without telemetry support, or for hypotheses about external factors (competitive moves, customer org dynamics) not in any Tier 1 system.</td><td>AGT-901 / AGT-902: should be &le; 10% of claims. <strong>AGT-903 exception:</strong> multi-quarter strategic reasoning involves more legitimate uncertainty &mdash; speculation may legitimately reach 25&ndash;30% of claims in option-set memos and strategic retrospectives. Brain is honest about what it doesn't know.</td></tr>
   </table>
   <div class="note">Eval suite checks the distribution. An output with 40% speculation is calibrated honestly but may not be useful; an output with 100% high_confidence and a wrong answer is dishonest calibration. Both are flags.</div>
 </div>
@@ -175,10 +175,10 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 
 <div class="footer">
   BrainAnalysisLog &middot; Production Schema &middot; Layer 9 &middot; Schema v27<br>
-  Owners: RevOps + Data Engineering. Single-writer per row: AGT-901 or AGT-902 (or future Brain Agents).<br>
+  Owners: RevOps + Data Engineering. Single-writer per row: AGT-901, AGT-902, or AGT-903.<br>
   Append-only. Source-trace integrity enforced via triggers. 7-year retention.<br>
   Read by: RevOps (ops dashboards + cohort retrospective) · auditors (audit windows) · AM/CSM/AE (own queries + assigned accounts) · Brain Agents (own caching only).<br>
-  Related: <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902 Account Brain</a> &middot; <a href="SalesPlayLibrary_Schema.html">SalesPlayLibrary Schema</a>
+  Related: <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902 Account Brain</a> &middot; <a href="../specs/AGT-903_Strategy_Brain.html">AGT-903 Strategy Brain</a> &middot; <a href="SalesPlayLibrary_Schema.html">SalesPlayLibrary Schema</a> &middot; <a href="StrategyRecommendationLog_Schema.html">StrategyRecommendationLog Schema</a>
 </div>
 </body>
 </html>
