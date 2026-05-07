@@ -38,6 +38,7 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
   <span class="badge badge-layer">L5 · Agent 03</span>
   <span class="badge badge-status">Specced · v19 original + v25 ripple update</span>
   <span class="badge badge-ripple">L8 ripple: UsageMeteringLog explicitly named as usage signal source for overage and seat utilization signals</span>
+  <span class="badge badge-ripple">v38 update: tier-migration as expansion type for consumption-pricing tiered platforms</span>
 </div>
 
 <!-- ── L8 RIPPLE UPDATE ────────────────────────────────────── -->
@@ -105,16 +106,53 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
     <tr><th>Play type</th><th>When</th><th>Action</th></tr>
     <tr><td>New play</td><td>No open expansion opp, churn gate passes, signal threshold met</td><td>Expansion play created and routed to AM via TerritoryDefinitions (not RepBook)</td></tr>
     <tr><td>Enrichment path</td><td>Open expansion opp already exists</td><td>Context appended to existing opp, single contextual update to AM. No new play.</td></tr>
+    <tr><td><strong>Tier-migration play (v38)</strong></td><td>Customer is on a low-margin product tier and qualifies for a higher-margin tier (per TOOL-015 GP-uplift projection)</td><td>Migration play routed to AM with TOOL-015 decomposition + projected GP uplift + switching-cost class. Distinct from ARR-uplift expansion: revenue may stay flat or even dip slightly while GP improves.</td></tr>
     <tr><td>Suppressed</td><td>High/Critical churn risk, or Medium churn without CSM confirmation</td><td>No play. suppressed_reason logged in ExpansionLog.</td></tr>
   </table>
 </div>
 
+<!-- ── TIER-MIGRATION EXTENSION (v38) ─────────────────────── -->
+<div class="section">
+  <div class="section-title">Tier-migration expansion (v38) &mdash; for consumption-pricing tiered platforms</div>
+  <p class="prose" style="margin-bottom:10px">Some products have multiple consumption tiers with structurally different gross margins (e.g., shared / dedicated / bring-your-own-cloud, or self-service / managed / control-plane). Moving a customer up the tier ladder is an expansion motion <em>even when ARR is flat or down</em>, because realized GP improves materially. AGT-503's classic 5-signal model targets ARR uplift; tier-migration adds a parallel signal + play type targeting GP uplift.</p>
+
+  <div class="subsection-title">6th signal &mdash; tier-migration eligibility</div>
+  <table>
+    <tr><th>Signal</th><th>Pts</th><th>Mode</th><th>Source</th></tr>
+    <tr><td>Tier-migration eligibility</td><td>+25 to +50</td><td>Digest (weekly)</td><td>TOOL-015 Consumption-Margin Decomposer projects projected GP uplift for default migration scenario. Pts scale with projected uplift: &lt; 5pp = 0 (no signal); 5&ndash;10pp = +25; 10&ndash;20pp = +35; &gt; 20pp = +50.</td></tr>
+  </table>
+
+  <div class="subsection-title">Tier-migration gates (run before play creation)</div>
+  <table>
+    <tr><th>Gate</th><th>Rule</th></tr>
+    <tr><td>Switching-cost class threshold</td><td>If TOOL-015 returns <code>switching_cost_class = "very_high"</code> AND projected GP uplift &lt; 15pp, suppress play (the math doesn't justify the customer-side disruption). Override allowed by RevOps.</td></tr>
+    <tr><td>Technical-prerequisite check</td><td>For migrations requiring customer-side infrastructure (e.g., bring-your-own-cloud destinations), verify cloud account exists or pre-existing technical relationship. AGT-602 Technical Implementation gate &mdash; if customer has not deployed any production workloads, suppress play (premature).</td></tr>
+    <tr><td>Onboarding-completion gate</td><td>Suppress for accounts with <code>onboarding_status = 'active'</code>. Tier migration on a customer who hasn't fully ramped on current tier is a sales motion that backfires &mdash; AM must close the loop on activation first.</td></tr>
+    <tr><td>Revenue-floor gate</td><td>Suppress for accounts below a revenue threshold (configurable per segment, default $50K trailing-quarter revenue). Below the floor, tier migration is rarely worth the customer-side engineering work.</td></tr>
+  </table>
+
+  <div class="subsection-title">Tier-migration play structure</div>
+  <table>
+    <tr><th>Field</th><th>Content</th></tr>
+    <tr><td>Play type</td><td><code>tier_migration</code> (distinct from <code>new_play</code>)</td></tr>
+    <tr><td>Hypothesis</td><td>Pre-filled from TOOL-015 output: "Migrating customer from {from_tier} to {to_tier} projects GP uplift of {gp_uplift_pct}pp on trailing-quarter consumption. Switching cost: {switching_cost_class}."</td></tr>
+    <tr><td>credible_alternative_consideration</td><td>Pre-filled from TOOL-015 output: the case for NOT migrating, surfaced explicitly so AM has it before the conversation. Brain-discipline mirror.</td></tr>
+    <tr><td>Suggested cadence</td><td>Technical conversation + business-case review + customer-side engineering qualification. AM-led, not SDR-led. AGT-602 Technical Implementation engaged early for technical-prerequisite verification.</td></tr>
+    <tr><td>Success criteria</td><td>Migration completed AND realized GP uplift over 2 trailing quarters post-migration meets or exceeds 60% of projected. Recorded in ExpansionLog for retrospective analysis (cohort: did our tier-migration projections hold?).</td></tr>
+  </table>
+
+  <div class="alert-box alert-gold"><strong>v38 ripple to ExpansionLog schema:</strong> add fields <code>play_type ENUM('new_play','tier_migration','enrichment')</code>, <code>tier_migration_from</code>, <code>tier_migration_to</code>, <code>projected_gp_uplift_pct</code>, <code>switching_cost_class</code>, <code>realized_gp_uplift_pct</code> (post-migration retrospective). Companion v38 ripple to AGT-101 + AGT-103: GP-overlay comp variant rewards reps on realized GP uplift, not just on ARR delta — see AGT-101 v38.</div>
+
+  <div class="alert-box alert-amber"><strong>Why tier-migration belongs in AGT-503 and not elsewhere.</strong> Tier-migration is a post-sale motion against an existing customer with an existing relationship; AM is the executor; success is measured in GP delta on the same revenue. That's structurally an expansion play, not a new-deal motion. The only deviation from classic expansion is that ARR may not move &mdash; which is why the 6th signal scores GP uplift, not ARR uplift, and why AGT-101 v38 introduces a GP-overlay comp variant aligned to this motion.</div>
+</div>
+
 <div class="footer">
-  AGT-503 Expansion Trigger Agent · Layer 5 · Schema v19 (original) + v25 (L8 ripple)<br>
+  AGT-503 Expansion Trigger Agent · Layer 5 · Schema v19 (original) + v25 (L8 ripple) + v38 (tier-migration extension)<br>
   v25 changes: consumption overage and seat utilization signals explicitly read UsageMeteringLog; immediate bypass of scheduled cycle confirmed on UsageMeteringLog threshold events<br>
-  Reads from: UsageMeteringLog (AGT-804 — usage signals), CustomerHealthLog (AGT-501 — churn gate), ChurnRiskLog (AGT-502 — entry path), ConvIntelligence (feature inquiry), Contacts (stakeholder), TerritoryDefinitions (AM routing), Opportunities (open opp check)<br>
-  Writes to: ExpansionLog<br>
-  Feeds: AGT-402 (expansion ACV in bottoms-up forecast), AGT-702 MetricsCalcLog (NRR upside quantification)
+  v38 changes: tier-migration as new expansion play type for consumption-pricing tiered platforms; 6th signal (tier-migration eligibility, +25 to +50 pts based on TOOL-015 GP uplift projection); 4 gates specific to tier-migration (switching cost, technical prerequisite, onboarding completion, revenue floor); ExpansionLog schema extension for play_type / tier_migration_from / tier_migration_to / projected_gp_uplift_pct / switching_cost_class / realized_gp_uplift_pct.<br>
+  Reads from: UsageMeteringLog (AGT-804 — usage signals), CustomerHealthLog (AGT-501 — churn gate), ChurnRiskLog (AGT-502 — entry path), ConvIntelligence (feature inquiry), Contacts (stakeholder), TerritoryDefinitions (AM routing), Opportunities (open opp check). v38: <a href="../tools/TOOL-015_Consumption_Margin_Decomposer.html">TOOL-015 Consumption-Margin Decomposer</a> (tier-migration GP uplift projection + switching cost class).<br>
+  Writes to: ExpansionLog (extended schema v38)<br>
+  Feeds: AGT-402 (expansion ACV in bottoms-up forecast), AGT-702 MetricsCalcLog (NRR upside quantification + GP-uplift retrospective). v38: GP-overlay comp variant in AGT-101 / AGT-103 (rewards reps on realized GP uplift).
 </div>
 </body>
 </html>

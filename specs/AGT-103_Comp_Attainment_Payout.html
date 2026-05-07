@@ -151,6 +151,22 @@ pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0
 </div>
 
 <div class="sec">
+  <div class="slabel">v38 update — GP-overlay payout calculation</div>
+  <p class="prose" style="font-size:12px;line-height:1.6;margin-bottom:10px"><strong>Why.</strong> Pairs with AGT-101 v38 GP-overlay comp variant. Reps on the overlay carry both an ARR quota and a GP quota; AGT-103 computes attainment + payout for both measures in parallel, applying the configured ARR/GP split.</p>
+  <table>
+    <tr><th>Element</th><th>v38 behavior</th></tr>
+    <tr><td>Per-rep gate</td><td>For each rep with new ledger events: AGT-103 reads QuotaStore <code>overlay_active</code>. If FALSE: classic ARR-only attainment (existing path, no change). If TRUE: dual-measure path described below.</td></tr>
+    <tr><td>GP attribution</td><td>For each closed-won opp or qualifying usage event: query TOOL-015 Consumption-Margin Decomposer for the customer's realized GP over the relevant period. GP-attribution per opp = (opp_arr / customer_total_arr) × customer_realized_gp. For tier-migration plays: GP attribution = the realized_gp_uplift_pct × baseline revenue, attributed to the rep who closed the migration (per AGT-503 v38 tier_migration play type). Both attribution methods written to QuotaRetirementLedger with <code>attribution_method</code> field.</td></tr>
+    <tr><td>Dual-measure attainment</td><td><code>arr_attainment_pct</code> = SUM(arr_revenue_usd) / arr_quota_usd. <code>gp_attainment_pct</code> = SUM(gp_attribution_usd) / gp_quota_usd. Each computed independently per period.</td></tr>
+    <tr><td>Combined payout</td><td>If <code>arr_gp_split_pct</code> = 60/40: <code>combined_attainment_pct</code> = 0.60 × arr_attainment_pct + 0.40 × gp_attainment_pct. Payout curve applied to combined_attainment_pct using the rep's configured curve type. Same kicker / SPIF / draw-recovery logic as classic path.</td></tr>
+    <tr><td>Anti-gaming guard</td><td>If a rep has <code>combined_attainment_pct</code> &gt; 100% but <code>arr_attainment_pct</code> &lt; 70%, flag to AGT-104. Pattern check: rep optimizing GP at the expense of revenue is a real concern; the flag triggers manual review before payout finalization. Threshold is configurable per segment.</td></tr>
+    <tr><td>Tier-migration retrospective</td><td>For tier_migration plays with <code>realized_gp_uplift_pct</code> populated post-migration (typically 2 quarters after close): if realized falls below 60% of projected, flag to AGT-104 + AGT-703 for calibration analysis. Pattern of mis-projected uplifts triggers TOOL-015 system-prompt revision review.</td></tr>
+    <tr><td>PayoutHistory schema extension</td><td>Add fields <code>arr_attainment_pct</code>, <code>gp_attainment_pct</code>, <code>arr_gp_split_pct</code>, <code>combined_attainment_pct</code>, <code>gp_attribution_method</code>, <code>tier_migration_play_id</code> (nullable; populated when the closed event is a tier-migration retiring against GP quota).</td></tr>
+  </table>
+  <div class="alert-box alert-blue" style="font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7;background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C"><strong>Calibration loop closure.</strong> AGT-103 v38 writes the realized GP uplift back to ExpansionLog (per AGT-503 v38 schema extension) when tier_migration plays retire. That closes the loop: TOOL-015 projects GP uplift → AGT-503 fires the play → AM closes → AGT-103 computes realized GP attribution → if realized lands below projected by &gt; 40%, AGT-703 picks it up as calibration signal → TOOL-015's system prompt is reviewed. The brain-discipline mirror that AGT-903 spec calls for, applied at the comp-plan level.</div>
+</div>
+
+<div class="sec">
   <div class="slabel">System prompt skeleton</div>
 <pre>You are AGT-103, the Comp Attainment & Payout Calculator for a B2B SaaS GTM OS.
 

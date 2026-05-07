@@ -193,6 +193,21 @@ pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0
 </div>
 
 <div class="sec">
+  <div class="slabel">v38 update — GP-overlay comp variant for tier-mix migration motions</div>
+  <p class="prose" style="font-size:12px;line-height:1.6;margin-bottom:10px"><strong>Why.</strong> Consumption-pricing platforms with tiered product mix (e.g., shared / dedicated / bring-your-own-cloud) have a margin-expansion strategy that runs through customers migrating up the tier ladder. Classic ARR-only quota incentivizes logo volume and ARR growth — the reps optimal play is to land more customers on the lowest-margin tier (fastest close), not to migrate existing customers up. v38 adds a parallel GP-overlay comp variant that pays reps on realized GP attribution alongside ARR, aligning rep behavior to the margin-expansion strategy.</p>
+  <table>
+    <tr><th>Element</th><th>v38 GP-overlay variant</th></tr>
+    <tr><td>Quota measure</td><td>Two parallel measures per rep: <code>arr_quota</code> (existing) and <code>gp_quota</code> (new). GP quota is computed as a fraction of ARR quota using a segment-level GP-target (e.g., MM 60%, Ent 70% of ARR quota). Both quotas computed bottom-up from eRep capacity.</td></tr>
+    <tr><td>Quota guardrail (#10, new)</td><td>For reps with both measures: GP quota must be internally consistent with the segment's gross-margin target. If proposed GP quota implies margin assumptions outside the FP&amp;APlan range, flag for RevOps review.</td></tr>
+    <tr><td>Comp split</td><td>Configurable per rep: e.g., 60/40 ARR/GP for new-business AEs, 40/60 ARR/GP for existing-business AMs (where tier-migration plays concentrate).</td></tr>
+    <tr><td>QuotaStore schema extension</td><td>Add fields <code>gp_quota_usd</code>, <code>gp_quota_pct_of_arr_quota</code>, <code>arr_gp_split_pct</code>, <code>overlay_active</code>. AGT-103 reads these fields when calculating attainment.</td></tr>
+    <tr><td>Optionality</td><td>GP-overlay is opt-in per rep. Reps without overlay use classic ARR-only attainment. Defaults disabled; turning it on for a rep requires CRO + Finance approval (same gate as comp plan changes).</td></tr>
+    <tr><td>Tier-migration plays (AGT-503 v38)</td><td>The motion AGT-101 GP-overlay was built for: when AGT-503 fires a <code>tier_migration</code> play and the rep closes the migration, GP attainment retires against the GP quota even when ARR delta is small or zero. This is the architectural commitment — rep behavior aligned to margin strategy.</td></tr>
+  </table>
+  <div class="alert-box alert-gold" style="font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7;background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E"><strong>Anti-pattern caution.</strong> A rep on GP-overlay is incentivized to suppress ARR growth in service of GP improvement (e.g., refusing to upsell a low-margin tier customer to additional volume). This is the failure mode the comp plan must guard against. Recommended pattern: GP-overlay rewards <em>delta</em> in GP attribution per customer, not absolute GP — so a customer who lands new revenue at low margin still produces some GP attainment, just less than the same customer migrating to a higher-margin tier.</div>
+</div>
+
+<div class="sec">
   <div class="slabel">System prompt skeleton</div>
 <pre>You are AGT-101, the Quota Setting agent for a B2B SaaS GTM OS.
 

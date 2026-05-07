@@ -84,6 +84,132 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
 <div id="log">
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v37→v38: Consumption-pricing tiered-platform profile — TOOL-015 + AGT-208 + tier-migration + GP-overlay comp -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L9">
+  <div class="version-hdr">
+    <span class="version-pill">v37 → v38</span>
+    <span class="version-date">Consumption-pricing tiered-platform profile · TOOL-015 Consumption-Margin Decomposer · AGT-208 Developer Signal Scorer · AGT-503 tier-migration extension · AGT-101 + AGT-103 GP-overlay comp variant</span>
+    <span class="version-summary">CRO walkthrough surfaced a target-profile gap: the OS is well-shaped for traditional B2B SaaS but doesn't address the unique dynamics of consumption-pricing developer-led platforms (per-token / per-message / per-API-call businesses with multi-tier product mix). v38 closes that gap with one new Tier 3 tool, one new L2 service, and three updates to existing services. The shape: token-economics IS the business model, the margin-expansion strategy runs through tier migration not seat upsell, the funnel intake is PLG-developer-led not MQL-driven, and rep comp must align to GP not just ARR. v38 is spec-only; build deferred pending synth corpus extension to consumption-event + developer-signal data.</span>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">TOOL-015<span class="layer-tag lt-l9">Tier 3</span></span>
+      <span class="agent-name">Consumption-Margin Decomposer — per-customer GP attribution + tier-migration projection</span>
+      <div class="change-type"><span class="ct ct-new">New tool</span></div>
+      <span class="entry-summary">15th Tier 3 tool. Decomposes realized GP per customer-quarter into pricing / utilization / backend-cost / tier-mix axes. Projects GP uplift for caller-supplied tier-migration scenarios with switching-cost class + a required credible-alternative articulation (brain-discipline mirror at tool level). Generic across consumption businesses — tokens, messages, minutes, transactions, GB. Refusal-first when backend cost data is incomplete. Same shape as TOOL-004 (deterministic core + Haiku LLM characterization). Called by AGT-503 (daily on tier-migration candidates), AGT-901 (cohort GP diagnostics), AGT-902 (per-account margin synthesis), AGT-903 (cohort fan-out on strategic margin retrospectives).</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Why this tool</div><div class="detail-val">Consumption-pricing businesses have GP that varies per customer / SKU / backend deployment in ways subscription SaaS does not. Tier-migration motions need a deterministic decomposition of where each customer's GP actually comes from — otherwise migration plays are bet-by-vibes. AGT-503 v38 explicitly depends on TOOL-015 for tier-migration play scoring.</div>
+        <div class="detail-lbl">Decomposition axes</div><div class="detail-val">(1) Pricing: list-vs-realized + commit-tier discount. (2) Utilization: effective unit cost vs benchmark, classified tight/moderate/loose. (3) Backend: spend by region + provider, region-arbitrage GP projection. (4) Tier: spend + GP by product tier, current-mix label.</div>
+        <div class="detail-lbl">Hard rule — no inventing scenarios</div><div class="detail-val">Tool projects tier-migration scenarios that the caller supplies. Tool never invents "what if we migrated 30% of Serverless to Dedicated" on its own. This bounds the reasoning surface and prevents drift.</div>
+        <div class="detail-lbl">credible_alternative</div><div class="detail-val">Every tier-migration scenario carries a required articulation of the case for NOT migrating. Mirrors AGT-903's option-set discipline at the tool level. Forces honest framing for downstream callers.</div>
+        <div class="detail-lbl">Cost</div><div class="detail-val">Haiku-default, ~$0.005/call. Sonnet only on AGT-903 deep-mode cohort fan-outs (~$0.05–0.10/call).</div>
+        <div class="detail-lbl">Status</div><div class="detail-val">Specced v38, build deferred. Build prerequisites: synth corpus extension to consumption-event data with backend cost feeds; AGT-503 v38 ExpansionLog schema landing; benchmark_unit_cost_usd reference data.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Closes the per-customer GP-attribution gap that consumption-pricing tier-migration motions need.</span> Foundational for AGT-503 v38 tier-migration plays + AGT-101/103 v38 GP-overlay comp.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L2" data-type="new">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-208<span class="layer-tag lt-l2">L2</span></span>
+      <span class="agent-name">Developer Signal Scorer — pre-MQL PLG-funnel scoring with self-serve to sales-handoff routing</span>
+      <div class="change-type"><span class="ct ct-new">New service</span></div>
+      <span class="entry-summary">8th L2 service. Scores individual developers on enterprise-progression signal using 5 dimensions (consumption velocity, production signal, enterprise context, commercial intent, stakeholder breadth — 100 pts base). Domain-aggregates multiple devs from same org. Outputs handoff-priority / handoff-warm / monitor / stay-self-serve routing tier — feeds AGT-202 Lead Router with new <code>motion=plg-warm</code> flag. Companion to AGT-201 (firmographic ICP); the two services intentionally use different data and disagreement is itself signal (<code>contradicts_agt201</code> field surfaces it for RevOps review).</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Funnel-shape gap closed</div><div class="detail-val">Developer-led / API-platform businesses have a funnel where customers enter as individual devs who sign up + start consuming, often hitting material adoption before any sales conversation. AGT-201 + AGT-202 are post-MQL designed; they don't see this pre-sales adoption signal. AGT-208 is the upstream complement.</div>
+        <div class="detail-lbl">Five signal dimensions</div><div class="detail-val">Consumption velocity (30 pts), production signal (25), enterprise context (20), commercial intent (15), stakeholder breadth (10). Threshold-based tier mapping: 80–100 priority / 60–79 warm / 40–59 monitor / &lt;40 stay-self-serve.</div>
+        <div class="detail-lbl">Domain aggregation</div><div class="detail-val">Per-corporate-domain rollup nightly. Sum-capped at 100. Multi-developer override: 3+ devs at same domain each ≥ 60 forces handoff-priority regardless of summed score (organizational-adoption-breadth signal).</div>
+        <div class="detail-lbl">AGT-202 v38 ripple</div><div class="detail-val">Lead Router gains <code>motion</code> dimension. PLG-warm motion routes to AEs with PLG-track territory designation; cadence is technical-depth-first, longer dwell, no inbound-form etiquette.</div>
+        <div class="detail-lbl">contradicts_agt201 flag</div><div class="detail-val">When AGT-201 has rated an account T3 (poor fit) but AGT-208 score ≥ 60, surfaces for RevOps review. Doesn't auto-promote — disagreement is signal.</div>
+        <div class="detail-lbl">Status</div><div class="detail-val">Specced v38, build deferred. Build prerequisites: synth corpus extension to product-event stream + developer roster; AGT-204 enrichment-domain feeds; AGT-202 motion-flag wiring.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">First L2 service designed for PLG-led developer funnels.</span> Reduces time-to-handoff vs cold-outbound by ~50% in spec target; surfaces enterprise-progression signal before customers manually request a call (typically too late).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L5" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-503<span class="layer-tag lt-l5">L5</span></span>
+      <span class="agent-name">Tier-migration as new expansion play type — GP-uplift play distinct from ARR-uplift play</span>
+      <div class="change-type"><span class="ct ct-update">Update</span></div>
+      <span class="entry-summary">For consumption-pricing tiered platforms with structural per-tier margin variance (e.g., shared / dedicated / bring-your-own-cloud, or self-service / managed / control-plane). New 6th signal: tier-migration eligibility (+25 to +50 pts based on TOOL-015 GP-uplift projection). New play type: <code>tier_migration</code>, distinct from <code>new_play</code> — the motion targets GP uplift, not ARR uplift, and ARR may stay flat or dip slightly during a successful migration. 4 new gates: switching-cost class threshold, technical-prerequisite check (AGT-602), onboarding-completion gate, revenue-floor gate.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Why in AGT-503</div><div class="detail-val">Tier migration is a post-sale motion against an existing customer with an existing relationship; AM is the executor; success is measured in GP delta on the same revenue. That's structurally an expansion play. The deviation from classic expansion is that ARR may not move — which is why the new signal scores GP uplift and AGT-101 v38 introduces a parallel GP-overlay comp variant.</div>
+        <div class="detail-lbl">ExpansionLog schema extension</div><div class="detail-val"><code>play_type</code> ENUM gains <code>tier_migration</code>. New fields: <code>tier_migration_from</code>, <code>tier_migration_to</code>, <code>projected_gp_uplift_pct</code>, <code>switching_cost_class</code>, <code>realized_gp_uplift_pct</code> (post-migration retrospective).</div>
+        <div class="detail-lbl">credible_alternative pre-fill</div><div class="detail-val">TOOL-015 returns the case for NOT migrating; AGT-503 pre-fills it on the play card. AM has the contrary view in hand before the customer conversation.</div>
+        <div class="detail-lbl">Calibration loop</div><div class="detail-val">2 quarters post-migration: AGT-103 writes <code>realized_gp_uplift_pct</code> back to ExpansionLog. If realized falls below 60% of projected, AGT-703 picks up as calibration signal → TOOL-015 system prompt reviewed.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">First-class motion for the consumption-pricing margin-expansion strategy.</span> Reps can now be incentivized (via AGT-101 v38 GP-overlay) to drive tier migrations even when the ARR delta is flat — aligning behavior to the company's actual margin-expansion thesis.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L1" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-101 + AGT-103<span class="layer-tag lt-l1">L1</span></span>
+      <span class="agent-name">GP-overlay comp variant — dual-measure (ARR + GP) quotas and payouts</span>
+      <div class="change-type"><span class="ct ct-update">Update</span></div>
+      <span class="entry-summary">Companion comp-plan update to AGT-503 v38 tier-migration. AGT-101: per-rep dual-measure quota (<code>arr_quota</code> + <code>gp_quota</code>); GP quota computed as fraction of ARR using segment-level GP target; new 10th guardrail (GP quota internally consistent with FP&amp;APlan margin range); QuotaStore schema extension. AGT-103: dual-measure attainment (<code>arr_attainment_pct</code> + <code>gp_attainment_pct</code>); combined payout via configurable split (e.g., 60/40 ARR/GP for new-business AEs, 40/60 for existing-business AMs); anti-gaming guard (high combined but low ARR triggers AGT-104 review). Opt-in per rep; CRO + Finance approval gate.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Highest-leverage v38 change</div><div class="detail-val">Comp incentivizes behavior. Classic ARR-only comp pushes reps toward fast-close logo volume, which is the wrong incentive when the company's margin-expansion strategy runs through tier migration on existing customers. GP-overlay realigns rep behavior to the actual strategy.</div>
+        <div class="detail-lbl">GP attribution mechanism</div><div class="detail-val">AGT-103 queries TOOL-015 Consumption-Margin Decomposer for the customer's realized GP over the period. Per-opp GP attribution = (opp_arr / customer_total_arr) × customer_realized_gp. For tier-migration plays specifically: GP attribution = realized_gp_uplift_pct × baseline revenue, attributed to the closing rep.</div>
+        <div class="detail-lbl">Anti-gaming guard</div><div class="detail-val">A rep on GP-overlay could suppress ARR growth in service of GP improvement (refusing to upsell low-margin volume). Guard fires when combined attainment &gt; 100% but ARR attainment &lt; 70% — flags to AGT-104 for manual review.</div>
+        <div class="detail-lbl">Calibration loop closure</div><div class="detail-val">AGT-103 writes realized GP uplift back to ExpansionLog post-migration. AGT-703 picks up systematic mis-projections as calibration signal. Closes the brain-discipline loop AGT-903 calls for at the operational comp-plan level.</div>
+        <div class="detail-lbl">Optionality</div><div class="detail-val">Opt-in per rep. Defaults disabled. Turning on requires CRO + Finance approval (same gate as comp plan changes). Reps without overlay use classic ARR-only attainment unchanged.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">The single highest-leverage spec change in v38.</span> Comp architecture is the lever that turns strategy into rep behavior. Without GP-overlay, tier-migration plays are aspirational; with it, they're aligned to how reps get paid.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L2" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-202<span class="layer-tag lt-l2">L2</span></span>
+      <span class="agent-name">Lead Router motion-dimension extension — PLG-warm routing track</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple</span></div>
+      <span class="entry-summary">v38 ripple from AGT-208. Lead Router gains <code>motion</code> dimension on routing decisions. Three motion classes: <code>traditional</code> (existing path, MQL-driven, segment-band routing), <code>plg-warm</code> (from AGT-208 handoff-priority and handoff-warm — routes to AEs with PLG-track territory designation), and <code>vertical-led</code> (placeholder for future industry-specific motion). PLG-track AEs operate on different cadence: technical-depth-first qualification, longer dwell, no inbound-form etiquette, AE leads with the developer's existing usage context (assembled by AGT-208 brief).</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Why a motion dimension</div><div class="detail-val">PLG vs traditional sales motion is structural — different sales process, different cadence, different qualification criteria. Adding motion to AGT-202 routing prevents PLG-warm leads from being routed to traditional inbound AEs who'd treat them as cold MQLs.</div>
+        <div class="detail-lbl">TerritoryDefinitions extension</div><div class="detail-val">v38: AGT-106 TerritoryDefinitions gains <code>motion_track</code> field. PLG-track territories carve from the same account universe but with explicit motion designation. AEs may serve one or both motions; assignment is per-territory not per-AE.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Routing-layer support for parallel sales motions.</span> Required by AGT-208; will be used by future vertical-motion services.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">CRO Demo Script + Tools_Index<span class="layer-tag lt-l9">Docs</span></span>
+      <span class="agent-name">v38 doc updates — target-profile section + tools count update</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple</span></div>
+      <span class="entry-summary">CRO_DEMO_SCRIPT.md gains a new "target-profile" section explicitly framed for consumption-pricing developer-led platforms (without naming any specific company). Tools_Index.html updated: 14 → 15 tools, TOOL-015 added to wave 4. Architecture-tab principles revised to reflect the consumption-platform pattern. Brain-Ready Views Contract referenced for forthcoming TOOL-015 → AGT-503 / AGT-901 / AGT-902 / AGT-903 wiring.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">No customer naming in repo</div><div class="detail-val">Per the standing rule, all v38 doc references describe the target as "consumption-pricing developer-led platform" or "tiered-product-mix multi-cloud SaaS" — never a specific company name. The OS spec is a generic capability surface, not a custom build.</div>
+        <div class="detail-lbl">Demo script flow</div><div class="detail-val">8-tab walk extends to mention v38 capabilities — tier-migration in Planning panel scenarios, GP-overlay comp talk-track, AGT-208 PLG funnel framing.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- v36→v37: AGT-903 Strategy Brain specced + StrategyRecommendationLog schema + strategy brain-ready view contract -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="version-block" data-layer="L9">
