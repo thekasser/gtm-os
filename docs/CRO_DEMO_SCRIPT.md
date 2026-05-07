@@ -212,6 +212,40 @@ Open `prototype/PORT_TO_CORPORATE.md` in another tab if they want to dig in.
 
 ---
 
+## Target-profile flex — when the CRO is a consumption-pricing developer-led platform
+
+If the CRO comes from a per-token / per-message / per-API-call platform with multi-tier product mix, **lead with v38 capabilities** rather than the generic walkthrough. The OS is built generic but v38 added the surface they care about.
+
+**The framing sentence:**
+> "Tokens-as-product, margin-as-business-model, developer-led funnel. The OS has all of this in v38 — it's not a custom build, it's the spec surface for any consumption-pricing tiered-platform business."
+
+**Tabs to lean into (in this order):**
+
+1. **Architecture → AGT-208 Developer Signal Scorer.** Open the spec card. *"The funnel intake your AEs see today is broken by design — your customers enter as developers months before any sales touch. AGT-208 scores those developers on enterprise-progression signal across 5 dimensions: consumption velocity, production signal (deployment to dedicated infra, p95 latency queries, idempotency keys), enterprise context (corp email domain, multi-developer presence at same domain), commercial intent (pricing-page traffic, billing inquiries, security/compliance docs), stakeholder breadth. Domain-aggregates so 5 mid-score developers at the same org elevate together. Routes to AEs with motion=plg-warm — different cadence than your traditional inbound."*
+
+2. **Architecture → AGT-503 v38 tier-migration play type.** *"Your margin-expansion strategy runs through customers migrating from low-margin tier (e.g., shared/serverless) to higher-margin tier (e.g., dedicated, then bring-your-own-cloud control plane). v38 makes that a first-class expansion motion. AGT-503 fires a tier_migration play with TOOL-015's GP-uplift projection pre-filled, plus a required credible-alternative articulation for the AM. Distinct from ARR-uplift expansion — ARR may stay flat or even dip slightly during a successful migration. The play retires against a different quota measure (GP) — see AGT-101 v38."*
+
+3. **Architecture → AGT-101 + AGT-103 v38 GP-overlay comp.** *"This is the highest-leverage spec change in v38. Your current comp ($X/logo + N% ACV equivalent) actively pushes reps away from the margin-expansion strategy — they optimize for fast logo close on the lowest-margin tier. v38 adds a parallel GP quota with a configurable ARR/GP split (e.g., 60/40 for new-business, 40/60 for AMs running tier-migration). Reps can now retire quota against tier-migration plays even when ARR delta is flat. Anti-gaming guard: high combined attainment with low ARR fires a manual review flag."*
+
+4. **Tools_Index → TOOL-015 Consumption-Margin Decomposer.** *"This is the cognition that makes the rest work. Per-customer GP decomposition into pricing / utilization / backend-cost / tier-mix axes. Refusal-first when backend cost data is incomplete — estimation here would propagate into bad expansion decisions. Generic across consumption businesses; tokens are configuration, not contract."*
+
+5. **Planning tab.** *"The defaults are sized for $400M-$1B ARR with 80-100 reps — but pull the ARR slider up to your target (e.g., $300M net-new for a $1B-by-Y2 trajectory). Watch the eRep math; watch the Magic Number / R40 / CAC Payback guardrails."*
+
+6. **Forecast & WBR tab → WBR.** *"AGT-704 narrative banner is what your weekly readout could feel like — five canonical metrics + adaptive narrative that surfaces what's failing or what's on track."*
+
+**The strategic-question landings (use one or two):**
+
+- *"Tokens are the product, and the GTM motion has to be built around token economics the same way Twilio's was built around message and minute economics. The OS has this — UBB metering, per-customer GP attribution via TOOL-015, GP-overlay comp aligned to it."*
+- *"The moat isn't inference speed alone — it's the control plane, the enterprise trust layer, and the switching costs that compound over time. The OS makes BYOC migration and control-plane integration a first-class motion (AGT-503 tier-migration + AGT-602 technical implementation gates) rather than an afterthought."*
+- *"You've got 11 whales today and you want 1,000 customers at $250K average. That's a segmentation and capacity planning problem the OS treats as Strategy Brain (AGT-903) territory — propose_segment_redefinition, propose_capacity_reallocation, with multi-quarter cohort views and a CRO + CFO endorsement gate."*
+
+**Hypergrowth ramp framing (if asked about 100-200 rep hiring trajectory):**
+The Planning panel handles this in shape but defaults assume reps are already in place. For a 5 → 200 ramp: *"You're not running a capacity-plan in the classic sense — you're running an investment-runway plan with hire-velocity bottlenecks and ramp-overlap risk. The OS has the math (AGT-105 attrition + ramp curves) but the operating mode is different — pre-revenue investment lag, sourcing capacity as the constraint, and territory dilution as you split coverage to absorb new bodies. v38.1 will add an explicit hypergrowth scenario on the Planning panel — for now, anchor the conversation on AGT-105's three guardrails (Magic Number, R40, CAC Payback) and what each one says about how aggressively you can hire."*
+
+**No customer naming.** The OS is generic. Whether the CRO leads an AI inference platform, a comms API, a payments processor, or a usage-priced data platform — the same v38 capabilities apply. Frame it as a class of company, not a specific company.
+
+---
+
 ## Talking points if they go quiet
 
 - "This started as a spec exercise. The point of the brain prototype is to validate that the contracts hold under real reasoning load — not to ship a product."

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AGT-208 — Developer Signal Scorer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.intro-banner{background:linear-gradient(135deg,#FAEEDA 0%,#FCF5E5 100%);border:1px solid #D4A84C;color:#7A4A0E;font-size:12px;padding:14px 16px;border-radius:10px;line-height:1.7;margin-bottom:24px}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>AGT-208 &mdash; Developer Signal Scorer</h1>
+<div class="subtitle">Layer 2 &middot; ICP &amp; lead management &middot; Pre-MQL developer-funnel scoring &middot; Daily batch + event-triggered &middot; Self-serve &rarr; sales-handoff progression</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">L2 &middot; Service 08</span>
+  <span class="badge badge-status">Specced &middot; v38</span>
+  <span class="badge badge-tier">Tier 1 &middot; Service</span>
+  <span class="badge badge-owner">RevOps + Developer Relations</span>
+</div>
+
+<div class="intro-banner">
+  <strong>Why this service exists.</strong> Developer-led / API-platform businesses have a funnel shape that AGT-201 (ICP Scorer) and AGT-202 (Lead Router) were not designed for: customers don't enter through marketing forms or outbound &mdash; they enter as individual developers who sign up, get an API key, and start consuming. By the time a "lead" exists in the traditional sense, the customer has already self-served through significant adoption. AGT-208 scores developers and developer-aggregated accounts on enterprise-progression signal, surfaces sales-handoff candidates *before* they manually request a call (often too late), and never collapses the PLG funnel into the post-MQL world AGT-201 owns.
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">AGT-208 ingests developer-level events from the product (signups, API calls, model selections, deployment changes, documentation engagement, billing inquiries) and produces two scores: a per-developer enterprise-progression score and an account-aggregated score that rolls multiple developers in the same organization into a unified signal. Output drives sales-handoff routing &mdash; identifying which self-serve accounts should warm-route to an AE for proactive outreach, and which should stay self-serve. AGT-208 is the upstream complement to AGT-201; once an account crosses the sales-handoff threshold, AGT-201's firmographic ICP score takes over for traditional segment-band routing.</p>
+</div>
+
+<!-- ── SCOPE ──────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Scope &mdash; what AGT-208 answers, what it doesn't</div>
+  <table>
+    <tr><th>In scope</th><th>Out of scope</th></tr>
+    <tr><td>Per-developer signal scoring (enterprise-progression eligibility)</td><td>Marketing-led lead scoring (AGT-201 + AGT-202 own)</td></tr>
+    <tr><td>Account-aggregated developer score (multiple devs from same org)</td><td>Account-level firmographic ICP scoring (AGT-201 owns)</td></tr>
+    <tr><td>Sales-handoff routing recommendation (stay-self-serve / monitor / handoff-warm / handoff-priority)</td><td>Lead routing once handoff is approved (AGT-202 owns)</td></tr>
+    <tr><td>Cohort-level developer-funnel analytics (handoff conversion rate, time-to-handoff by motion)</td><td>Cohort GP analytics (AGT-501 + TOOL-015 own)</td></tr>
+    <tr><td>Domain-aggregation: developers with corporate email at same domain</td><td>Account creation in CRM (AGT-201 + ABMPlaybook own; AGT-208 surfaces, doesn't create)</td></tr>
+  </table>
+  <div class="alert-box alert-amber"><strong>The hard line.</strong> AGT-208 never overrides an AGT-201 firmographic ICP determination. If AGT-201 has scored an account as T3 (poor fit) but developer signal is hot, AGT-208 surfaces the contradiction to RevOps for review &mdash; it does not auto-promote. The two services run on different data and the disagreement itself is signal.</div>
+</div>
+
+<!-- ── SIGNAL DIMENSIONS ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Per-developer signal dimensions (100 pts base)</div>
+  <p class="prose" style="margin-bottom:10px">Five dimensions, additive. Each capped per spec to prevent any single signal from dominating.</p>
+  <table>
+    <tr><th>Dimension</th><th>Pts max</th><th>What it captures</th></tr>
+    <tr><td><strong>1. Consumption velocity</strong></td><td>30</td><td>Volume of API calls / units consumed in trailing 30 days, with growth rate over trailing 90 days. Pattern-recognized: rapid-growth velocity scores higher than flat-volume velocity, even at same absolute level. Reads UsageMeteringLog filtered by developer-API-key.</td></tr>
+    <tr><td><strong>2. Production signal</strong></td><td>25</td><td>Indicators of moving from prototype to production: deployments to dedicated infrastructure (vs serverless), error-rate sensitivity (production-grade SLA queries), SLA / latency percentile API queries, region-pinning, idempotency-key usage.</td></tr>
+    <tr><td><strong>3. Enterprise context</strong></td><td>20</td><td>Corporate email domain (vs gmail / personal), domain seniority (multi-developer presence at same domain), funded-company signals from enrichment, industry-vertical match. Lifted to org level when ≥ 3 developers from same domain are scored simultaneously.</td></tr>
+    <tr><td><strong>4. Commercial intent</strong></td><td>15</td><td>Pricing-page visits, billing dashboard traffic, contract / commit-tier inquiry, security-and-compliance documentation requests (SOC 2, HIPAA, data-residency), procurement-related help-desk tickets.</td></tr>
+    <tr><td><strong>5. Stakeholder breadth</strong></td><td>10</td><td>Number of distinct contacts at the same domain interacting with the product or docs in trailing 30 days. Single developer = low signal; 5+ developers + 1 manager-level inquiry = high signal indicating organizational adoption depth.</td></tr>
+  </table>
+  <p class="prose"><strong>Score &rarr; tier:</strong> 80&ndash;100 = handoff-priority &middot; 60&ndash;79 = handoff-warm &middot; 40&ndash;59 = monitor &middot; &lt; 40 = stay-self-serve.</p>
+</div>
+
+<!-- ── DOMAIN AGGREGATION ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Domain aggregation &mdash; how developer signals roll into account scores</div>
+  <p class="prose" style="margin-bottom:10px">An organization may have 10 developers using the platform, each at modest individual signal but cumulatively significant. Domain aggregation prevents this from being missed.</p>
+  <table>
+    <tr><th>Aggregation rule</th><th>Why</th></tr>
+    <tr><td>Per-corporate-domain rollup nightly. Sum of per-developer scores capped at 100 (single account can't double-count). Highest individual score retained as a separate field.</td><td>Captures collective adoption depth without inflating beyond the individual ceiling.</td></tr>
+    <tr><td>Domain enrichment via existing AGT-204 Lead Enrichment pipeline. Fallback to email-domain matching with public-domain (gmail/yahoo/outlook) exclusion list.</td><td>Reuse existing enrichment; don't duplicate.</td></tr>
+    <tr><td>Account-aggregated tier override: if 3+ developers at same domain each score &ge; 60 (handoff-warm individually), domain-level tier is auto-elevated to handoff-priority regardless of summed score.</td><td>Multi-developer adoption breadth is itself the signal &mdash; bypasses the additive-cap edge case where 5 medium-score devs would otherwise sum to a flat ceiling.</td></tr>
+    <tr><td>Cross-reference with existing Accounts table by domain. If account exists, attach signal to the account; if not, queue for AGT-201 + AGT-204 enrichment review.</td><td>Doesn't auto-create accounts &mdash; surfaces, for AGT-201 + AGT-204 to ingest.</td></tr>
+  </table>
+</div>
+
+<!-- ── ROUTING ────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Routing recommendation output</div>
+  <table>
+    <tr><th>Tier</th><th>Action</th><th>Receiver</th></tr>
+    <tr><td><strong>handoff-priority</strong> (80&ndash;100)</td><td>Warm-route to AE within 4 business hours. AE receives a pre-built brief: developer roster, top-2 production-signal indicators, top-1 commercial-intent indicator. AE's first touch is informed, not cold.</td><td>AGT-202 Lead Router (with motion=plg-warm flag)</td></tr>
+    <tr><td><strong>handoff-warm</strong> (60&ndash;79)</td><td>Queue for daily AE prioritization batch. AE selects from queue based on local context. Brief assembled on selection, not at queue time (lazy).</td><td>AGT-202 Lead Router</td></tr>
+    <tr><td><strong>monitor</strong> (40&ndash;59)</td><td>No sales touch. Logged for trajectory tracking; if score increases over 2 consecutive days, auto-escalates to handoff-warm.</td><td>AGT-208 self &mdash; trajectory monitor</td></tr>
+    <tr><td><strong>stay-self-serve</strong> (&lt; 40)</td><td>No sales touch. Customer remains in self-serve pipeline. Re-evaluated on next signal event.</td><td>n/a (no AE involvement)</td></tr>
+  </table>
+  <div class="alert-box alert-blue">Distinct from AGT-202 standard routing. AGT-202 reads <code>motion=plg-warm</code> flag and routes to AEs with PLG-track territory. PLG-track AEs operate on a different cadence (longer dwell, technical-depth-first, no inbound-form etiquette). Routing rules updated in AGT-202 v38 to support <code>motion</code> dimension.</div>
+</div>
+
+<!-- ── SCHEMA ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Schema additions (v38)</div>
+  <div class="subsection-title">DeveloperSignalLog &mdash; new table</div>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+    <tr><td><code>signal_id</code></td><td>UUID PK</td><td>One row per developer per scoring run</td></tr>
+    <tr><td><code>developer_id</code></td><td>UUID</td><td>FK to Contacts (or new Developers table if needed)</td></tr>
+    <tr><td><code>email_domain</code></td><td>String</td><td>Used for domain aggregation</td></tr>
+    <tr><td><code>account_id</code></td><td>UUID, nullable</td><td>FK to Accounts when domain matches existing account</td></tr>
+    <tr><td><code>scored_at</code></td><td>TIMESTAMPTZ</td><td>Run timestamp</td></tr>
+    <tr><td><code>consumption_velocity_pts</code></td><td>Integer 0&ndash;30</td><td>Dimension 1</td></tr>
+    <tr><td><code>production_signal_pts</code></td><td>Integer 0&ndash;25</td><td>Dimension 2</td></tr>
+    <tr><td><code>enterprise_context_pts</code></td><td>Integer 0&ndash;20</td><td>Dimension 3</td></tr>
+    <tr><td><code>commercial_intent_pts</code></td><td>Integer 0&ndash;15</td><td>Dimension 4</td></tr>
+    <tr><td><code>stakeholder_breadth_pts</code></td><td>Integer 0&ndash;10</td><td>Dimension 5</td></tr>
+    <tr><td><code>composite_score</code></td><td>Integer 0&ndash;100</td><td>Sum, capped</td></tr>
+    <tr><td><code>tier</code></td><td>Enum</td><td><code>handoff-priority</code> / <code>handoff-warm</code> / <code>monitor</code> / <code>stay-self-serve</code></td></tr>
+    <tr><td><code>domain_aggregated_score</code></td><td>Integer 0&ndash;100, nullable</td><td>Account-level rollup if domain matches</td></tr>
+    <tr><td><code>contradicts_agt201</code></td><td>Boolean</td><td>TRUE when AGT-201 has rated the account T3 but AGT-208 score &ge; 60. Surfaces for RevOps review.</td></tr>
+    <tr><td><code>top_signals</code></td><td>JSONB</td><td>Top 3 signal events that drove the score, for AE brief assembly</td></tr>
+  </table>
+</div>
+
+<!-- ── INVOCATION ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Invocation cadence</div>
+  <table>
+    <tr><th>Path</th><th>Frequency</th><th>Rationale</th></tr>
+    <tr><td>Daily batch &mdash; full developer roster re-scoring</td><td>Daily, 02:00 UTC</td><td>Captures slow-moving signals (consumption velocity over 30 days)</td></tr>
+    <tr><td>Event-triggered &mdash; high-intent events</td><td>Within 15 minutes of event</td><td>Pricing page visit, billing inquiry, security/compliance request &mdash; these are time-sensitive intent signals; immediate re-score is worth the cost</td></tr>
+    <tr><td>On AGT-201 rescore</td><td>When AGT-201 changes account-level ICP score</td><td>Keeps the AGT-201 vs AGT-208 contradiction flag fresh</td></tr>
+  </table>
+  <div class="note">Event-triggered re-scoring is bounded: a single developer can't trigger more than once per hour. Caps total scoring volume.</div>
+</div>
+
+<!-- ── DEPENDENCIES ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Dependencies</div>
+  <table>
+    <tr><th>Source</th><th>Direction</th><th>Used for</th></tr>
+    <tr><td>UsageMeteringLog (AGT-804)</td><td>reads</td><td>Consumption velocity dimension; production signal (deployment-level inference); error-rate sensitivity</td></tr>
+    <tr><td>Contacts</td><td>reads</td><td>Developer identity, email, domain</td></tr>
+    <tr><td>Accounts</td><td>reads</td><td>Domain &rarr; account_id matching</td></tr>
+    <tr><td>AGT-201 ICP Scorer</td><td>reads</td><td>Firmographic ICP score for contradiction-flag computation</td></tr>
+    <tr><td>AGT-204 Lead Enrichment</td><td>reads</td><td>Domain enrichment for enterprise context dimension</td></tr>
+    <tr><td>Product event stream (signups, doc views, pricing-page traffic, billing dashboard traffic)</td><td>reads</td><td>Commercial intent + stakeholder breadth dimensions</td></tr>
+    <tr><td>AGT-202 Lead Router</td><td>writes (recommendation)</td><td>Routes handoff-priority and handoff-warm to AE queues</td></tr>
+    <tr><td>DeveloperSignalLog</td><td>writes</td><td>Own canonical table</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL ──────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Measurement</th><th>Pass threshold</th></tr>
+    <tr><td>Handoff conversion rate</td><td>% of handoff-priority and handoff-warm devs that convert to opportunity within 60 days</td><td>≥ 25% (handoff-priority), ≥ 12% (handoff-warm)</td></tr>
+    <tr><td>Time-to-handoff vs prior baseline</td><td>Median days from first signal to first AE touch, vs pre-AGT-208 baseline</td><td>50% reduction expected by Q+2 after launch</td></tr>
+    <tr><td>False-positive rate (handoff-priority)</td><td>% of handoff-priority devs that AE marks as "not enterprise-fit" after first call</td><td>≤ 15%</td></tr>
+    <tr><td>Contradiction-flag review pass rate</td><td>% of <code>contradicts_agt201</code> rows that RevOps marks as legitimate signal worth elevating</td><td>≥ 30% (high enough to justify the surfacing, low enough to indicate real contradictions)</td></tr>
+    <tr><td>Self-serve customer GP impact</td><td>Confirm AGT-208 routing isn't pulling self-serve customers into sales prematurely (GP per self-serve customer should not drop)</td><td>No statistically significant decrease vs control</td></tr>
+  </table>
+</div>
+
+<!-- ── FAILURE MODES ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Likely cause</th><th>Action</th></tr>
+    <tr><td>Handoff-priority queue overflows AE capacity</td><td>Threshold too low for current capacity, or unusually hot trailing-30-day cohort</td><td>Tighten tier thresholds (raise handoff-priority floor); RevOps triages backlog with manual prioritization</td></tr>
+    <tr><td>AE feedback: "these dev signals don't match what closes" pattern over multiple weeks</td><td>Dimension weights stale; production-signal or commercial-intent dimensions overfit to historical patterns</td><td>Quarterly re-weighting against recent close cohort; eval criteria refresh</td></tr>
+    <tr><td>contradicts_agt201 flag fires on every developer in a particular domain</td><td>AGT-201 firmographic data stale or domain mis-enriched</td><td>Trigger AGT-204 re-enrichment; review AGT-201's firmographic source</td></tr>
+    <tr><td>Sales pulls self-serve customer into sales-led process and customer churns</td><td>Premature handoff &mdash; self-serve customer wasn't ready for AE engagement</td><td>Add a "self-serve completion" gate: developer must have crossed N consumption events before any handoff. Adjust threshold.</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  AGT-208 Developer Signal Scorer &middot; Layer 2 &middot; Tier 1 Service &middot; RevOps + Developer Relations &middot; Schema v38<br>
+  New table: <a href="../schema/DeveloperSignalLog_Schema.html">DeveloperSignalLog</a> (separate schema doc &mdash; to be drafted alongside build).<br>
+  Triggered by: daily batch &middot; high-intent product events (pricing-page, billing, security/compliance) &middot; AGT-201 rescore events.<br>
+  Reads from: UsageMeteringLog, Contacts, Accounts, AGT-201 ICP Scorer, AGT-204 Lead Enrichment, product event stream.<br>
+  Writes to: DeveloperSignalLog (own log) &middot; routes recommendations to AGT-202 Lead Router with <code>motion=plg-warm</code> flag (AGT-202 v38 update).<br>
+  Companion to <a href="AGT-201_ICP_Scorer.html">AGT-201 ICP Scorer</a>: AGT-201 scores accounts firmographically; AGT-208 scores developers behaviorally. The two services intentionally use different data and may produce different signals — disagreement is itself meaningful signal, surfaced via <code>contradicts_agt201</code> flag.<br>
+  Closes the PLG-funnel intake gap that consumption-pricing developer-led businesses (per-token / per-message / per-API-call platforms) need but that traditional MQL-driven L2 routing cannot serve.
+</div>
+</body>
+</html>

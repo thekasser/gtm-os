@@ -53,7 +53,7 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 <div class="meta-row">
   <span class="badge badge-layer">Tier 3 &middot; Tools</span>
   <span class="badge badge-status">v37 &middot; 4 prototyped, 10 specced</span>
-  <span class="badge badge-tier">14 tools across 4 waves</span>
+  <span class="badge badge-tier">15 tools across 4 waves</span>
   <span class="badge badge-owner">RevOps · technical owners per tool</span>
 </div>
 
@@ -93,7 +93,7 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 
 <!-- ── INDEX ─────────────────────────────────────────────── -->
 <div class="section">
-  <div class="section-title">Index of specced tools (v37 — 14 tools)</div>
+  <div class="section-title">Index of specced tools (v38 — 15 tools)</div>
   <p class="prose" style="margin-bottom:14px">First wave (v29, 4 tools): closed the biggest cognition gaps &mdash; Domain 3 (API/dev-led GTM) twice, Domain 1 ("create plays, not just execute") once, UBB consumption forecasting once. Second wave (v31, 4 tools): closed Domain 4 (outbound deliverability), Domain 2 (in-call guidance + competitive narrative), and the post-sales feature-level adoption gap. Third wave (v32, 4 tools): TTV/timing analysis, champion movement detection, pricing sensitivity, onboarding health prediction. Fourth wave (v37, 2 tools): cohort retention forecaster + segment-LTV decomposer, specced alongside AGT-903 Strategy Brain to support multi-quarter portfolio reasoning. Fourteen tools total &mdash; further additions remain case-by-case based on observed gaps.</p>
 
   <div class="tool-card">
@@ -267,6 +267,18 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
     <div class="tool-meta"><strong>Called by:</strong> AGT-903 Strategy Brain (primary), AGT-704 (only via AGT-903 narrative jobs), RevOps direct &middot; <strong>Use case:</strong> "which ICP dimensions correlate with realized LTV?", "where's the highest LTV-per-rep payoff?", "is opportunistic-vertical LTV materially different from core LTV?" &middot; <strong>Closes:</strong> LTV-attribution gap AGT-903 needs for capacity-reallocation, ICP-revision, vertical-entry use cases (per v37 changelog ripple).</div>
     <a href="TOOL-014_Segment_LTV_Decomposer.html" class="spec-link">View spec →</a>
   </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-id">TOOL-015</span>
+      <span class="tool-domain">Consumption · GP attribution</span>
+      <span class="tool-model">Haiku (Sonnet on deep mode)</span>
+    </div>
+    <div class="tool-name">Consumption-Margin Decomposer</div>
+    <div class="tool-purpose">Decomposes per-customer realized GP into pricing / utilization / backend-cost / tier-mix axes. Projects GP uplift for caller-supplied tier-migration scenarios with switching-cost class + a required credible-alternative articulation. Generic across consumption-pricing businesses (per-token / per-message / per-minute / per-transaction / per-GB) — tokens are config, not contract. Same shape as TOOL-004: deterministic core (decomposition arithmetic, region arbitrage, scenario projection) + Haiku LLM characterization (workload-shaping play classes, credible-alternative). <strong>Refusal-first when backend cost coverage drops below a threshold</strong> — backend cost attribution is load-bearing; estimation propagates straight into bad expansion decisions.</div>
+    <div class="tool-meta"><strong>Called by:</strong> AGT-503 Expansion Trigger (primary, daily on tier-migration candidates), AGT-901 Pipeline Brain (cohort GP diagnostics), AGT-902 Account Brain (per-account margin synthesis), AGT-903 Strategy Brain (cohort fan-out on strategic margin retrospectives), RevOps direct &middot; <strong>Use case:</strong> "which customers qualify for tier migration with material GP uplift?", "where is segment-X margin compressing?", "what's the GP picture on Acme HR + the highest-leverage margin lever?" &middot; <strong>Closes:</strong> per-customer GP-attribution gap that consumption-pricing tier-migration motions need (per v38 changelog).</div>
+    <a href="TOOL-015_Consumption_Margin_Decomposer.html" class="spec-link">View spec →</a>
+  </div>
 </div>
 
 <!-- ── FUTURE CANDIDATES ───────────────────────────────── -->
@@ -334,7 +346,7 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
 </div>
 
 <div class="footer">
-  Tier 3 Specialist Tools Index &middot; Schema v37 &middot; 14 tools across 4 waves<br>
+  Tier 3 Specialist Tools Index &middot; Schema v38 &middot; 15 tools across 4 waves<br>
   Owners: RevOps (governance) + tool-specific technical owners. Tools are stateless, no table ownership, no cadence.<br>
   First wave (v29): TOOL-001/002/003/004. Second wave (v31): TOOL-005/006/007/008. Third wave (v32): TOOL-009/010/011/012. Fourth wave (v37): TOOL-013/014 &mdash; cohort retention forecaster + segment-LTV decomposer, paired with AGT-903 Strategy Brain.<br>
   Companion: <a href="../specs/AGT-901_Pipeline_Brain.html">AGT-901 Pipeline Brain</a> &middot; <a href="../specs/AGT-902_Account_Brain.html">AGT-902 Account Brain</a> &middot; <a href="../specs/AGT-903_Strategy_Brain.html">AGT-903 Strategy Brain</a> &middot; <a href="../eval/Brain_Eval_Harness.html">Brain Eval Harness</a><br>

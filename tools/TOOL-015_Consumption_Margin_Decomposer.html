@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOOL-015 — Consumption-Margin Decomposer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:28px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-layer{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-status{background:#EEEDFE;color:#3C3489;border:1px solid #AFA9EC}
+.badge-tier{background:#FAEEDA;color:#7A4A0E;border:1px solid #D4A84C}
+.badge-owner{background:#E1F5EE;color:#085041;border:1px solid #5DCAA5}
+.section{margin-bottom:28px}
+.section-title{font-size:14px;font-weight:700;color:#0D1B2A;border-bottom:2px solid #e8e8e8;padding-bottom:6px;margin-bottom:14px}
+.subsection-title{font-size:12px;font-weight:700;color:#444;margin:14px 0 8px}
+.prose{font-size:12px;color:#333;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+th{background:#0D1B2A;color:#fff;font-weight:600;padding:7px 10px;text-align:left;font-size:11px}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;line-height:1.5}
+tr:nth-child(even) td{background:#fafafa}
+.note{font-size:11px;color:#555;background:#f5f5f5;border-left:3px solid #ddd;padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px;line-height:1.6}
+.alert-box{font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7}
+.alert-blue{background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C}
+.alert-amber{background:#FAEEDA;border-left:3px solid #EF9F27;color:#633806}
+.alert-gold{background:#FAEEDA;border-left:3px solid #D4A84C;color:#7A4A0E}
+.intro-banner{background:linear-gradient(135deg,#FAEEDA 0%,#FCF5E5 100%);border:1px solid #D4A84C;color:#7A4A0E;font-size:12px;padding:14px 16px;border-radius:10px;line-height:1.7;margin-bottom:24px}
+.code-block{font-family:monospace;font-size:11px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:6px;padding:12px 14px;line-height:1.6;color:#333;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e8e8e8;font-size:11px;color:#999;line-height:1.7}
+code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:4px;color:#444}
+</style>
+</head>
+<body>
+
+<h1>TOOL-015 &mdash; Consumption-Margin Decomposer</h1>
+<div class="subtitle">Tier 3 specialist tool &middot; Stateless &middot; Per-customer GP attribution for consumption-pricing businesses &middot; Decomposes realized margin into pricing / utilization / backend-cost / tier-mix components &middot; Consumption-business analogue of TOOL-004</div>
+
+<div class="meta-row">
+  <span class="badge badge-layer">Tier 3 &middot; Tools (Wave 4)</span>
+  <span class="badge badge-status">Specced &middot; v38</span>
+  <span class="badge badge-tier">Stateless · Numerical core + LLM characterization</span>
+  <span class="badge badge-owner">RevOps + FP&amp;A</span>
+</div>
+
+<div class="intro-banner">
+  <strong>Why this tool exists.</strong> Consumption-pricing businesses (per-token / per-message / per-minute / per-transaction / per-GB) have a structural property that subscription SaaS does not: <em>realized gross margin varies materially per customer, per SKU, per backend deployment</em>, and the path to better margin runs through workload mix, utilization density, and tier migration &mdash; not just price. AGT-503 (Expansion Trigger) and AGT-901 (Pipeline Brain) need a deterministic decomposition of where each customer's GP actually comes from to make tier-migration and pricing-strategy decisions defensibly.
+</div>
+
+<!-- ── PURPOSE ─────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Purpose</div>
+  <p class="prose">TOOL-015 takes a customer's consumption-revenue + backend-cost data over a window and decomposes the realized gross margin into structured components: list-price-vs-realized-price (discount/commit-tier impact), utilization density (multi-tenant batching, idle capacity), backend-cost mix (which compute / region / cloud is doing the work), and product-tier mix (what proportion of revenue comes from low-margin vs high-margin tiers of the catalog). Output is per-customer-quarter GP with attribution back to each component, plus a forward-looking estimate of GP uplift if specific tier-migration or workload-shaping plays land. AGT-503 calls TOOL-015 when scoring expansion-by-tier-migration plays; AGT-901 calls it for cohort-level "where is margin compressing" diagnostics.</p>
+  <div class="alert-box alert-blue">Naming is deliberately generic: "consumption-margin" not "token-economics." The same tool serves any consumption-pricing business &mdash; per-token AI inference, per-message comms, per-minute calling, per-transaction payments, per-GB storage. Configuration captures the SKU axis; the contract doesn't.</div>
+</div>
+
+<!-- ── SCOPE ──────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Scope &mdash; what TOOL-015 does, what it doesn't</div>
+  <table>
+    <tr><th>In scope</th><th>Out of scope</th></tr>
+    <tr><td>Decompose realized GP per customer-quarter into structured components</td><td>Pricing decisions (AGT-406 CPQ + pricing committee own; TOOL-015 informs)</td></tr>
+    <tr><td>Project GP uplift from a specific tier-migration scenario (Serverless → Dedicated → BYOC-shaped, generalized to "low-margin → high-margin tier")</td><td>Executing tier migrations (AGT-503 + AGT-602 own)</td></tr>
+    <tr><td>Identify utilization-density opportunities (multi-tenant batching, LoRA-style adapter sharing, off-peak shifting)</td><td>Implementing the underlying multi-tenant infrastructure (engineering-owned)</td></tr>
+    <tr><td>Surface customers with negative or near-zero realized GP (loss-leader accounts)</td><td>Deciding whether to sunset a loss-leader (CRO + Finance call)</td></tr>
+    <tr><td>Cohort-level GP-attribution rollups (called by AGT-901 for "where is margin compressing" queries)</td><td>Computing organization-level margin (AGT-702 owns)</td></tr>
+  </table>
+  <div class="alert-box alert-amber"><strong>Refusal first.</strong> If backend cost data is missing for any material portion of a customer's consumption (e.g., compute-cost feeds not piped through, region-attribution gaps), TOOL-015 returns a refusal with the gap surfaced rather than estimating. Backend-cost attribution is the load-bearing input; estimation here propagates straight into bad expansion decisions.</div>
+</div>
+
+<!-- ── INPUT CONTRACT ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Input contract</div>
+  <div class="code-block">{
+  "account_id": "uuid",
+  "window": {                              // analysis window
+    "start": "2026-01-01",
+    "end":   "2026-03-31"
+  },
+  "consumption_events": [                  // from UsageMeteringLog (AGT-804)
+    {
+      "sku": "string",                     // e.g. "inference_serverless_llama_70b" — opaque to tool
+      "tier": "string",                    // e.g. "shared" | "dedicated" | "byoc" — semantic axis
+      "units": float,                      // tokens / messages / minutes / transactions
+      "list_price_per_unit_usd": float,
+      "realized_price_per_unit_usd": float, // post-discount, post-commit-tier
+      "backend_region": "string",          // e.g. "us-east-1" — config axis
+      "backend_provider": "string",        // e.g. "aws" | "gcp" | "azure" | "on-prem"
+      "backend_cost_per_unit_usd": float,  // critical input — refusal trigger if missing
+      "metered_at": "ISO 8601"
+    }
+  ],
+  "tier_migration_scenarios": [            // optional — caller can request projection
+    {
+      "scenario_name": "string",
+      "shifts": [
+        {
+          "from_tier": "string",
+          "to_tier":   "string",
+          "fraction":  float                // 0..1 of current from-tier volume
+        }
+      ]
+    }
+  ],
+  "include_workload_shaping_recommendations": bool,  // optional — surface utilization plays
+  "comparison_cohort_window": {            // optional — for QoQ / YoY framing
+    "start": "ISO 8601",
+    "end":   "ISO 8601"
+  }
+}</div>
+</div>
+
+<!-- ── OUTPUT CONTRACT ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Output contract</div>
+  <div class="code-block">{
+  "account_id": "uuid",
+  "window": { "start": "...", "end": "..." },
+  "realized_gp": {
+    "revenue_usd": float,                  // sum(realized_price × units)
+    "backend_cost_usd": float,             // sum(backend_cost × units)
+    "gp_usd": float,                       // revenue − backend_cost
+    "gp_pct": float                        // gp_usd / revenue_usd
+  },
+  "decomposition": {
+    "by_pricing_axis": {                   // discount/commit-tier impact
+      "list_price_revenue_usd": float,
+      "realized_price_revenue_usd": float,
+      "price_realization_pct": float,      // realized / list
+      "commit_tier_discount_usd": float    // dollars left on the table for volume tier
+    },
+    "by_utilization_axis": {               // multi-tenant density
+      "effective_unit_cost_usd": float,    // backend_cost / units
+      "benchmark_unit_cost_usd": float,    // best-in-class for this SKU+region
+      "utilization_gap_usd": float,        // (effective − benchmark) × units
+      "utilization_gap_classification": "string"   // "tight" | "moderate" | "loose"
+    },
+    "by_backend_axis": {                   // which compute is doing the work
+      "spend_by_region":   {"region": float, ...},
+      "spend_by_provider": {"provider": float, ...},
+      "highest_cost_region": "string",
+      "lowest_cost_region": "string",
+      "region_arbitrage_gp_usd": float     // GP gain if all volume shifted to lowest-cost region
+    },
+    "by_tier_axis": {                      // product-tier mix (the margin-expansion lever)
+      "spend_by_tier": {"tier": float, ...},
+      "gp_by_tier":    {"tier": float, ...},
+      "weighted_tier_gp_pct": float,
+      "current_tier_mix_label": "string"   // "low-margin-heavy" | "balanced" | "high-margin-heavy"
+    }
+  },
+  "tier_migration_projections": [          // populated when scenarios provided
+    {
+      "scenario_name": "string",
+      "projected_revenue_usd": float,
+      "projected_backend_cost_usd": float,
+      "projected_gp_usd": float,
+      "projected_gp_pct": float,
+      "gp_uplift_usd_vs_current": float,
+      "gp_uplift_pct_vs_current": float,
+      "switching_cost_class": "string",    // "low" | "medium" | "high" | "very_high"
+      "credible_alternative":  "string"    // brain-discipline: explicitly state the case for NOT migrating
+    }
+  ],
+  "workload_shaping_recommendations": [    // populated when requested
+    {
+      "play_class": "string",              // "off-peak shift" | "multi-tenant pack" | "adapter sharing" | "right-size tier"
+      "projected_gp_uplift_usd": float,
+      "implementation_effort_class": "string",
+      "preconditions": [...]
+    }
+  ],
+  "comparison_cohort": {                   // populated when comparison_cohort_window provided
+    "prior_gp_usd": float,
+    "prior_gp_pct": float,
+    "delta_gp_usd": float,
+    "delta_gp_pct_points": float,
+    "primary_driver_of_delta": "string"
+  },
+  "confidence_flags": {
+    "backend_cost_coverage_pct": float,    // % of consumption_events with backend_cost data
+    "benchmark_data_freshness_days": int,
+    "overall_confidence": "high" | "medium" | "low" | "refusal"
+  },
+  "refusal": {                              // populated when overall_confidence = refusal
+    "reason": "string",
+    "missing_inputs": [...],
+    "recommended_remediation": "string"
+  }
+}</div>
+</div>
+
+<!-- ── COMPUTATION MODEL ──────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Computation model &mdash; deterministic core + LLM characterization</div>
+  <p class="prose" style="margin-bottom:10px">Same shape as TOOL-004 (consumption forecaster): the numerical decomposition is in code; the LLM portion produces the structured characterization labels and the workload-shaping play recommendations.</p>
+  <table>
+    <tr><th>Component</th><th>Implementation</th><th>Why deterministic vs LLM</th></tr>
+    <tr><td>Realized GP arithmetic</td><td>Code</td><td>Sum / divide; no judgment.</td></tr>
+    <tr><td>Pricing-axis decomposition (discount, commit tier)</td><td>Code</td><td>Reads list_price vs realized_price; trivial arithmetic.</td></tr>
+    <tr><td>Utilization gap classification (tight / moderate / loose)</td><td>Code with rule thresholds; LLM optional reframe</td><td>Threshold-based classification is the discipline; LLM can rephrase for narrative but must not change the threshold.</td></tr>
+    <tr><td>Region arbitrage projection</td><td>Code</td><td>Min-cost-region projection is straight optimization.</td></tr>
+    <tr><td>Tier-migration scenario projection</td><td>Code</td><td>Scenario is fully specified by caller; tool applies given shifts and re-computes GP. No estimation.</td></tr>
+    <tr><td>"current_tier_mix_label" classification</td><td>Code with rule thresholds</td><td>Threshold-based.</td></tr>
+    <tr><td>workload_shaping_recommendations &mdash; play class + preconditions</td><td>LLM (Haiku)</td><td>Pattern-matching on cohort + workload shape to a play class is judgment work; the GP uplift number it carries is computed deterministically.</td></tr>
+    <tr><td>credible_alternative on each tier-migration scenario</td><td>LLM (Haiku)</td><td>Brain-discipline mirror: the tool is required to articulate why NOT migrating could be correct, even when the math says yes. Forces honest framing for downstream AGT-503 / AGT-901.</td></tr>
+  </table>
+  <div class="alert-box alert-gold"><strong>Hard rule: tool never invents tier-migration scenarios.</strong> If the caller provides scenarios, tool projects them. If the caller does not, tool returns decomposition only. The "what if we migrated 30% of Serverless to Dedicated" question is the caller's framing, not the tool's. This bounds the tool's reasoning surface and prevents drift.</div>
+</div>
+
+<!-- ── CALLERS ────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Callers</div>
+  <table>
+    <tr><th>Caller</th><th>Use case</th><th>Frequency</th></tr>
+    <tr><td>AGT-503 Expansion Trigger</td><td>Score tier-migration plays. AGT-503 reads UsageMeteringLog, identifies tier-migration candidates, calls TOOL-015 with the candidate's recent window + a default migration scenario. GP uplift estimate informs play prioritization.</td><td>Per candidate evaluation &mdash; daily batch on overage signals.</td></tr>
+    <tr><td>AGT-901 Pipeline Brain</td><td>Cohort GP-attribution diagnosis. "Where is segment-X margin compressing?" — AGT-901 fans out to TOOL-015 across the cohort, aggregates the decomposition.</td><td>Operator-invoked, ad-hoc.</td></tr>
+    <tr><td>AGT-902 Account Brain</td><td>Per-account margin synthesis. "What's the GP picture on Acme HR, and what's the highest-leverage margin lever?" — AGT-902 calls TOOL-015, integrates output into the per-account composite narrative.</td><td>Operator-invoked, per account.</td></tr>
+    <tr><td>AGT-903 Strategy Brain</td><td>Cohort-aggregated GP attribution for strategic retrospectives ("did the consumption-pricing pivot work?", "is whale-customer GP eroding?"). Multi-quarter window, called via fan-out across endorsed cohorts.</td><td>Quarterly + ad-hoc strategic batches.</td></tr>
+    <tr><td>RevOps direct</td><td>Workspace exploration: filter to a customer, get the decomposition card.</td><td>Ad-hoc.</td></tr>
+  </table>
+</div>
+
+<!-- ── COST + LATENCY ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Cost + latency profile</div>
+  <table>
+    <tr><th>Tactic</th><th>Implementation</th></tr>
+    <tr><td>Default model</td><td>Claude Haiku for the LLM portion (workload-shaping recommendations + credible_alternative). Sonnet only when caller passes <code>deep_analysis: true</code> for cohort-aggregated calls from AGT-903.</td></tr>
+    <tr><td>Per-call cost (Haiku)</td><td>~1.5K input + 500 output ≈ $0.005 per call. Same scale as TOOL-004 / TOOL-008.</td></tr>
+    <tr><td>Per-call cost (Sonnet, deep mode)</td><td>~$0.05–0.10 per call. Reserved for AGT-903 cohort fan-outs.</td></tr>
+    <tr><td>Latency target</td><td>&lt; 800ms p95 for Haiku-mode. Cohort fan-outs from AGT-903 batched in parallel up to 20-wide.</td></tr>
+    <tr><td>Caching</td><td>Stateless; no caching at tool level. Caller (AGT-503 daily batch) caches per-account-quarter results.</td></tr>
+  </table>
+</div>
+
+<!-- ── EVAL ───────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Eval criteria</div>
+  <table>
+    <tr><th>Criterion</th><th>Measurement</th><th>Pass threshold</th></tr>
+    <tr><td>Decomposition arithmetic correctness</td><td>Synthetic fixtures with known answers; check sum-of-parts = whole within rounding tolerance</td><td>100% &mdash; hard requirement</td></tr>
+    <tr><td>Refusal-on-missing-cost-data</td><td>Fixtures with backend_cost_per_unit missing for &gt; 5% of events: tool must refuse, not estimate</td><td>100% &mdash; hard requirement</td></tr>
+    <tr><td>Tier-migration scenario projection consistency</td><td>Same scenario re-run on same input produces same projection (modulo LLM-portion variance on credible_alternative)</td><td>Numerical components 100% identical; LLM components within Levenshtein distance threshold</td></tr>
+    <tr><td>credible_alternative quality</td><td>For each propose-tier-migration scenario: brain-prompt eval verifies a credible "case for NOT migrating" is articulated, not a wave-of-the-hand</td><td>≥ 90% pass on subjective rubric (manual review batch)</td></tr>
+    <tr><td>Workload-shaping play classification correctness</td><td>10 fixtures with known optimal play class: tool's primary recommendation matches</td><td>≥ 80%</td></tr>
+    <tr><td>Cohort-aggregation correctness</td><td>Sum across N customer calls equals single aggregate-mode call within rounding</td><td>100%</td></tr>
+  </table>
+</div>
+
+<!-- ── FAILURE MODES ──────────────────────────────────────── -->
+<div class="section">
+  <div class="section-title">Failure modes</div>
+  <table>
+    <tr><th>Symptom</th><th>Likely cause</th><th>Action</th></tr>
+    <tr><td>Tool projects GP uplift on tier-migration that doesn't materialize</td><td>Switching cost class underestimated; customer migrated but lost faster than projected; backend-cost benchmark stale</td><td>AGT-503 retrospective on accepted plays. Adjust switching_cost_class rubric. Refresh benchmark_unit_cost_usd inputs.</td></tr>
+    <tr><td>Tool refuses on every call for a customer cohort</td><td>backend_cost feeds not piped through for that cohort (e.g., new region, new cloud provider)</td><td>RevOps escalates to FinOps / data-engineering; tool's refusal is the correct surfacing.</td></tr>
+    <tr><td>credible_alternative is generic / wave-of-the-hand</td><td>LLM portion not seeing enough context; system prompt insufficient</td><td>Tighten system prompt with few-shot examples from approved AGT-503 plays. Eval rubric catches this.</td></tr>
+    <tr><td>workload_shaping_recommendations don't survive engineering review</td><td>Tool overweighting play classes that aren't actually deployable on current infrastructure</td><td>Pre-conditions field is the gate; engineering reviews preconditions, marks unsupported play classes as gated. Tool reads gate config on next call.</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  TOOL-015 Consumption-Margin Decomposer &middot; Tier 3 specialist &middot; Wave 4 &middot; Schema v38 &middot; RevOps + FP&amp;A owned<br>
+  Status: Specced v38, build deferred (synth corpus extension + AGT-503 tier-migration spec land must complete first).<br>
+  Called by: AGT-503 Expansion Trigger (primary, daily batch) &middot; AGT-901 Pipeline Brain &middot; AGT-902 Account Brain &middot; AGT-903 Strategy Brain (cohort fan-out) &middot; RevOps direct.<br>
+  Reads input from caller (no direct table reads). Caller assembles consumption_events from <a href="../schema/UsageMeteringLog_Production_Schema.html">UsageMeteringLog</a> + backend cost feeds.<br>
+  Closes the consumption-business GP-attribution gap that AGT-503 tier-migration plays and AGT-903 strategic-margin retrospectives need. Deterministic core + Haiku LLM characterization.<br>
+  Companion: <a href="TOOL-004_Consumption_Forecasting.html">TOOL-004 Consumption Forecasting</a> (forecasts volume; TOOL-015 attributes margin) &middot; <a href="TOOL-014_Segment_LTV_Decomposer.html">TOOL-014 Segment-LTV Decomposer</a> (LTV decomposition; TOOL-015 GP decomposition).
+</div>
+</body>
+</html>
