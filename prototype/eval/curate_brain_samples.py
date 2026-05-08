@@ -28,9 +28,11 @@ sys.path.insert(0, str(PROTOTYPE_DIR / "eval"))
 
 from fixtures import FIXTURES
 from pipeline_fixtures import PIPELINE_FIXTURES
+from strategy_fixtures import STRATEGY_FIXTURES
 
 BRAIN_LOG = PROTOTYPE_DIR / "brain_analysis_log.jsonl"
 EVAL_LOG = PROTOTYPE_DIR / "brain_eval_log.jsonl"
+STRATEGY_LOG = PROTOTYPE_DIR / "strategy_recommendation_log.jsonl"
 OUTPUT = REPO_ROOT / "eval" / "samples" / "brain_outputs.json"
 
 
@@ -79,9 +81,32 @@ def _strip_brain_row(row: dict) -> dict:
     }
 
 
+def _strip_strategy_row(row: dict) -> dict:
+    """Strip non-presentation fields from a StrategyRecommendationLog row.
+
+    Keeps the option-set + risk surface + assumptions structure that
+    AGT-903 cards in the gallery render.
+    """
+    return {
+        "recommendation_id":      row.get("recommendation_id"),
+        "originating_proposal_id": row.get("originating_proposal_id"),
+        "state":                  row.get("state"),
+        "scope_severity":         row.get("scope_severity"),
+        "scope_tags":             row.get("scope_tags", {}),
+        "action_type":            row.get("action_type"),
+        "options_enumerated":     row.get("options_enumerated", []),
+        "tradeoffs_matrix":       row.get("tradeoffs_matrix", []),
+        "risk_surface":           row.get("risk_surface", {}),
+        "assumptions_must_hold":  row.get("assumptions_must_hold", []),
+        "suggested_workstream_owners": row.get("suggested_workstream_owners", []),
+        "data_staleness_acknowledged": row.get("data_staleness_acknowledged", False),
+    }
+
+
 def main():
     brain_rows = _read_jsonl(BRAIN_LOG)
     eval_runs = _read_jsonl(EVAL_LOG)
+    strategy_rows = _read_jsonl(STRATEGY_LOG)
 
     # ── AGT-902: pull latest passing run per Q-fixture from BrainEvalLog ──
     q_latest: dict[str, dict] = {}
@@ -158,6 +183,53 @@ def main():
             "criterion_results": [],    # not captured for pipeline eval today
             "elapsed_seconds": (brain_row.get("response_time_ms") or 0) / 1000,
             "brain_row":       _strip_brain_row(brain_row),
+        })
+
+    # ── AGT-903: pull latest run per S-fixture from BrainAnalysisLog +
+    #    StrategyRecommendationLog. Brain row carries narrative + sources +
+    #    tool calls; strategy row carries the option-set + risk surface +
+    #    assumptions structure.
+    s_brain_latest: dict[str, dict] = {}
+    for r in brain_rows:
+        if r.get("writer_agent_id") != "AGT-903":
+            continue
+        fid = r.get("fixture_id")
+        if not fid or not fid.startswith("EVAL-S"):
+            continue
+        ts = r.get("created_at") or ""
+        existing = s_brain_latest.get(fid)
+        if not existing or ts > existing.get("created_at", ""):
+            s_brain_latest[fid] = r
+
+    # Match by originating_proposal_id (brain row's proposal_id) — picks the
+    # corresponding StrategyRecommendationLog row written at the same query
+    s_strategy_by_proposal = {}
+    for r in strategy_rows:
+        pid = r.get("originating_proposal_id")
+        if pid:
+            ts = r.get("created_at") or ""
+            existing = s_strategy_by_proposal.get(pid)
+            if not existing or ts > existing.get("created_at", ""):
+                s_strategy_by_proposal[pid] = r
+
+    fixture_by_sid = {f["fixture_id"]: f for f in STRATEGY_FIXTURES}
+    for fid, brain_row in s_brain_latest.items():
+        fixture = fixture_by_sid.get(fid, {})
+        proposal_id = brain_row.get("proposal_id")
+        strategy_row = s_strategy_by_proposal.get(proposal_id)
+        samples.append({
+            "fixture_id":      fid,
+            "fixture_summary": {
+                "question_type": fixture.get("question_type"),
+                "difficulty":    fixture.get("difficulty"),
+                "comment":       fixture.get("comment"),
+            },
+            "company_name":    None,    # cross-account / portfolio-level
+            "archetype_key":   None,    # not applicable
+            "criterion_results": [],    # not captured for strategy eval today
+            "elapsed_seconds": (brain_row.get("response_time_ms") or 0) / 1000,
+            "brain_row":       _strip_brain_row(brain_row),
+            "strategy_row":    _strip_strategy_row(strategy_row) if strategy_row else None,
         })
 
     # Sort by fixture_id for stable output

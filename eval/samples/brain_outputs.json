@@ -1,10 +1,11 @@
 {
-  "generated_at": "2026-05-05T04:15:37.904957Z",
-  "sample_count": 14,
-  "total_cost_usd": 1.5741,
+  "generated_at": "2026-05-08T05:37:14.135598Z",
+  "sample_count": 19,
+  "total_cost_usd": 4.4678,
   "by_writer": {
     "AGT-901": 3,
-    "AGT-902": 11
+    "AGT-902": 11,
+    "AGT-903": 5
   },
   "note": "Curated from latest passing run per fixture. Refresh by running `prototype/run_eval.sh && prototype/run_pipeline_eval.sh && prototype/eval/curate_brain_samples.py`.",
   "samples": [
@@ -3387,6 +3388,1911 @@
         "created_at": "2026-05-05T04:15:17.999645+00:00",
         "_meta_archetype_key": "expansion_ready",
         "_meta_expected_outcome": "real_expansion"
+      }
+    },
+    {
+      "fixture_id": "EVAL-S01",
+      "fixture_summary": {
+        "question_type": "icp_retrospective",
+        "difficulty": "medium",
+        "comment": "Tests options-discipline: if the ICP rubric is producing reasonable outcomes, brain should propose 'keep' as one option alongside 'reweight'. If outcomes are bad on a specific dimension, brain should propose 'reweight' or 'narrow' but still articulate 'keep' as the alternative + the conditions under which keep is correct. No single-answer outputs."
+      },
+      "company_name": null,
+      "archetype_key": null,
+      "criterion_results": [],
+      "elapsed_seconds": 117.589,
+      "brain_row": {
+        "analysis_id": "282d480d-62ee-43ca-93bd-8042988ae8c5",
+        "proposal_id": "fd7634bb-3fdf-444e-801b-827dd560b8fa",
+        "writer_agent_id": "AGT-903",
+        "account_id": null,
+        "question": "Looking at our top-decile NRR customers from the last 8 quarters, are they actually matching our 6-dimension ICP rubric? Should we rewrite it, reweight dimensions, or leave it alone?",
+        "narrative_output": "Analysis of the trailing 8 quarters reveals a significant misalignment between our current 6-dimension ICP rubric and realized customer value outcomes. The ICP tier correlations show strong differentiation: T1 accounts average $300,234 LTV compared to T2's $192,488 and T3's $88,083 [src:1]. However, the composition tells a different story about ICP accuracy.\n\nOur top-decile NRR performance (averaging 106% and trending upward from 105% to 107% across the period) [src:3] appears concentrated in specific pockets rather than broadly distributed across T1 accounts. The LTV decomposition analysis reveals that T1's $6.5M aggregate LTV advantage over T3 is driven primarily by expansion realization (21.6% vs 2.3%) contributing $1.69M to the gap [src:4], suggesting our ICP may overweight initial firmographic signals while underweighting expansion potential indicators.\n\nThe T1 vs T2 comparison is particularly revealing: while T1 shows $2.8M higher aggregate LTV, this is predominantly attributable to initial ACV differences ($2.1M contribution) rather than superior post-sale outcomes [src:4]. This pattern suggests our ICP rubric successfully identifies accounts willing to pay premium initial prices but may miss critical predictors of long-term value creation.\n\nCohort-level retention data shows concerning variability: Enterprise segments show mixed outcomes (2024Q4 Ent/SaaS retained 67% through period 3, while 2025Q4 Ent/RetailTech churned entirely after period 1) [src:2]. The small cohort sizes prevent robust retention forecasting, but the pattern suggests vertical-specific factors may be more predictive than our current tier assignments.\n\nCritically, the note that 'AGT-201 6-dimension breakdown not exposed' [src:1] means we cannot directly validate which specific ICP dimensions correlate with realized outcomes. This represents a significant analytical gap that must be addressed before finalizing any rubric revision.",
+        "sources_read": [
+          {
+            "source_index": 1,
+            "table_name": "Accounts.icp_outcome_brain_view",
+            "view_name": "icp_outcome_brain_view",
+            "row_count_consumed": 3,
+            "last_refresh_timestamp": "2026-05-08T05:17:44.552530+00:00"
+          },
+          {
+            "source_index": 2,
+            "table_name": "CustomerHealthLog.cohort_brain_view",
+            "view_name": "cohort_brain_view",
+            "row_count_consumed": 11,
+            "last_refresh_timestamp": "2026-05-08T05:17:44.552810+00:00"
+          },
+          {
+            "source_index": 3,
+            "table_name": "MetricsCalc.strategy_brain_view",
+            "view_name": "strategy_brain_view",
+            "row_count_consumed": 8,
+            "last_refresh_timestamp": "2026-05-08T05:17:44.552883+00:00"
+          },
+          {
+            "source_index": 4,
+            "table_name": "tool_014_segment_ltv_decomposer",
+            "view_name": "ltv_decomposition",
+            "row_count_consumed": 3,
+            "last_refresh_timestamp": "2026-05-08T05:17:44.552883+00:00"
+          }
+        ],
+        "proposed_actions": [
+          {
+            "action_type": "propose_icp_revision",
+            "scope_severity": "material",
+            "options_count": 4
+          }
+        ],
+        "confidence_flags": [
+          {
+            "claim": "T1 accounts average $300,234 LTV",
+            "level": "high_confidence",
+            "supporting_source_indices": [
+              1
+            ]
+          },
+          {
+            "claim": "Expansion realization drives $1.69M of T1 vs T3 LTV gap",
+            "level": "high_confidence",
+            "supporting_source_indices": [
+              4
+            ]
+          },
+          {
+            "claim": "NRR trending from 105% to 107% over 8 quarters",
+            "level": "high_confidence",
+            "supporting_source_indices": [
+              3
+            ]
+          },
+          {
+            "claim": "Vertical-specific factors may be more predictive than tier assignments",
+            "level": "inference",
+            "supporting_source_indices": [
+              2
+            ]
+          },
+          {
+            "claim": "ICP successfully identifies premium-price payers but misses expansion predictors",
+            "level": "inference",
+            "supporting_source_indices": [
+              4
+            ]
+          }
+        ],
+        "data_staleness_acknowledged": false,
+        "stale_sources": null,
+        "tool_calls_made": [
+          {
+            "tool_name": "tool_014_segment_ltv_decomposer",
+            "tool_input": {
+              "buckets": [
+                {
+                  "bucket_id": "ICP_T1",
+                  "initial_acv": 246820,
+                  "tenure_months_avg": 14.6,
+                  "expansion_realization_pct": 21.6,
+                  "cac_per_account": 37023
+                },
+                {
+                  "bucket_id": "ICP_T2",
+                  "initial_acv": 161028,
+                  "tenure_months_avg": 14.3,
+                  "expansion_realization_pct": 19.5,
+                  "cac_per_account": 24154
+                },
+                {
+                  "bucket_id": "ICP_T3",
+                  "initial_acv": 86086,
+                  "tenure_months_avg": 12.2,
+                  "expansion_realization_pct": 2.3,
+                  "cac_per_account": 12913
+                }
+              ]
+            },
+            "tool_result_status": "ok"
+          },
+          {
+            "tool_name": "tool_013_cohort_retention_forecaster",
+            "tool_input": {
+              "cohorts": [
+                {
+                  "cohort_id": "2025Q1_MM_SaaS",
+                  "signup_quarter": "2025Q1",
+                  "account_count": 15,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 15
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 14
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 14
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 14
+                    }
+                  ]
+                },
+                {
+                  "cohort_id": "2024Q4_Ent_SaaS",
+                  "signup_quarter": "2024Q4",
+                  "account_count": 3,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 3
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 2
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 2
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 2
+                    }
+                  ]
+                },
+                {
+                  "cohort_id": "2026Q1_SMB_SaaS",
+                  "signup_quarter": "2026Q1",
+                  "account_count": 12,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 12
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 10
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 9
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 8
+                    }
+                  ]
+                }
+              ],
+              "horizon_periods": 6
+            },
+            "tool_result_status": "refusal"
+          }
+        ],
+        "model_used": "claude-opus-4-1-20250805",
+        "input_tokens": 27104,
+        "output_tokens": 3640,
+        "cost_usd_estimate": 0.6796,
+        "response_time_ms": 117589,
+        "created_at": "2026-05-08T05:19:42.185524+00:00",
+        "_meta_archetype_key": null,
+        "_meta_expected_outcome": null
+      },
+      "strategy_row": {
+        "recommendation_id": "8a49e592-f880-4456-9d64-32282b2ececc",
+        "originating_proposal_id": "fd7634bb-3fdf-444e-801b-827dd560b8fa",
+        "state": "draft",
+        "scope_severity": "material",
+        "scope_tags": {
+          "axis": "icp_tier",
+          "time_window": "trailing_8_quarters"
+        },
+        "action_type": "propose_icp_revision",
+        "options_enumerated": [
+          {
+            "option_label": "Reweight Expansion",
+            "hypothesis": "Current ICP underweights expansion potential signals; reweighting toward product-usage and integration-depth dimensions will better predict LTV",
+            "projected_impact_range": "T1 qualification rate -15-25%, LTV/account +$40-80k over 6 quarters",
+            "required_investment": "4-6 week analysis sprint + AGT-201 dimension exposure",
+            "capacity_implications": "RevOps: 2 FTE weeks for historical retagging; Sales: retrain on new qualification criteria",
+            "tier1_dependencies": [
+              "AGT-201",
+              "AGT-408"
+            ]
+          },
+          {
+            "option_label": "Add Dimension Seven",
+            "hypothesis": "Missing dimension around 'expansion readiness' (tech maturity \u00d7 growth rate \u00d7 budget flexibility) explains T2/T3 LTV variance",
+            "projected_impact_range": "T2\u2192T1 promotion for 20-35% of accounts, CAC efficiency +10-18%",
+            "required_investment": "8-10 weeks discovery + scoring model development",
+            "capacity_implications": "Data Science: 1 FTE month; Sales Ops: ongoing scoring maintenance",
+            "tier1_dependencies": [
+              "AGT-201",
+              "AGT-502"
+            ]
+          },
+          {
+            "option_label": "Vertical-Specific ICPs",
+            "hypothesis": "Single universal ICP masks vertical-specific value drivers; separate rubrics per vertical will improve precision",
+            "projected_impact_range": "Win rate +8-15pp in secondary verticals, overall LTV variance reduction 20-30%",
+            "required_investment": "12-16 weeks for 3-vertical buildout",
+            "capacity_implications": "Product Marketing: 3 FTE months; Sales: complexity in rep specialization",
+            "tier1_dependencies": [
+              "AGT-201",
+              "AGT-701"
+            ]
+          },
+          {
+            "option_label": "Maintain Current",
+            "hypothesis": "ICP performs adequately; observed variance is execution/market noise rather than rubric deficiency",
+            "projected_impact_range": "No change to acquisition; continue 106-107% NRR trajectory",
+            "required_investment": "None beyond regular maintenance",
+            "capacity_implications": "None",
+            "tier1_dependencies": []
+          }
+        ],
+        "tradeoffs_matrix": [
+          {
+            "option_label": "Reweight Expansion",
+            "upside_scenario": "Identifies hidden expansion champions currently tagged T2/T3, unlocking 130%+ NRR pocket",
+            "downside_scenario": "Over-indexes on expansion signals, missing stable-but-flat high-ACV logos",
+            "preconditions_for_success": [
+              "AGT-201 exposes dimension-level data",
+              "Expansion signals are observable pre-sale",
+              "Sales team adopts new qualification framework"
+            ]
+          },
+          {
+            "option_label": "Add Dimension Seven",
+            "hypothesis": "Complex scoring increases sales friction without proportional improvement",
+            "upside_scenario": "New dimension explains 40%+ of unexplained LTV variance",
+            "downside_scenario": "Added complexity reduces sales velocity with marginal predictive gain",
+            "preconditions_for_success": [
+              "Dimension seven is orthogonal to existing six",
+              "Scoring infrastructure scales",
+              "Regular model retraining funded"
+            ]
+          },
+          {
+            "option_label": "Vertical-Specific ICPs",
+            "upside_scenario": "Each vertical ICP achieves 85%+ precision vs current 60-70%",
+            "downside_scenario": "Rep specialization requirements fragment sales team, reducing overall capacity",
+            "preconditions_for_success": [
+              "Sufficient deal flow per vertical",
+              "Vertical-specific product differentiation exists",
+              "GTM org structure supports specialization"
+            ]
+          },
+          {
+            "option_label": "Maintain Current",
+            "upside_scenario": "Avoids disruption; team focuses on execution within known framework",
+            "downside_scenario": "Continues acquiring T1 accounts with T3-like expansion profiles",
+            "preconditions_for_success": [
+              "Current NRR trajectory is sustainable",
+              "T1 misclassification rate is acceptable",
+              "Market dynamics remain stable"
+            ]
+          }
+        ],
+        "risk_surface": {
+          "market_risks": [
+            {
+              "description": "Competitor ICP precision improvements could disadvantage our win rates in true-T1 deals",
+              "confidence_flag": "medium"
+            },
+            {
+              "description": "Macro environment shifts may invalidate historical LTV patterns used for recalibration",
+              "confidence_flag": "medium"
+            }
+          ],
+          "execution_risks": [
+            {
+              "description": "Sales team resistance to new/complex qualification criteria could reduce adoption",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "Historical account retagging may reveal retroactive ICP misalignment, impacting forecasts",
+              "confidence_flag": "medium"
+            }
+          ],
+          "capacity_risks": [
+            {
+              "description": "AGT-201 dimension exposure dependency could delay implementation 2-3 quarters",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "Vertical-specific approach requires 3x PMM investment vs current centralized model",
+              "confidence_flag": "medium"
+            }
+          ],
+          "model_assumption_risks": [
+            {
+              "description": "Expansion realization differences may be correlation not causation with ICP tier",
+              "confidence_flag": "medium"
+            },
+            {
+              "description": "Small cohort sizes make retention patterns statistically unreliable for ICP validation",
+              "confidence_flag": "high"
+            }
+          ]
+        },
+        "assumptions_must_hold": [
+          {
+            "assumption": "The 21.6% vs 2.3% expansion realization gap between T1 and T3 is structurally predictable",
+            "evidence_basis": "TOOL-014 decomposition shows expansion as primary LTV driver with $1.69M contribution",
+            "brittleness": "brittle",
+            "source_ref": "[src:4]"
+          },
+          {
+            "assumption": "Current 106-107% NRR trajectory represents sustainable performance not temporary tailwind",
+            "evidence_basis": "8-quarter trend shows consistent improvement from 105% to 107%",
+            "brittleness": "stable",
+            "source_ref": "[src:3]"
+          },
+          {
+            "assumption": "ICP dimension correlations would reveal actionable patterns if exposed by AGT-201",
+            "evidence_basis": "Current view explicitly notes dimension breakdown not available",
+            "brittleness": "untested",
+            "source_ref": "[src:1]"
+          }
+        ],
+        "suggested_workstream_owners": [
+          {
+            "owner": "AGT-201",
+            "scope_of_responsibility": "Expose 6-dimension ICP breakdown and per-dimension outcome correlations"
+          },
+          {
+            "owner": "cross-functional pricing committee",
+            "scope_of_responsibility": "Evaluate whether ICP revision should trigger pricing/packaging changes"
+          },
+          {
+            "owner": "RevOps strategic research",
+            "scope_of_responsibility": "Conduct vertical-specific win/loss analysis to validate vertical ICP hypothesis"
+          }
+        ],
+        "data_staleness_acknowledged": false
+      }
+    },
+    {
+      "fixture_id": "EVAL-S02",
+      "fixture_summary": {
+        "question_type": "vertical_entry",
+        "difficulty": "hard",
+        "comment": "The hardest fixture \u2014 vertical entry is multi-dimensional and easy to oversimplify. Brain must produce a credible option ladder (deprioritize is a real option, full-motion is a real option, anchoring on opportunistic-continued is a credible middle path). Material scope_severity \u2192 CEO required at endorsement."
+      },
+      "company_name": null,
+      "archetype_key": null,
+      "criterion_results": [],
+      "elapsed_seconds": 107.41,
+      "brain_row": {
+        "analysis_id": "339a1032-b483-4f89-9789-2791b0f7312f",
+        "proposal_id": "6cd65353-fcef-42c8-8d8b-e417110aba29",
+        "writer_agent_id": "AGT-903",
+        "account_id": null,
+        "question": "We've been winning some fintech deals opportunistically over the past 6 quarters. Should we make a real GTM investment in fintech as a vertical, or keep it opportunistic?",
+        "narrative_output": "The fintech vertical opportunity presents a complex strategic decision with limited but concerning signals from our opportunistic wins over the past 6 quarters. Our fintech cohort data is sparse\u2014only 2 accounts signed in 2024Q1 [src:3], well below the 25-account threshold for reliable retention projection. This cohort showed 50% retention after the first period, stabilizing at that level through period 3 [src:3].\n\nLTV decomposition reveals a material gap between fintech opportunistic accounts and core verticals [src:4]. Fintech accounts generate ~$1.6M LTV compared to $4.4M for core verticals\u2014a $2.8M gap driven by three load-bearing factors: shorter tenure (15 vs 24 months), lower expansion realization (45% vs 62%), and smaller initial contracts ($28K vs $35K) [src:4]. All four decomposed drivers show statistical significance with consistent-sign bootstrap bands [src:4].\n\nMarket structure provides context for entry timing. The consumption_core fully_managed tier shows TAM of 12,000 accounts with 40% SAM penetration (4,800 observed) and targeting 5% SOM capture (240 accounts) [src:1]. Average revenue per unit sits at $18K with 50% gross margins [src:1]. Competitive intensity has increased across recent quarters, with hyperscaler bundle losses rising from 15% to 21% of lost deals between 2025Q1 and 2025Q4 [src:2].\n\nThe strategic question hinges on whether fintech's current underperformance reflects addressable market-fit issues or simply insufficient GTM investment to achieve escape velocity. The $2.8M LTV gap suggests structural challenges, but the small sample size (2 accounts) limits confidence in this assessment.",
+        "sources_read": [
+          {
+            "source_index": 1,
+            "table_name": "MarketAssumptions",
+            "view_name": "strategy_brain_view",
+            "row_count_consumed": 3,
+            "last_refresh_timestamp": "2026-05-08T05:19:42.386141+00:00"
+          },
+          {
+            "source_index": 2,
+            "table_name": "WinLossLog",
+            "view_name": "strategy_brain_view",
+            "row_count_consumed": 4,
+            "last_refresh_timestamp": "2026-05-08T05:19:42.386155+00:00"
+          },
+          {
+            "source_index": 3,
+            "table_name": "CustomerHealthLog",
+            "view_name": "cohort_brain_view",
+            "row_count_consumed": 11,
+            "last_refresh_timestamp": "2026-05-08T05:19:42.386253+00:00"
+          },
+          {
+            "source_index": 4,
+            "table_name": "tool_014_segment_ltv_decomposer",
+            "view_name": "derived",
+            "row_count_consumed": 2,
+            "last_refresh_timestamp": "2026-05-08T05:19:42.386253+00:00"
+          }
+        ],
+        "proposed_actions": [
+          {
+            "action_type": "propose_vertical_entry",
+            "scope_severity": "significant",
+            "options_count": 4
+          }
+        ],
+        "confidence_flags": [
+          {
+            "claim": "Fintech cohort showed 50% retention after first period",
+            "level": "high_confidence",
+            "supporting_source_indices": [
+              3
+            ]
+          },
+          {
+            "claim": "LTV gap of $2.8M between fintech and core verticals",
+            "level": "multi_source",
+            "supporting_source_indices": [
+              4
+            ]
+          },
+          {
+            "claim": "Hyperscaler bundle losses rising from 15% to 21%",
+            "level": "high_confidence",
+            "supporting_source_indices": [
+              2
+            ]
+          },
+          {
+            "claim": "40-80 new logos achievable with full investment",
+            "level": "inference",
+            "supporting_source_indices": [
+              1
+            ]
+          },
+          {
+            "claim": "Fintech sales cycles may be 2x longer due to security reviews",
+            "level": "speculation",
+            "supporting_source_indices": []
+          }
+        ],
+        "data_staleness_acknowledged": false,
+        "stale_sources": null,
+        "tool_calls_made": [
+          {
+            "tool_name": "tool_013_cohort_retention_forecaster",
+            "tool_input": {
+              "cohorts": [
+                {
+                  "cohort_id": "2024Q1_MM_FinTech",
+                  "signup_quarter": "2024Q1",
+                  "segment": "MM",
+                  "vertical": "FinTech",
+                  "account_count": 2,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 2
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 1
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 1
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 1
+                    }
+                  ]
+                }
+              ],
+              "horizon_periods": 8
+            },
+            "tool_result_status": "refusal"
+          },
+          {
+            "tool_name": "tool_014_segment_ltv_decomposer",
+            "tool_input": {
+              "buckets": [
+                {
+                  "bucket_label": "FinTech_opportunistic",
+                  "initial_acv": 28000,
+                  "tenure_months_avg": 15,
+                  "expansion_realization_pct": 45,
+                  "cac_per_account": 18000
+                },
+                {
+                  "bucket_label": "Core_verticals",
+                  "initial_acv": 35000,
+                  "tenure_months_avg": 24,
+                  "expansion_realization_pct": 62,
+                  "cac_per_account": 22000
+                }
+              ]
+            },
+            "tool_result_status": "ok"
+          }
+        ],
+        "model_used": "claude-opus-4-1-20250805",
+        "input_tokens": 24964,
+        "output_tokens": 3444,
+        "cost_usd_estimate": 0.6328,
+        "response_time_ms": 107410,
+        "created_at": "2026-05-08T05:21:29.812336+00:00",
+        "_meta_archetype_key": null,
+        "_meta_expected_outcome": null
+      },
+      "strategy_row": {
+        "recommendation_id": "78ac213a-cc8b-43b7-bec8-034873d22cc6",
+        "originating_proposal_id": "6cd65353-fcef-42c8-8d8b-e417110aba29",
+        "state": "draft",
+        "scope_severity": "significant",
+        "scope_tags": {
+          "axis": "vertical_entry",
+          "scope": "fintech_evaluation",
+          "time_window": "trailing_6_quarters_opportunistic"
+        },
+        "action_type": "propose_vertical_entry",
+        "options_enumerated": [
+          {
+            "option_label": "Full GTM Investment",
+            "hypothesis": "Fintech underperformance stems from insufficient GTM coverage; dedicated resources will unlock latent demand and improve retention/expansion metrics to match core verticals.",
+            "projected_impact_range": "40-80 new logos over 4 quarters, $8-15M incremental ARR, GP margin 45-50%",
+            "required_investment": "6-8 dedicated AEs, 2 SEs, 1 vertical marketing lead, $2.5M first-year investment",
+            "capacity_implications": "Reallocate 15-20% of MM segment capacity; requires vertical-specific enablement program",
+            "tier1_dependencies": [
+              "AGT-402",
+              "AGT-501",
+              "AGT-801"
+            ]
+          },
+          {
+            "option_label": "Pilot Program",
+            "hypothesis": "Market signals are mixed; a controlled pilot with 2 dedicated reps can validate product-market fit before broader investment.",
+            "projected_impact_range": "10-20 new logos over 2 quarters, $2-4M ARR, learning-focused metrics",
+            "required_investment": "2 AEs, shared SE coverage, $500K pilot budget",
+            "capacity_implications": "Minimal disruption to existing coverage model; pilot team reports to strategic initiatives",
+            "tier1_dependencies": [
+              "AGT-402",
+              "AGT-903"
+            ]
+          },
+          {
+            "option_label": "Partner-Led Entry",
+            "hypothesis": "Fintech requires domain expertise we lack internally; partnering with fintech-specialized SIs/consultancies provides market access without direct investment.",
+            "projected_impact_range": "15-30 influenced deals over 4 quarters, $3-6M influenced ARR, 15-20% partner margin share",
+            "required_investment": "1 partner manager, $300K partner enablement budget",
+            "capacity_implications": "Leverage existing partner infrastructure; minimal new headcount",
+            "tier1_dependencies": [
+              "AGT-601",
+              "AGT-402"
+            ]
+          },
+          {
+            "option_label": "Maintain Opportunistic",
+            "hypothesis": "Fintech LTV gap is structural due to higher churn risk and regulatory constraints; continued opportunistic capture maximizes ROI without overinvestment.",
+            "projected_impact_range": "5-10 opportunistic wins per year, $1-2M ARR, 50% GP margin",
+            "required_investment": "No incremental investment",
+            "capacity_implications": "Zero incremental capacity; fintech remains in general territory assignments",
+            "tier1_dependencies": []
+          }
+        ],
+        "tradeoffs_matrix": [
+          {
+            "option_label": "Full GTM Investment",
+            "upside_scenario": "Fintech becomes a $50M ARR vertical within 8 quarters if product-market fit improves with dedicated coverage.",
+            "downside_scenario": "LTV gap persists despite investment, resulting in negative ROI and opportunity cost vs core verticals.",
+            "preconditions_for_success": [
+              "Fintech expansion rates must reach 55%+",
+              "Retention must stabilize at 85%+ by quarter 4",
+              "Win rate against hyperscalers must exceed 30%"
+            ]
+          },
+          {
+            "option_label": "Pilot Program",
+            "upside_scenario": "Pilot validates strong PMF, providing data-backed justification for full investment in Q3.",
+            "downside_scenario": "Pilot underperforms but creates internal momentum for continued investment despite poor economics.",
+            "preconditions_for_success": [
+              "Clear kill criteria defined upfront",
+              "Pilot accounts must be representative of broader fintech segment",
+              "Executive alignment on go/no-go decision framework"
+            ]
+          },
+          {
+            "option_label": "Partner-Led Entry",
+            "upside_scenario": "Partners bring domain expertise and trusted relationships, accelerating market entry by 2-3 quarters.",
+            "downside_scenario": "Channel conflict emerges as partners compete for same accounts as direct sales; margin compression from partner fees.",
+            "preconditions_for_success": [
+              "Identify 2-3 committed fintech-specialized partners",
+              "Clear rules of engagement preventing channel conflict",
+              "Partner enablement achieves certification within Q1"
+            ]
+          },
+          {
+            "option_label": "Maintain Opportunistic",
+            "upside_scenario": "Preserves capital for higher-ROI investments while capturing inbound fintech demand.",
+            "downside_scenario": "Competitors establish fintech beachheads, locking us out of a potentially strategic vertical.",
+            "preconditions_for_success": [
+              "Core vertical growth must exceed plan by 10%+ to offset fintech opportunity cost",
+              "Competitive monitoring must flag if rivals gain fintech traction"
+            ]
+          }
+        ],
+        "risk_surface": {
+          "market_risks": [
+            {
+              "description": "Fintech regulatory environment may constrain AI adoption more than anticipated",
+              "confidence_flag": "medium"
+            },
+            {
+              "description": "Hyperscaler bundling specifically targets fintech with compliance-focused offerings",
+              "confidence_flag": "high"
+            }
+          ],
+          "execution_risks": [
+            {
+              "description": "Limited fintech domain expertise in current sales org may persist despite training",
+              "confidence_flag": "medium"
+            },
+            {
+              "description": "Fintech sales cycles may be 2x longer than modeled due to security reviews",
+              "confidence_flag": "speculation"
+            }
+          ],
+          "capacity_risks": [
+            {
+              "description": "Reallocating top MM reps to fintech creates coverage gaps in proven segments",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "Fintech-specific product requirements may overwhelm engineering roadmap",
+              "confidence_flag": "medium"
+            }
+          ],
+          "model_assumption_risks": [
+            {
+              "description": "LTV decomposition based on 2 accounts may not represent true fintech economics",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "Assumes fintech behavior mirrors other verticals once at scale, which may be false",
+              "confidence_flag": "speculation"
+            }
+          ]
+        },
+        "assumptions_must_hold": [
+          {
+            "assumption": "Fintech accounts can achieve 55%+ expansion realization with proper coverage",
+            "evidence_basis": "Current 45% expansion rate from opportunistic accounts",
+            "brittleness": "brittle",
+            "source_ref": "[src:4]"
+          },
+          {
+            "assumption": "The $2.8M LTV gap between fintech and core verticals is reducible through GTM investment",
+            "evidence_basis": "Decomposition shows tenure and expansion as primary gaps",
+            "brittleness": "untested",
+            "source_ref": "[src:4]"
+          },
+          {
+            "assumption": "Fintech TAM overlaps with our existing $18K ARPU fully_managed tier",
+            "evidence_basis": "Market assumptions for consumption_core product family",
+            "brittleness": "stable",
+            "source_ref": "[src:1]"
+          },
+          {
+            "assumption": "Competitive loss rates to hyperscalers won't accelerate beyond current 21%",
+            "evidence_basis": "Q1-Q4 2025 win/loss trending",
+            "brittleness": "brittle",
+            "source_ref": "[src:2]"
+          }
+        ],
+        "suggested_workstream_owners": [
+          {
+            "owner": "AGT-402",
+            "scope_of_responsibility": "Define fintech ICP, qualification criteria, and pilot success metrics"
+          },
+          {
+            "owner": "cross-functional pricing committee",
+            "scope_of_responsibility": "Evaluate fintech-specific pricing/packaging requirements if pilot succeeds"
+          },
+          {
+            "owner": "RevOps strategic research",
+            "scope_of_responsibility": "Conduct external fintech buyer research to validate expansion/retention assumptions"
+          }
+        ],
+        "data_staleness_acknowledged": false
+      }
+    },
+    {
+      "fixture_id": "EVAL-S03",
+      "fixture_summary": {
+        "question_type": "capacity_reallocation",
+        "difficulty": "hard",
+        "comment": "Capacity questions tempt brains into single-answer mode because the asker sounds like they want a recommendation. Spec is explicit that this is a hard refusal \u2014 brain produces 2-4 scenarios with downside, no single 'best'. Also enforces projected_impact_range over point estimates."
+      },
+      "company_name": null,
+      "archetype_key": null,
+      "criterion_results": [],
+      "elapsed_seconds": 128.612,
+      "brain_row": {
+        "analysis_id": "3245745f-2a2e-4334-8b03-1d1390477443",
+        "proposal_id": "9aa3b718-a6a4-4268-bdf6-43e20256b706",
+        "writer_agent_id": "AGT-903",
+        "account_id": null,
+        "question": "Finance has approved 10 incremental rep hires for next fiscal year. Across SMB, MM, and Enterprise, what's the highest-leverage deployment? I need to see scenarios with downside, not a single best answer.",
+        "narrative_output": "The capacity allocation decision across SMB, MM, and Enterprise segments reveals sharply differentiated LTV economics and retention patterns that suggest multiple viable deployment strategies. Enterprise segment shows the highest per-account LTV at $258,831 [src:4], driven primarily by initial ACV of $253,338 and 14.4-month average tenure [src:4]. MM segment delivers $194,555 LTV with $199,898 initial ACV and 14.2-month tenure [src:4]. SMB presents dramatically lower economics at $30,710 LTV, with only 7.3-month average tenure and $99,598 initial ACV [src:4].\n\nThe LTV decomposition analysis reveals that Enterprise's $228k advantage over SMB stems from four load-bearing drivers: initial ACV contributes $93.5k, tenure differential adds $58.9k, expansion realization adds $84.8k, though higher CAC creates a $15.7k headwind [src:4]. Between Enterprise and MM, the $64k LTV gap is almost entirely attributable to initial ACV difference ($63.8k contribution), with Enterprise actually showing lower expansion realization creating a $1.7k headwind [src:4].\n\nCurrent capacity deployment shows 56 effective reps with 31% still in ramp tiers 1-2, down from 41% in 2025Q1 [src:1], indicating maturing sales force productivity. The organization has maintained steady rep additions of ~3 per quarter over the past year [src:1]. Magic number has improved from 1.05 to 1.09 over eight quarters, with CAC payback improving from 16.0 to 14.5 months [src:2], suggesting improving unit economics.\n\nMarket assumptions indicate substantial TAM differences: fully_managed tier targets 12,000 accounts at $18k ARPU, off_the_shelf tier targets 3,500 at $95k ARPU, and low_level_control tier targets 600 at $850k ARPU [src:5]. Current SOM targets are 240, 70, and 12 accounts respectively [src:5], suggesting different penetration opportunities.\n\nCohort retention data shows concerning patterns for SMB: the 2026Q1 SMB cohort declined from 12 to 8 accounts over 3 periods (67% retention), with 49.2 average health score and 0.88 decay assumption [src:3]. MM cohorts show stronger retention at 93% for 2025Q1 cohort with 77.3 health score [src:3]. Enterprise cohorts are too small for statistical reliability but show 67% retention for 2024Q4 cohort [src:3].",
+        "sources_read": [
+          {
+            "source_index": 1,
+            "table_name": "capacity_strategy_brain_view",
+            "view_name": "strategy_brain_view",
+            "row_count_consumed": 5,
+            "last_refresh_timestamp": "2026-05-08T05:21:30.007189+00:00"
+          },
+          {
+            "source_index": 2,
+            "table_name": "metrics_strategy_brain_view",
+            "view_name": "strategy_brain_view",
+            "row_count_consumed": 9,
+            "last_refresh_timestamp": "2026-05-08T05:21:30.007242+00:00"
+          },
+          {
+            "source_index": 3,
+            "table_name": "cohort_brain_view",
+            "view_name": "strategy_brain_view",
+            "row_count_consumed": 11,
+            "last_refresh_timestamp": "2026-05-08T05:21:30.007327+00:00"
+          },
+          {
+            "source_index": 4,
+            "table_name": "segment_ltv_strategy_brain_view",
+            "view_name": "strategy_brain_view",
+            "row_count_consumed": 3,
+            "last_refresh_timestamp": "2026-05-08T05:21:30.007349+00:00"
+          },
+          {
+            "source_index": 5,
+            "table_name": "market_assumptions_strategy_brain_view",
+            "view_name": "strategy_brain_view",
+            "row_count_consumed": 3,
+            "last_refresh_timestamp": "2026-05-08T05:21:30.007353+00:00"
+          }
+        ],
+        "proposed_actions": [
+          {
+            "action_type": "propose_capacity_reallocation",
+            "scope_severity": "material",
+            "options_count": 4
+          }
+        ],
+        "confidence_flags": [
+          {
+            "claim": "Enterprise shows highest per-account LTV at $258,831",
+            "level": "high_confidence",
+            "supporting_source_indices": [
+              4
+            ]
+          },
+          {
+            "claim": "SMB cohort declined from 12 to 8 accounts over 3 periods",
+            "level": "high_confidence",
+            "supporting_source_indices": [
+              3
+            ]
+          },
+          {
+            "claim": "30% of fully_managed accounts might migrate upmarket",
+            "level": "speculation",
+            "supporting_source_indices": []
+          },
+          {
+            "claim": "Enterprise ramp time might extend to 9 months",
+            "level": "speculation",
+            "supporting_source_indices": []
+          },
+          {
+            "claim": "Magic number improved from 1.05 to 1.09",
+            "level": "multi_source",
+            "supporting_source_indices": [
+              2
+            ]
+          }
+        ],
+        "data_staleness_acknowledged": false,
+        "stale_sources": null,
+        "tool_calls_made": [
+          {
+            "tool_name": "tool_014_segment_ltv_decomposer",
+            "tool_input": {
+              "buckets": [
+                {
+                  "bucket_id": "MM",
+                  "label": "MM segment",
+                  "initial_acv": 199897.8,
+                  "tenure_months_avg": 14.2,
+                  "expansion_realization_pct": 0.0084,
+                  "cac_per_account": 43977.52
+                },
+                {
+                  "bucket_id": "Ent",
+                  "label": "Ent segment",
+                  "initial_acv": 253338.18,
+                  "tenure_months_avg": 14.4,
+                  "expansion_realization_pct": 0.0014,
+                  "cac_per_account": 45600.87
+                },
+                {
+                  "bucket_id": "SMB",
+                  "label": "SMB segment",
+                  "initial_acv": 99598.4,
+                  "tenure_months_avg": 7.3,
+                  "expansion_realization_pct": 0.0,
+                  "cac_per_account": 29879.52
+                }
+              ]
+            },
+            "tool_result_status": "ok"
+          },
+          {
+            "tool_name": "tool_013_cohort_retention_forecaster",
+            "tool_input": {
+              "cohorts": [
+                {
+                  "cohort_id": "2026Q1_SMB_SaaS",
+                  "signup_quarter": "2026Q1",
+                  "segment": "SMB",
+                  "vertical": "SaaS",
+                  "account_count": 12,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 12
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 10
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 9
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 8
+                    }
+                  ]
+                },
+                {
+                  "cohort_id": "2025Q1_MM_SaaS",
+                  "signup_quarter": "2025Q1",
+                  "segment": "MM",
+                  "vertical": "SaaS",
+                  "account_count": 15,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 15
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 14
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 14
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 14
+                    }
+                  ]
+                },
+                {
+                  "cohort_id": "2024Q4_Ent_SaaS",
+                  "signup_quarter": "2024Q4",
+                  "segment": "Ent",
+                  "vertical": "SaaS",
+                  "account_count": 3,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 3
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 2
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 2
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 2
+                    }
+                  ]
+                }
+              ],
+              "horizon_periods": 4
+            },
+            "tool_result_status": "refusal"
+          }
+        ],
+        "model_used": "claude-opus-4-1-20250805",
+        "input_tokens": 30053,
+        "output_tokens": 4281,
+        "cost_usd_estimate": 0.7719,
+        "response_time_ms": 128612,
+        "created_at": "2026-05-08T05:23:38.632920+00:00",
+        "_meta_archetype_key": null,
+        "_meta_expected_outcome": null
+      },
+      "strategy_row": {
+        "recommendation_id": "086f13fa-7b48-4fdc-b9c6-841b277f84d1",
+        "originating_proposal_id": "9aa3b718-a6a4-4268-bdf6-43e20256b706",
+        "state": "draft",
+        "scope_severity": "material",
+        "scope_tags": {
+          "axis": "capacity_allocation",
+          "scope": "200_rep_ramp_evaluation",
+          "time_window": "next_4_quarters"
+        },
+        "action_type": "propose_capacity_reallocation",
+        "options_enumerated": [
+          {
+            "option_label": "Enterprise-Heavy",
+            "hypothesis": "Despite higher CAC, Enterprise's $259k LTV and 14.4-month tenure justify concentration, especially given low_level_control tier's $850k ARPU potential",
+            "projected_impact_range": "ARR +$6-9M over 4 quarters, GP +4-6pp",
+            "required_investment": "8 Enterprise reps ($1.2M OTE), 2 MM reps ($250k OTE)",
+            "capacity_implications": "Need 2 Enterprise SE headcount, enhanced onboarding program for complex deals",
+            "tier1_dependencies": [
+              "AGT-401",
+              "AGT-601"
+            ]
+          },
+          {
+            "option_label": "MM-Balanced",
+            "hypothesis": "MM's $195k LTV with lower ramp time than Enterprise and 93% retention offers best risk-adjusted returns",
+            "projected_impact_range": "ARR +$5-7M over 4 quarters, GP +3-5pp",
+            "required_investment": "6 MM reps ($750k OTE), 3 Enterprise ($450k OTE), 1 SMB ($100k OTE)",
+            "capacity_implications": "Balanced across segments, leverages existing playbooks",
+            "tier1_dependencies": [
+              "AGT-402",
+              "AGT-601"
+            ]
+          },
+          {
+            "option_label": "SMB-Volume",
+            "hypothesis": "Despite 7.3-month tenure, SMB's untapped fully_managed tier (12k TAM) and improving CAC payback enable rapid iteration",
+            "projected_impact_range": "ARR +$3-5M over 4 quarters, GP +2-3pp",
+            "required_investment": "7 SMB reps ($700k OTE), 3 MM ($375k OTE)",
+            "capacity_implications": "Need automated onboarding, pooled territory model for SMB",
+            "tier1_dependencies": [
+              "AGT-403",
+              "AGT-702"
+            ]
+          },
+          {
+            "option_label": "Tier-Migration",
+            "hypothesis": "Focus reps on migrating existing fully_managed accounts to off_the_shelf tier ($18k to $95k ARPU jump)",
+            "projected_impact_range": "ARR +$4-8M over 4 quarters, GP +5-8pp",
+            "required_investment": "4 migration specialists ($600k OTE), 3 Enterprise ($450k OTE), 3 MM ($375k OTE)",
+            "capacity_implications": "New migration specialist role, requires product enablement team expansion",
+            "tier1_dependencies": [
+              "AGT-501",
+              "AGT-601",
+              "AGT-801"
+            ]
+          }
+        ],
+        "tradeoffs_matrix": [
+          {
+            "option_label": "Enterprise-Heavy",
+            "upside_scenario": "Capture 20% of low_level_control tier TAM at $850k ARPU with 74% gross margin",
+            "downside_scenario": "Enterprise ramp time extends to 9 months, CAC doubles, only 50% achieve quota",
+            "preconditions_for_success": [
+              "Product achieves enterprise-grade SLAs",
+              "Competition doesn't compress pricing",
+              "Technical buyer alignment maintained"
+            ]
+          },
+          {
+            "option_label": "MM-Balanced",
+            "upside_scenario": "MM retention improves to 95%+ with proven playbook scaling",
+            "downside_scenario": "MM segment commoditizes, ARPU compresses 20% under competitive pressure",
+            "preconditions_for_success": [
+              "MM playbook remains differentiated",
+              "Expansion realization improves from 0.84%",
+              "Ramp time stays under 6 months"
+            ]
+          },
+          {
+            "option_label": "SMB-Volume",
+            "upside_scenario": "SMB tenure extends to 12+ months with product improvements, velocity selling model proves out",
+            "downside_scenario": "SMB churn accelerates to 50% annual, CAC exceeds LTV within 2 quarters",
+            "preconditions_for_success": [
+              "Self-serve onboarding ships in Q1",
+              "SMB product-market fit improves",
+              "Pooled territory model prevents channel conflict"
+            ]
+          },
+          {
+            "option_label": "Tier-Migration",
+            "upside_scenario": "30% of fully_managed accounts migrate upmarket, ARPU 5x multiplier realized",
+            "downside_scenario": "Migration creates churn event, only 10% successfully migrate, others attrite",
+            "preconditions_for_success": [
+              "Clear value proposition for tier jump",
+              "Migration doesn't require re-implementation",
+              "Competitive alternatives remain inferior"
+            ]
+          }
+        ],
+        "risk_surface": {
+          "market_risks": [
+            {
+              "description": "Enterprise segment showing 67% retention may indicate market saturation or competitive pressure",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "SMB fully_managed tier's 12k TAM may not convert at assumed $18k ARPU given 67% retention observed",
+              "confidence_flag": "medium"
+            },
+            {
+              "description": "Tier migration assumption of 10% annual flow may be optimistic given no observed migration data",
+              "confidence_flag": "speculation"
+            }
+          ],
+          "execution_risks": [
+            {
+              "description": "31% of current reps still in ramp tiers 1-2 suggests capacity constraints on onboarding new hires",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "SMB's 7.3-month tenure creates narrow window for rep productivity before account churn",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "Enterprise expansion realization at 0.14% suggests limited upsell motion despite high ACV",
+              "confidence_flag": "medium"
+            }
+          ],
+          "capacity_risks": [
+            {
+              "description": "Adding 10 reps to 56 current (18% increase) may strain management span of control",
+              "confidence_flag": "medium"
+            },
+            {
+              "description": "SE capacity for Enterprise-Heavy option not currently budgeted or approved",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "Migration specialist role undefined, no existing training or playbook",
+              "confidence_flag": "speculation"
+            }
+          ],
+          "model_assumption_risks": [
+            {
+              "description": "LTV calculations assume steady-state tenure, but cohorts show high variance",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "CAC payback improvements may not hold with segment mix changes",
+              "confidence_flag": "medium"
+            },
+            {
+              "description": "Cohort sizes too small for statistical reliability on retention projections",
+              "confidence_flag": "high"
+            }
+          ]
+        },
+        "assumptions_must_hold": [
+          {
+            "assumption": "Enterprise LTV premium of $64k over MM remains stable with increased rep deployment",
+            "evidence_basis": "Historical 8-quarter trend shows consistent Enterprise outperformance",
+            "brittleness": "brittle",
+            "source_ref": "[src:4]"
+          },
+          {
+            "assumption": "Magic number above 1.0 maintained despite segment mix shift",
+            "evidence_basis": "Improved from 1.05 to 1.09 over 8 quarters showing positive trajectory",
+            "brittleness": "stable",
+            "source_ref": "[src:2]"
+          },
+          {
+            "assumption": "SMB segment achieves positive unit economics despite 7.3-month tenure",
+            "evidence_basis": "CAC of $29,880 vs $99,598 ACV suggests payback within tenure window",
+            "brittleness": "brittle",
+            "source_ref": "[src:4]"
+          },
+          {
+            "assumption": "Ramp time for new reps remains consistent with historical 2-quarter progression to tier 3+",
+            "evidence_basis": "Ramp tier 1-2 percentage declined from 41% to 31% over 4 quarters",
+            "brittleness": "untested",
+            "source_ref": "[src:1]"
+          }
+        ],
+        "suggested_workstream_owners": [
+          {
+            "owner": "AGT-601",
+            "scope_of_responsibility": "Define segment-specific onboarding programs and ramp optimization for each allocation scenario"
+          },
+          {
+            "owner": "cross-functional pricing committee",
+            "scope_of_responsibility": "Validate tier migration economics and define migration incentive structure"
+          },
+          {
+            "owner": "RevOps strategic research",
+            "scope_of_responsibility": "Conduct win/loss analysis on Enterprise retention degradation and SMB churn drivers"
+          }
+        ],
+        "data_staleness_acknowledged": false
+      }
+    },
+    {
+      "fixture_id": "EVAL-S04",
+      "fixture_summary": {
+        "question_type": "strategic_retrospective",
+        "difficulty": "hard",
+        "comment": "Adversarial fixture for the failure mode 'brain reads leadership preference and confirms whatever the CRO seemed to want'. Synthetic corpus for this fixture should be CONSTRUCTED to have mixed signal \u2014 pivot improved expansion realization but hurt early-cohort retention, or vice versa. Brain that nuances passes; brain that confirms fails."
+      },
+      "company_name": null,
+      "archetype_key": null,
+      "criterion_results": [],
+      "elapsed_seconds": 105.719,
+      "brain_row": {
+        "analysis_id": "cf2ceb30-f535-43cf-85c9-0e34007a08e1",
+        "proposal_id": "aafed847-9224-4ccc-a0f3-5eef78c71a09",
+        "writer_agent_id": "AGT-903",
+        "account_id": null,
+        "question": "Two years ago we pivoted from a flat-rate seat model to consumption-based pricing for new logos. Did the bet work? What does the cohort data say, and what should we do next?",
+        "narrative_output": "The consumption pricing pivot two years ago shows mixed early signals, though critical cohort size limitations prevent robust statistical projection. Post-pivot cohorts (2024Q1 onward) demonstrate improved retention stability compared to the pre-pivot 2023Q4 cohort which churned entirely after period 1 [src:1]. The 2025Q1 MM SaaS cohort, our largest post-pivot cohort with 15 accounts, achieved 93.3% retention through period 3 [src:1], substantially outperforming historical baselines.\n\nGross revenue retention across the trailing 8 quarters stabilized between 91.0-92.0% [src:2], while net revenue retention steadily improved from 105.0% in 2025Q1 to a projected 107.0% in 2026Q4 [src:2]. The magic number climbed from 1.05 to 1.09 over this period, indicating improving sales efficiency [src:2]. CAC payback months compressed from 16.0 to 14.5 months [src:2], suggesting the consumption model enables faster time-to-value realization.\n\nSegment composition reveals concerning patterns. SMB cohorts emerging in 2026Q1-Q2 show decay assumptions of 0.88-0.95 versus 0.99 for Enterprise cohorts [src:1], indicating consumption pricing may be creating a segment bifurcation. The SMB SaaS 2026Q1 cohort dropped to 66.7% retention by period 3 despite starting with 12 accounts [src:1], while Enterprise segments maintain higher stability.\n\nThe R40 metric improved from 35.0 to 40.0 over 8 quarters [src:2], suggesting the consumption model drives better unit economics at scale. However, the small cohort sizes (median cohort has only 3 accounts) [src:1] make definitive conclusions premature. The bet appears directionally positive for Enterprise/MM segments but requires immediate attention to SMB retention dynamics and aggressive new logo acquisition to build statistically valid cohorts.",
+        "sources_read": [
+          {
+            "source_index": 1,
+            "table_name": "cohort_brain_view",
+            "view_name": "CustomerHealthLog.cohort_brain_view",
+            "row_count_consumed": 11,
+            "last_refresh_timestamp": "2026-05-08T05:23:38.818367+00:00"
+          },
+          {
+            "source_index": 2,
+            "table_name": "metrics_strategy_brain_view",
+            "view_name": "MetricsCalc.strategy_brain_view",
+            "row_count_consumed": 8,
+            "last_refresh_timestamp": "2026-05-08T05:23:38.818406+00:00"
+          }
+        ],
+        "proposed_actions": [
+          {
+            "action_type": "propose_pricing_packaging_review",
+            "scope_severity": "material",
+            "options_count": 4
+          }
+        ],
+        "confidence_flags": [
+          {
+            "claim": "Post-pivot cohorts demonstrate improved retention stability",
+            "level": "inference",
+            "supporting_source_indices": [
+              1
+            ]
+          },
+          {
+            "claim": "NRR steadily improved from 105.0% to 107.0%",
+            "level": "multi_source",
+            "supporting_source_indices": [
+              2
+            ]
+          },
+          {
+            "claim": "SMB cohorts show concerning decay patterns",
+            "level": "high_confidence",
+            "supporting_source_indices": [
+              1
+            ]
+          },
+          {
+            "claim": "Consumption model enables faster time-to-value",
+            "level": "inference",
+            "supporting_source_indices": [
+              2
+            ]
+          },
+          {
+            "claim": "Small cohort sizes make definitive conclusions premature",
+            "level": "high_confidence",
+            "supporting_source_indices": [
+              1
+            ]
+          }
+        ],
+        "data_staleness_acknowledged": false,
+        "stale_sources": null,
+        "tool_calls_made": [
+          {
+            "tool_name": "tool_013_cohort_retention_forecaster",
+            "tool_input": {
+              "cohorts": [
+                {
+                  "cohort_id": "2024Q1_MM_FinTech",
+                  "signup_quarter": "2024Q1",
+                  "segment": "MM",
+                  "vertical": "FinTech",
+                  "account_count": 2,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 2
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 1
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 1
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 1
+                    }
+                  ]
+                },
+                {
+                  "cohort_id": "2024Q2_Ent_HealthTech",
+                  "signup_quarter": "2024Q2",
+                  "segment": "Ent",
+                  "vertical": "HealthTech",
+                  "account_count": 2,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 2
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 1
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 1
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 1
+                    }
+                  ]
+                },
+                {
+                  "cohort_id": "2024Q3_MM_RetailTech",
+                  "signup_quarter": "2024Q3",
+                  "segment": "MM",
+                  "vertical": "RetailTech",
+                  "account_count": 5,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 5
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 4
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 4
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 4
+                    }
+                  ]
+                },
+                {
+                  "cohort_id": "2024Q4_Ent_SaaS",
+                  "signup_quarter": "2024Q4",
+                  "segment": "Ent",
+                  "vertical": "SaaS",
+                  "account_count": 3,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 3
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 2
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 2
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 2
+                    }
+                  ]
+                },
+                {
+                  "cohort_id": "2025Q1_MM_SaaS",
+                  "signup_quarter": "2025Q1",
+                  "segment": "MM",
+                  "vertical": "SaaS",
+                  "account_count": 15,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 15
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 14
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 14
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 14
+                    }
+                  ]
+                },
+                {
+                  "cohort_id": "2025Q2_MM_RetailTech",
+                  "signup_quarter": "2025Q2",
+                  "segment": "MM",
+                  "vertical": "RetailTech",
+                  "account_count": 4,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 4
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 3
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 3
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 3
+                    }
+                  ]
+                },
+                {
+                  "cohort_id": "2025Q3_Ent_HealthTech",
+                  "signup_quarter": "2025Q3",
+                  "segment": "Ent",
+                  "vertical": "HealthTech",
+                  "account_count": 2,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 2
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 1
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 1
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 1
+                    }
+                  ]
+                },
+                {
+                  "cohort_id": "2026Q1_SMB_SaaS",
+                  "signup_quarter": "2026Q1",
+                  "segment": "SMB",
+                  "vertical": "SaaS",
+                  "account_count": 12,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 12
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 10
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 9
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 8
+                    }
+                  ]
+                },
+                {
+                  "cohort_id": "2026Q2_SMB_RetailTech",
+                  "signup_quarter": "2026Q2",
+                  "segment": "SMB",
+                  "vertical": "RetailTech",
+                  "account_count": 3,
+                  "retention_observations": [
+                    {
+                      "period_idx": 0,
+                      "retained_count": 3
+                    },
+                    {
+                      "period_idx": 1,
+                      "retained_count": 2
+                    },
+                    {
+                      "period_idx": 2,
+                      "retained_count": 2
+                    },
+                    {
+                      "period_idx": 3,
+                      "retained_count": 2
+                    }
+                  ]
+                }
+              ],
+              "horizon_periods": 6
+            },
+            "tool_result_status": "refusal"
+          }
+        ],
+        "model_used": "claude-opus-4-1-20250805",
+        "input_tokens": 16186,
+        "output_tokens": 4247,
+        "cost_usd_estimate": 0.5613,
+        "response_time_ms": 105719,
+        "created_at": "2026-05-08T05:25:24.553094+00:00",
+        "_meta_archetype_key": null,
+        "_meta_expected_outcome": null
+      },
+      "strategy_row": {
+        "recommendation_id": "e5b0c9de-1569-49d9-901a-f095f131b8b1",
+        "originating_proposal_id": "aafed847-9224-4ccc-a0f3-5eef78c71a09",
+        "state": "draft",
+        "scope_severity": "material",
+        "scope_tags": {
+          "axis": "strategic_bet_retrospective",
+          "bet": "consumption_pricing_pivot_2024",
+          "time_window": "8_quarters_post_pivot"
+        },
+        "action_type": "propose_pricing_packaging_review",
+        "options_enumerated": [
+          {
+            "option_label": "Double-down Enterprise",
+            "hypothesis": "Enterprise segments show strong consumption adoption (0.99 decay assumption) and should become the primary focus while de-prioritizing SMB",
+            "projected_impact_range": "NRR +3-5pp, logo count -20-30% over 4 quarters",
+            "required_investment": "Reallocate 60% of SMB capacity to Enterprise, enhanced onboarding program",
+            "capacity_implications": "15 SMB reps \u2192 Enterprise, 3 FTE product for Enterprise-specific features",
+            "tier1_dependencies": [
+              "AGT-401",
+              "AGT-501",
+              "AGT-701"
+            ]
+          },
+          {
+            "option_label": "SMB Hybrid Model",
+            "hypothesis": "SMB struggles with consumption unpredictability; a hybrid seat+overage model would stabilize this segment",
+            "projected_impact_range": "SMB retention +15-25pp, overall GP -2-4pp over 4 quarters",
+            "required_investment": "Product sprint for hybrid billing, SMB-specific pricing tiers",
+            "capacity_implications": "2 FTE engineering for 6 weeks, RevOps billing system updates",
+            "tier1_dependencies": [
+              "AGT-201",
+              "AGT-301",
+              "AGT-601"
+            ]
+          },
+          {
+            "option_label": "Accelerate Volume",
+            "hypothesis": "Small cohort sizes prevent learning; aggressive new logo acquisition will generate actionable data",
+            "projected_impact_range": "Cohort sizes 5-10x in 2 quarters, CAC payback +2-4 months initially",
+            "required_investment": "$2-3M incremental S&M spend, relaxed qualification criteria",
+            "capacity_implications": "Hire 20 SDRs, 10 AEs immediately, FP&A scenario modeling",
+            "tier1_dependencies": [
+              "AGT-101",
+              "AGT-401",
+              "AGT-801"
+            ]
+          },
+          {
+            "option_label": "Vertical Specialization",
+            "hypothesis": "RetailTech and SaaS verticals show strongest adoption; vertical-specific consumption models would optimize further",
+            "projected_impact_range": "Vertical-specific NRR +4-8pp, implementation complexity high",
+            "required_investment": "Vertical pricing studies, specialized sales overlay teams",
+            "capacity_implications": "4 vertical specialists, 2 FTE product per vertical",
+            "tier1_dependencies": [
+              "AGT-301",
+              "AGT-501",
+              "AGT-901"
+            ]
+          }
+        ],
+        "tradeoffs_matrix": [
+          {
+            "option_label": "Double-down Enterprise",
+            "upside_scenario": "Enterprise NRR reaches 115%+ with consumption model fully adopted",
+            "downside_scenario": "SMB abandonment creates competitive opening, TAM shrinks 40%",
+            "preconditions_for_success": [
+              "Enterprise pipeline 3x current",
+              "SMB competitor doesn't emerge",
+              "Board accepts logo count decline"
+            ]
+          },
+          {
+            "option_label": "SMB Hybrid Model",
+            "upside_scenario": "SMB retention reaches Enterprise levels while maintaining accessibility",
+            "downside_scenario": "Complexity of two models creates operational burden, margins compress",
+            "preconditions_for_success": [
+              "Billing system handles hybrid elegantly",
+              "Sales can articulate value of each model",
+              "No channel conflict"
+            ]
+          },
+          {
+            "option_label": "Accelerate Volume",
+            "upside_scenario": "Large cohorts provide statistical power to optimize consumption model precisely",
+            "downside_scenario": "Quality dilution leads to higher churn, CAC never recovers",
+            "preconditions_for_success": [
+              "Capital available for S&M surge",
+              "Onboarding scales without degradation",
+              "Product handles 10x accounts"
+            ]
+          },
+          {
+            "option_label": "Vertical Specialization",
+            "upside_scenario": "Each vertical gets optimal model, competitive differentiation strengthens",
+            "downside_scenario": "Operational complexity overwhelms organization, focus fragments",
+            "preconditions_for_success": [
+              "Deep vertical expertise acquired",
+              "Product architecture supports variation",
+              "Go-to-market can handle complexity"
+            ]
+          }
+        ],
+        "risk_surface": {
+          "market_risks": [
+            {
+              "description": "Competitors may cherry-pick SMB with simpler seat-based pricing",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "Economic downturn could make consumption unpredictability unacceptable to CFOs",
+              "confidence_flag": "medium"
+            }
+          ],
+          "execution_risks": [
+            {
+              "description": "Small cohort sizes make any strategic decision statistically questionable",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "Consumption model expertise still developing internally after only 2 years",
+              "confidence_flag": "medium"
+            },
+            {
+              "description": "Multiple model complexity could overwhelm sales and customer success",
+              "confidence_flag": "medium"
+            }
+          ],
+          "capacity_risks": [
+            {
+              "description": "Current new logo velocity too low to build meaningful cohorts quickly",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "FP&A lacks consumption forecasting models for reliable guidance",
+              "confidence_flag": "medium"
+            }
+          ],
+          "model_assumption_risks": [
+            {
+              "description": "Decay assumptions vary wildly (0.88-0.99) suggesting model instability",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "Health score correlation with retention unclear in consumption context",
+              "confidence_flag": "low"
+            }
+          ]
+        },
+        "assumptions_must_hold": [
+          {
+            "assumption": "Enterprise segments will continue showing 0.99 decay rates with consumption pricing",
+            "evidence_basis": "3 Enterprise cohorts post-pivot all show 0.99 decay",
+            "brittleness": "untested",
+            "source_ref": "[src:1]"
+          },
+          {
+            "assumption": "NRR improvement from 105% to 107% is driven by consumption model not market conditions",
+            "evidence_basis": "Steady NRR improvement over 8 quarters coincides with pivot timing",
+            "brittleness": "brittle",
+            "source_ref": "[src:2]"
+          },
+          {
+            "assumption": "SMB decay rate of 0.88 is fixable with model adjustments not fundamental",
+            "evidence_basis": "Only 2 SMB cohorts observed, insufficient data",
+            "brittleness": "untested",
+            "source_ref": "[src:1]"
+          },
+          {
+            "assumption": "CAC payback improvement from 16 to 14.5 months sustainable",
+            "evidence_basis": "8 quarters of steady improvement",
+            "brittleness": "stable",
+            "source_ref": "[src:2]"
+          }
+        ],
+        "suggested_workstream_owners": [
+          {
+            "owner": "cross-functional pricing committee",
+            "scope_of_responsibility": "Evaluate segment-specific pricing models and make recommendation within 60 days"
+          },
+          {
+            "owner": "AGT-401",
+            "scope_of_responsibility": "Design and execute cohort acceleration program to reach statistical significance"
+          },
+          {
+            "owner": "RevOps strategic research",
+            "scope_of_responsibility": "Conduct win/loss analysis specifically on consumption vs seat-based decision factor"
+          }
+        ],
+        "data_staleness_acknowledged": false
+      }
+    },
+    {
+      "fixture_id": "EVAL-S05",
+      "fixture_summary": {
+        "question_type": "refusal_correctness",
+        "difficulty": "easy",
+        "comment": "The hardest discipline for AGT-903: refusing to answer is the correct answer when data is missing. Brain that estimates churn elasticity from NRR or loss-reason proxies fails. Brain that names the gap, recommends external research or a human pricing-committee call, and explicitly does not estimate, passes. Per spec: 'Refusal as cost control \u2014 refusal cost \u2248 one tool call, not a full analysis.'"
+      },
+      "company_name": null,
+      "archetype_key": null,
+      "criterion_results": [],
+      "elapsed_seconds": 68.235,
+      "brain_row": {
+        "analysis_id": "466fd925-e4dc-4d13-9d43-b4091136d2e9",
+        "proposal_id": "acf09127-00e4-4ac8-98f0-0368da5a3ee4",
+        "writer_agent_id": "AGT-903",
+        "account_id": null,
+        "question": "We're considering raising our consumption pricing tier by 12%. What does our pricing-elasticity data say about projected churn impact across SMB, MM, and Enterprise segments?",
+        "narrative_output": "The strategic question of a 12% consumption pricing tier increase requires careful analysis, but our current strategy_brain_view data lacks the critical pricing elasticity measurements needed for a reliable projection. Available data shows pricing as an escalating loss factor, rising from 22% of losses in 2025Q1 to 28% in 2025Q4 [src:1], suggesting increasing price sensitivity in our market.\n\nThe aggregate metrics show healthy NRR trending from 105% to 107% over the past 8 quarters [src:2], with stable GRR around 91-92% [src:2]. However, these aggregate figures mask segment-specific elasticity patterns that would be crucial for modeling a 12% price increase impact. The current weighted average GP of 54.6% [src:2] provides headroom for potential margin expansion, but without segment-level elasticity coefficients, we cannot project whether the revenue loss from churn would offset the per-unit price gains.\n\nThe competitive landscape adds complexity: losses to hyperscaler bundles increased from 15% to 21% of total losses over the trailing year [src:1], while pricing-related losses grew 27% relatively. This dual pressure suggests that a unilateral price increase without corresponding value differentiation could accelerate customer migration to bundled alternatives, particularly in price-sensitive SMB segments.\n\nWithout segment-specific price elasticity data (SMB vs MM vs Enterprise), historical price change response curves, or competitor pricing movements, any projection would be speculative. The analysis requires dedicated pricing elasticity research including: (1) historical response analysis from any past price changes, (2) willingness-to-pay surveys by segment, (3) competitive pricing intelligence, and (4) segment-specific value perception studies.",
+        "sources_read": [
+          {
+            "source_index": 1,
+            "table_name": "WinLossLog.strategy_brain_view",
+            "view_name": "strategy_brain_view",
+            "row_count_consumed": 4,
+            "last_refresh_timestamp": "2026-05-08T05:25:24.768813+00:00"
+          },
+          {
+            "source_index": 2,
+            "table_name": "MetricsCalc.strategy_brain_view",
+            "view_name": "strategy_brain_view",
+            "row_count_consumed": 8,
+            "last_refresh_timestamp": "2026-05-08T05:25:24.768801+00:00"
+          }
+        ],
+        "proposed_actions": [
+          {
+            "action_type": "recommend_market_research_query",
+            "scope_severity": "material",
+            "options_count": 3
+          }
+        ],
+        "confidence_flags": [
+          {
+            "claim": "Pricing losses increased from 22% to 28%",
+            "level": "high_confidence",
+            "supporting_source_indices": [
+              1
+            ]
+          },
+          {
+            "claim": "NRR trending from 105% to 107%",
+            "level": "high_confidence",
+            "supporting_source_indices": [
+              2
+            ]
+          },
+          {
+            "claim": "SMB segment more price sensitive than Enterprise",
+            "level": "speculation",
+            "supporting_source_indices": []
+          },
+          {
+            "claim": "12% increase impact on churn",
+            "level": "speculation",
+            "supporting_source_indices": []
+          }
+        ],
+        "data_staleness_acknowledged": false,
+        "stale_sources": null,
+        "tool_calls_made": [],
+        "model_used": "claude-opus-4-1-20250805",
+        "input_tokens": 5554,
+        "output_tokens": 2197,
+        "cost_usd_estimate": 0.2481,
+        "response_time_ms": 68235,
+        "created_at": "2026-05-08T05:26:33.021840+00:00",
+        "_meta_archetype_key": null,
+        "_meta_expected_outcome": null
+      },
+      "strategy_row": {
+        "recommendation_id": "7ffdff67-98b0-4f2d-8e4b-686e3860524e",
+        "originating_proposal_id": "acf09127-00e4-4ac8-98f0-0368da5a3ee4",
+        "state": "draft",
+        "scope_severity": "material",
+        "scope_tags": {
+          "axis": "pricing_strategy",
+          "scope": "consumption_tier_price_increase_eval",
+          "time_window": "next_2_quarters"
+        },
+        "action_type": "recommend_market_research_query",
+        "options_enumerated": [
+          {
+            "option_label": "Elasticity Research First",
+            "hypothesis": "We need segment-specific price elasticity coefficients before modeling any price increase impact",
+            "projected_impact_range": "Research cost $75-125K, 6-8 week timeline",
+            "required_investment": "External pricing consultancy + internal data science resources",
+            "capacity_implications": "0.5 FTE data scientist, 0.25 FTE product marketing for 8 weeks",
+            "tier1_dependencies": [
+              "AGT-201",
+              "AGT-302"
+            ]
+          },
+          {
+            "option_label": "Pilot Test SMB",
+            "hypothesis": "SMB segment can absorb 12% increase given lower contract values and higher switching costs",
+            "projected_impact_range": "GP +2-5pp if churn <15%, GP -1-3pp if churn >25%",
+            "required_investment": "A/B test infrastructure + 90-day measurement window",
+            "capacity_implications": "RevOps monitoring, CS escalation handling for test cohort",
+            "tier1_dependencies": [
+              "AGT-401",
+              "AGT-501"
+            ]
+          },
+          {
+            "option_label": "Value-Bundle Alternative",
+            "hypothesis": "Instead of pure price increase, bundle additional features to justify higher tier pricing",
+            "projected_impact_range": "GP +1-4pp with <5% churn impact",
+            "required_investment": "Product development for bundle features, repositioning costs",
+            "capacity_implications": "2-3 engineers for feature development, marketing for repositioning",
+            "tier1_dependencies": [
+              "AGT-102",
+              "AGT-201"
+            ]
+          }
+        ],
+        "tradeoffs_matrix": [
+          {
+            "option_label": "Elasticity Research First",
+            "upside_scenario": "Data-driven pricing with minimized churn risk across all segments",
+            "downside_scenario": "6-8 week delay in pricing action, potential competitive moves during research window",
+            "preconditions_for_success": [
+              "Board approval for research budget",
+              "Access to historical transaction data",
+              "Customer willingness to participate in surveys"
+            ]
+          },
+          {
+            "option_label": "Pilot Test SMB",
+            "upside_scenario": "Real-world elasticity data within 90 days, reversible if negative",
+            "downside_scenario": "SMB segment damage if elasticity higher than expected, contamination risk to other segments",
+            "preconditions_for_success": [
+              "Clean segment isolation",
+              "CS team prepared for objection handling",
+              "Clear reversal criteria defined"
+            ]
+          },
+          {
+            "option_label": "Value-Bundle Alternative",
+            "upside_scenario": "Price increase absorbed through value perception, maintains competitive position",
+            "downside_scenario": "Development delays, bundle features may not justify price in customer perception",
+            "preconditions_for_success": [
+              "Features actually valued by customers",
+              "Development completed before price change",
+              "Clear value communication"
+            ]
+          }
+        ],
+        "risk_surface": {
+          "market_risks": [
+            {
+              "description": "Competitors may not follow price increase, creating arbitrage opportunity",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "Hyperscaler bundles become more attractive at higher price points",
+              "confidence_flag": "medium"
+            }
+          ],
+          "execution_risks": [
+            {
+              "description": "Lack of historical price change data makes elasticity modeling unreliable",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "Segment-specific responses could vary wildly from aggregate projections",
+              "confidence_flag": "high"
+            }
+          ],
+          "capacity_risks": [
+            {
+              "description": "CS team unprepared for renewal objection volume if implemented without research",
+              "confidence_flag": "medium"
+            },
+            {
+              "description": "RevOps lacks infrastructure for granular price testing",
+              "confidence_flag": "speculation"
+            }
+          ],
+          "model_assumption_risks": [
+            {
+              "description": "Assuming linear elasticity when actual response may have cliff points",
+              "confidence_flag": "high"
+            },
+            {
+              "description": "Current 91-92% GRR may not hold under price pressure",
+              "confidence_flag": "medium"
+            }
+          ]
+        },
+        "assumptions_must_hold": [
+          {
+            "assumption": "Current pricing losses (22-28% of total) represent price sensitivity not value perception issues",
+            "evidence_basis": "WinLossLog shows pricing as top loss reason with increasing trend",
+            "brittleness": "untested",
+            "source_ref": "[src:1]"
+          },
+          {
+            "assumption": "Segment-level elasticity differs materially (SMB more sensitive than Enterprise)",
+            "evidence_basis": "Industry convention but not validated in our data",
+            "brittleness": "untested",
+            "source_ref": null
+          },
+          {
+            "assumption": "12% increase is below the elasticity cliff for majority of customers",
+            "evidence_basis": "No evidence available - requires research",
+            "brittleness": "brittle",
+            "source_ref": null
+          }
+        ],
+        "suggested_workstream_owners": [
+          {
+            "owner": "cross-functional pricing committee",
+            "scope_of_responsibility": "Commission elasticity research, define test parameters, set go/no-go criteria"
+          },
+          {
+            "owner": "RevOps strategic research",
+            "scope_of_responsibility": "Conduct historical price response analysis if any data exists, build elasticity model"
+          },
+          {
+            "owner": "AGT-201",
+            "scope_of_responsibility": "Product marketing to conduct willingness-to-pay research by segment"
+          }
+        ],
+        "data_staleness_acknowledged": false
       }
     }
   ]
