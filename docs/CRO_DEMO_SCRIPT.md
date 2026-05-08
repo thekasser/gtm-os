@@ -246,6 +246,25 @@ The Planning panel handles this in shape but defaults assume reps are already in
 
 ---
 
+## v38.5 control-axis insight — when their product has multi-tier control levels
+
+Some developer-led platforms organize their product around three control tiers — *fully managed* (give me an API and let me ship), *off-the-shelf workflows* (cookbook-style paths, e.g. SFT / DPO / GRPO), *low-level control* (custom Python loop, forward / forward_backward / optim_step). Different customers want different levels; the same customer's needs evolve as their ML team matures.
+
+**The structural insight:** segmentation isn't firmographic — it's *level of control / technical sophistication*. Three sub-businesses sharing infrastructure: fully_managed competes against hyperscaler bundle (large TAM, low margin), off_the_shelf competes against workflow AI (mid TAM, mid margin), low_level_control competes against self-hosted vLLM + frontier-model-provider direct (small TAM, highest margin, deepest moat).
+
+**Lead with v38.5 capabilities** when the CRO describes a product surface like this:
+
+1. **AGT-201 v38.5 `gtm_motion_class`.** *"Your sales motion shape differs by control tier. The OS classifies each account on the control axis (managed / off-shelf / low-level) parallel to the firmographic T1/T2/T3 tier — and routes to AE pools designed for that motion. T1-fit + low_level_control gets paired with AGT-602 from week 1; T1-fit + fully_managed gets a demo-led short-cycle pool. The same customer can be both — sales motion matches buying motion, not generic firmographic match."*
+
+2. **AGT-503 v38.5 two-axis tier-migration.** *"v38 modeled tier-migration on the margin axis (shared → dedicated → BYOC). v38.5 recognizes a parallel control axis (managed → off-shelf → low-level) that drives a distinct motion. Customer might be on shared infrastructure (low margin) AND fully managed (control axis) — two independent expansion paths. The OS treats each axis as a first-class motion with its own play type, its own technical-prerequisite gate, its own credible_alternative pre-fill."*
+
+3. **AGT-205 v38.5 control-tier breakdown.** *"TAM/SAM is now a 2D matrix — product-family × control-tier — because each control_tier is a different sub-business with different competitive dynamics, different ARPU, different GM. Sizing them as one number obscures the strategic question. AGT-903 capacity-reallocation queries return per-control-tier rep allocation recommendations against this matrix."*
+
+**The strategic-question landing:**
+- *"Your three control tiers have very different competitive dynamics — fully_managed competes against AWS Bedrock procurement-friction, low_level_control competes against open-source vLLM. Same go-to-market motion across all three is a strategic mistake. The OS makes that visible at AGT-205 sizing time, drives motion-match at AGT-202 routing time, and incentivizes both axes of expansion at AGT-101 v38 + AGT-503 v38.5."*
+
+---
+
 ## Talking points if they go quiet
 
 - "This started as a spec exercise. The point of the brain prototype is to validate that the contracts hold under real reasoning load — not to ship a product."

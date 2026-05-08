@@ -238,6 +238,44 @@ pre{font-family:monospace;font-size:11px;background:#f5f5f5;border:1px solid #e0
 </div>
 
 <div class="sec">
+  <div class="slabel">v38.5 update — control-tier breakdown for developer-led / consumption-pricing platforms</div>
+  <p class="prose" style="font-size:12px;line-height:1.6;margin-bottom:10px"><strong>Why.</strong> The product-family axis (existing) sizes addressable markets by <em>what we sell</em>. For developer-led / consumption-pricing platforms with multi-tier product mix, a parallel <strong>control-tier axis</strong> is load-bearing because it sizes <em>three different sub-businesses</em> sharing infrastructure: <em>fully-managed</em> (massive horizontal market, low margin, hyperscaler-bundle threat), <em>off-the-shelf</em> (mid-market, differentiated workflows, growing fast), <em>low-level-control</em> (small but sticky frontier AI-native, highest WTP per customer, deepest moat). Sizing them as one number obscures the strategic question — where to invest sales capacity, where to defend, where to expand.</p>
+  <p class="prose" style="font-size:12px;line-height:1.6;margin-bottom:10px">v38.5 extends the MarketAssumptions table with a parallel <strong>control-tier dimension</strong>. TAM / SAM / SOM are now modeled as a 2D matrix: product-family × control-tier. Each cell carries its own analyst-input assumptions, its own competitive landscape, and its own revenue trajectory.</p>
+  <table>
+    <tr><th>control_tier</th><th>TAM-shape</th><th>Competitive dynamic</th><th>Margin profile</th></tr>
+    <tr><td><code>fully_managed</code></td><td>Massive horizontal — every team building any AI app. Includes all developer activity that just wants an API. Largest TAM across all three tiers combined.</td><td>Hyperscaler bundle (AWS Bedrock / Azure AI Foundry / Vertex AI) is the existential threat. Bedrock is "good enough" + procurement-friction-free for many enterprises.</td><td>Lowest margin (~50% on infrastructure). Compressed by hyperscaler price cuts. Growth bet, not margin bet.</td></tr>
+    <tr><td><code>off_the_shelf</code></td><td>Mid-market — teams with workflow differentiation. Roughly 1/3 of fully_managed TAM but materially higher WTP per customer.</td><td>Vertical AI infrastructure (e.g., domain-specialized inference platforms) + workflow-AI competitors. Less hyperscaler pressure because customers want cookbook-style paths the hyperscalers don't curate.</td><td>Mid margin (~60% on dedicated). Path to high-margin via control-axis migration.</td></tr>
+    <tr><td><code>low_level_control</code></td><td>Smallest TAM — frontier AI-native developer tools and research-first product companies. Maybe 5–10% of fully_managed TAM in account count, but materially higher revenue per customer.</td><td>Self-hosted vLLM + frontier-model-provider direct + open-source TensorRT-LLM. Every potential customer can in-house this; the question is opportunity cost.</td><td>Highest margin (~70%+ via BYOC + premium pricing). Stickiest moat — switching cost compounds with control-plane integration depth.</td></tr>
+  </table>
+
+  <div class="subsection-title">Schema extension</div>
+  <p class="prose" style="font-size:12px;line-height:1.6;margin-bottom:10px">MarketAssumptions gains a <code>control_tier</code> dimension and per-cell assumption fields. Where v25 had one row per (product_family, segment, vertical), v38.5 has one row per (product_family, control_tier, segment, vertical) with per-cell fields:</p>
+  <table>
+    <tr><th>Field added</th><th>Type</th><th>Notes</th></tr>
+    <tr><td><code>control_tier</code></td><td>ENUM</td><td><code>fully_managed</code> / <code>off_the_shelf</code> / <code>low_level_control</code> / <code>blended</code> (legacy rows; default for non-extended product families).</td></tr>
+    <tr><td><code>tam_account_count_estimate</code></td><td>INT</td><td>Top-down analyst input (existing methodology, scoped to control_tier cell).</td></tr>
+    <tr><td><code>sam_account_count_observed</code></td><td>INT</td><td>Bottom-up Account-table count where AGT-201 v38.5 <code>gtm_motion_class</code> matches the cell.</td></tr>
+    <tr><td><code>som_account_count_target</code></td><td>INT</td><td>Annual obtainable target. Per-cell because pursuit cost differs by control_tier.</td></tr>
+    <tr><td><code>arpu_estimate_usd</code></td><td>FLOAT</td><td>Avg revenue per customer at this control_tier.</td></tr>
+    <tr><td><code>gross_margin_estimate_pct</code></td><td>FLOAT</td><td>Avg GP at this control_tier (input to AGT-503 v38 tier-migration GP-uplift projection).</td></tr>
+    <tr><td><code>competitive_set</code></td><td>JSONB</td><td>Per-cell competitor list. Differs materially across control_tiers.</td></tr>
+    <tr><td><code>last_analyst_refresh_date</code></td><td>DATE</td><td>Hybrid TAM methodology (existing) refreshed annually; SAM bottom-up refreshed quarterly.</td></tr>
+  </table>
+
+  <div class="subsection-title">Migration-flow modeling</div>
+  <p class="prose" style="font-size:12px;line-height:1.6;margin-bottom:10px">Control-tier accounts can migrate up the ladder per AGT-201 v38.5 reclassification rules + AGT-503 v38.5 control-axis tier-migration plays. AGT-205 v38.5 models <strong>migration-flow assumptions</strong> across cells:</p>
+  <table>
+    <tr><th>Migration flow</th><th>Annual conversion-rate assumption</th><th>Implication</th></tr>
+    <tr><td><code>fully_managed → off_the_shelf</code></td><td>5–15% per year (RevOps + Finance configurable; hybrid analyst input)</td><td>Drives off_the_shelf SAM growth in addition to top-down TAM growth.</td></tr>
+    <tr><td><code>off_the_shelf → low_level_control</code></td><td>3–8% per year (lower; requires customer-side ML team maturation)</td><td>Drives low_level_control SAM growth. Sticky-once-arrived because switching cost is high.</td></tr>
+    <tr><td>Reverse migrations (e.g., low_level_control → off_the_shelf)</td><td>Tracked as net-of-forward-flow; rare but real (research team disbanded, scope retracted)</td><td>Subtracts from low_level_control SAM. Flagged for AGT-903 strategic-bet retrospective.</td></tr>
+  </table>
+
+  <div class="alert-box alert-blue" style="font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7;background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C"><strong>AGT-903 Strategy Brain integration.</strong> AGT-205 v38.5 produces a strategy_brain_view (per AGT-903 v37 read contract) keyed by (product_family × control_tier × segment × vertical). AGT-903 reads this for vertical-entry analysis ("which control_tier should we lead with in fintech?") + capacity-reallocation analysis ("we have 100 reps; how should they be allocated across the three control_tiers?") + ICP retrospective analysis ("our top-LTV customers cluster on control_tier — should we re-weight ICP to capture this?"). The 2D matrix is the load-bearing input.</p>
+  </div>
+</div>
+
+<div class="sec">
   <div class="slabel">System prompt skeleton</div>
 <pre>You are AGT-TAM, the TAM/SAM Sizing agent for a B2B SaaS GTM OS.
 

@@ -84,6 +84,88 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff;p
 <div id="log">
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v38→v38.5: Control-axis segmentation — AGT-201 gtm_motion_class + AGT-503 two-axis migration + AGT-205 control-tier sizing -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="version-block" data-layer="L9">
+  <div class="version-hdr">
+    <span class="version-pill">v38 → v38.5</span>
+    <span class="version-date">Control-axis segmentation as parallel dimension to firmographic tier · Two-axis tier-migration · TAM/SAM control-tier breakdown</span>
+    <span class="version-summary">CRO walkthrough surfaced a structural insight: developer-led / consumption-pricing platforms aren't segmented firmographically — they're segmented by <em>level of control / technical sophistication</em>. Customers cluster into three sub-businesses sharing infrastructure (fully_managed competing against hyperscaler bundle, off_the_shelf for differentiated workflows, low_level_control for frontier AI-native research). Each cluster has different competitor sets, different price points, different sales-motion shapes. v38 modeled tier-migration on the margin axis only (shared/dedicated/BYOC); v38.5 recognizes a parallel and independent control axis (managed/off-shelf/low-level) that drives a distinct expansion motion. Three spec updates close the gap: AGT-201 gtm_motion_class classification (parallel to T1/T2/T3 fit-tier), AGT-503 7th signal + tier_migration_axis field, AGT-205 MarketAssumptions 2D matrix (product_family × control_tier).</span>
+  </div>
+
+  <div class="entry" data-layer="L2" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-201<span class="layer-tag lt-l2">L2</span></span>
+      <span class="agent-name">gtm_motion_class — parallel classification (fully_managed / off_the_shelf / low_level_control)</span>
+      <div class="change-type"><span class="ct ct-update">Update</span></div>
+      <span class="entry-summary">Adds parallel classification output (not a 7th score dimension) to AGT-201. Independent of T1/T2/T3 fit-tier. Drives sales-motion routing — e.g., T1 fit + low_level_control routes to AE pool with technical-depth-first cadence, paired with AGT-602 from week 1; T1 fit + fully_managed routes to demo-led pool with shorter cycle. Rule-based classification reads AGT-208 production_signal + EnrichmentLog tech-stack + ConvIntelligence call-pattern; not LLM-derived. Accounts schema extension: <code>gtm_motion_class</code> ENUM + <code>gtm_motion_class_last_evaluated</code> TIMESTAMPTZ. AGT-202 v38.5 reads this field for motion-aware routing alongside the v38 motion=plg-warm flag.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Why classification, not 7th dimension</div><div class="detail-val">The control axis isn't fit prediction — it's motion classification. The 6-dimension ICP scoring (firmographic / vertical / revenue / tech / growth / intent) predicts T1/T2/T3 fit tier; gtm_motion_class predicts which sales motion to use. Different concept; deserves its own output.</div>
+        <div class="detail-lbl">Reclassification</div><div class="detail-val">Customer can move along the control axis as their team grows / shrinks ML capacity. Reclassification triggered by AGT-208 production_signal threshold breach, ConvIntelligence pattern shift, or RevOps manual override. Triggers AGT-503 v38.5 candidate signal for control-axis tier-migration play.</div>
+        <div class="detail-lbl">Optionality</div><div class="detail-val">Opt-in per company config. Traditional B2B SaaS without consumption-pricing tiered product mix uses the existing 6-dimension scoring without classification. Turning on requires AGT-208 deployed + AGT-106 per-class AE-pool definitions.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">Sales motion now matches the actual buying motion at the customer.</span> A T1 fully_managed account doesn't get a low_level_control AE who'd scare them off with technical depth; a T1 low_level_control account doesn't get a generic AE who can't hold a research conversation.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L5" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-503<span class="layer-tag lt-l5">L5</span></span>
+      <span class="agent-name">Tier-migration two-axis extension — margin axis (existing v38) + control axis (new v38.5)</span>
+      <div class="change-type"><span class="ct ct-update">Update</span></div>
+      <span class="entry-summary">v38 modeled tier-migration on a single axis (low_margin → mid_margin → high_margin = shared/dedicated/BYOC). v38.5 adds parallel control axis (fully_managed → off_the_shelf → low_level_control). 7th signal: control-axis migration eligibility (+20 to +45 pts based on AGT-201 reclassification event scaled by account revenue). New ExpansionLog field <code>tier_migration_axis</code> ENUM(margin / control / combined). Play structure differs by axis: margin-axis hypothesis pre-fills from TOOL-015 GP projection; control-axis hypothesis pre-fills from reclassification signal + EnrichmentLog ML-team evidence + ConvIntelligence research-pattern. Switching cost is often LOWER on control-axis because no customer-side infra change required.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Two motions, two comp incentives</div><div class="detail-val">Margin-axis play retires GP-overlay quota on existing-revenue GP uplift (v38 model). Control-axis play retires GP-overlay quota on uplift + new revenue from expanded scope (low_level_control plays often add scope beyond initial product).</div>
+        <div class="detail-lbl">Four motion intersections</div><div class="detail-val">margin-axis-only (infrastructure-led play, classic v38) / control-axis-only (research-led play, new v38.5) / combined (rare, multi-quarter, high-value, requires SLM review at play creation) / no-migration (no signal).</div>
+        <div class="detail-lbl">Why the v38 design wasn't sufficient</div><div class="detail-val">A customer on shared infrastructure (low_margin) AND fully_managed control can grow in two distinct directions: infra maturation (margin axis) or ML team maturation (control axis). The sales motion shape, AE pool, comp incentive, technical-prerequisite gate — all differ. Modeling as a single axis would mis-route the play.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">First-class motion for control-axis tier migration.</span> Reps now incentivized via AGT-101 v38 GP-overlay to drive both margin-axis and control-axis migrations with appropriate cadence per axis.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L2" data-type="update">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-205<span class="layer-tag lt-l2">L2</span></span>
+      <span class="agent-name">MarketAssumptions 2D matrix — product_family × control_tier sizing</span>
+      <div class="change-type"><span class="ct ct-update">Update</span></div>
+      <span class="entry-summary">v38.5 extends MarketAssumptions with a parallel control_tier dimension. TAM/SAM/SOM are now modeled as a 2D matrix: product-family × control-tier (fully_managed / off_the_shelf / low_level_control / blended). Each cell carries its own analyst-input assumptions (TAM account count, ARPU, GP%), competitive landscape, and migration-flow rate to the next tier. AGT-205 produces a strategy_brain_view (per AGT-903 v37 read contract) keyed by (product_family × control_tier × segment × vertical) — load-bearing input for AGT-903 vertical-entry / capacity-reallocation / ICP-retrospective use cases.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Why three sub-businesses</div><div class="detail-val">fully_managed competes against hyperscaler bundle (largest TAM, lowest margin, growth bet). off_the_shelf competes against vertical AI infrastructure (mid TAM, mid margin, path to high via control-axis migration). low_level_control competes against self-hosted vLLM + frontier-model-provider-direct (smallest TAM, highest margin per customer, deepest moat). Sizing them as one number obscures where to invest sales capacity.</div>
+        <div class="detail-lbl">Migration-flow assumptions</div><div class="detail-val">fully_managed → off_the_shelf: 5–15% per year. off_the_shelf → low_level_control: 3–8% per year (lower because requires customer-side ML team maturation). Reverse migrations tracked as net-of-forward-flow; flagged for AGT-903 strategic-bet retrospective.</div>
+        <div class="detail-lbl">Schema extension</div><div class="detail-val">MarketAssumptions gains <code>control_tier</code> ENUM + per-cell <code>tam_account_count_estimate</code>, <code>sam_account_count_observed</code>, <code>som_account_count_target</code>, <code>arpu_estimate_usd</code>, <code>gross_margin_estimate_pct</code>, <code>competitive_set</code> JSONB, <code>last_analyst_refresh_date</code>.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-green">AGT-903 capacity-reallocation queries can now return per-control-tier rep allocation recommendations.</span> Without this matrix, AGT-903 would be reasoning over a blended TAM that obscures the actual strategic levers.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry" data-layer="L9" data-type="ripple">
+    <div class="entry-hdr" onclick="tog(this)">
+      <span class="agent-id">AGT-202 + AGT-106<span class="layer-tag lt-l2">L2</span></span>
+      <span class="agent-name">v38.5 ripples — motion-class-aware routing + per-class AE territory pools</span>
+      <div class="change-type"><span class="ct ct-ripple">Ripple</span></div>
+      <span class="entry-summary">AGT-202 v38.5 reads <code>gtm_motion_class</code> from Accounts when routing. Routes to AE pools designated for that class — e.g., fully_managed accounts route to demo-led AE pool; low_level_control accounts route to technical-depth AE pool with paired AGT-602. AGT-106 v38.5 extends TerritoryDefinitions with per-class AE pool designations (alongside existing motion_track field from v38). Reps may serve multiple control_tiers but coverage is explicit per-territory.</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="entry-body">
+      <div class="detail-grid">
+        <div class="detail-lbl">Cumulative routing dimensions</div><div class="detail-val">v38 added motion (traditional / plg-warm / vertical-led). v38.5 adds gtm_motion_class (fully_managed / off_the_shelf / low_level_control). Combined routing key per AGT-202: (segment × vertical × motion × gtm_motion_class). Most cells are sparse — most accounts won't trigger every dimension.</div>
+        <div class="detail-lbl">Impact</div><div class="detail-val"><span class="impact-neutral">Routing complexity grows; pays back via better motion-match between rep skills and customer buying behavior.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- v37→v38: Consumption-pricing tiered-platform profile — TOOL-015 + AGT-208 + tier-migration + GP-overlay comp -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <div class="version-block" data-layer="L9">
