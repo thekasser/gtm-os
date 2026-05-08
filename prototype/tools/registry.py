@@ -20,6 +20,7 @@ from tools.tool_003 import tool_003_handler, TOOL_003_DEFINITION
 from tools.tool_004 import tool_004_handler, TOOL_004_DEFINITION
 from tools.tool_008 import tool_008_handler, TOOL_008_DEFINITION
 from tools.tool_010 import tool_010_handler, TOOL_010_DEFINITION
+from tools.tool_015 import tool_015_handler, TOOL_015_DEFINITION
 
 
 # Anthropic tool definitions (what the brain sees)
@@ -32,6 +33,7 @@ TOOL_DEFINITIONS: list[dict] = [
     TOOL_004_DEFINITION,
     TOOL_008_DEFINITION,
     TOOL_010_DEFINITION,
+    TOOL_015_DEFINITION,
 ]
 
 
@@ -41,6 +43,7 @@ TOOL_HANDLERS: dict[str, Callable[[dict], dict]] = {
     "tool_004_consumption_forecast": tool_004_handler,
     "tool_008_product_adoption_pattern": tool_008_handler,
     "tool_010_champion_movement_detector": tool_010_handler,
+    "tool_015_consumption_margin_decomposer": tool_015_handler,
 }
 
 
@@ -257,6 +260,38 @@ def dispatch_tool(name: str, tool_input: dict, view: dict, source=None) -> dict:
                 "contract_end_date": account.get("contract_end_date"),
             },
             "forecast_horizon_days": tool_input.get("forecast_horizon_days", 60),
+        }
+        return handler(augmented_input)
+
+    if name == "tool_015_consumption_margin_decomposer":
+        # Load consumption_events from the per-account corpus (added in v38.1
+        # synth extension). Tier-migration scenarios may be passed by caller;
+        # otherwise the tool falls back to its DEFAULT_TIER_MIGRATION_SCENARIOS.
+        account_id = tool_input.get("account_id") or view.get("account_id")
+        corpus_data = _load_account_corpus(account_id, source=source)
+        if corpus_data is None:
+            return {
+                "tool_name": name,
+                "status": "error",
+                "reason": f"corpus file not found for account_id={account_id}",
+            }
+        consumption_events = corpus_data.get("consumption_events")
+        if consumption_events is None:
+            return {
+                "tool_name": name,
+                "status": "error",
+                "reason": (
+                    "corpus has no consumption_events block — regenerate corpus "
+                    "via synth/main.py (v38.1 added consumption_events generator)"
+                ),
+            }
+        augmented_input = {
+            "account_id": account_id,
+            "consumption_events": consumption_events,
+            "tier_migration_scenarios": tool_input.get("tier_migration_scenarios"),
+            "include_workload_shaping_recommendations": tool_input.get(
+                "include_workload_shaping_recommendations", True
+            ),
         }
         return handler(augmented_input)
 
