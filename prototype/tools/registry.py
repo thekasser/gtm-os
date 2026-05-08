@@ -20,6 +20,8 @@ from tools.tool_003 import tool_003_handler, TOOL_003_DEFINITION
 from tools.tool_004 import tool_004_handler, TOOL_004_DEFINITION
 from tools.tool_008 import tool_008_handler, TOOL_008_DEFINITION
 from tools.tool_010 import tool_010_handler, TOOL_010_DEFINITION
+from tools.tool_013 import tool_013_handler, TOOL_013_DEFINITION
+from tools.tool_014 import tool_014_handler, TOOL_014_DEFINITION
 from tools.tool_015 import tool_015_handler, TOOL_015_DEFINITION
 
 
@@ -33,6 +35,8 @@ TOOL_DEFINITIONS: list[dict] = [
     TOOL_004_DEFINITION,
     TOOL_008_DEFINITION,
     TOOL_010_DEFINITION,
+    TOOL_013_DEFINITION,
+    TOOL_014_DEFINITION,
     TOOL_015_DEFINITION,
 ]
 
@@ -43,6 +47,8 @@ TOOL_HANDLERS: dict[str, Callable[[dict], dict]] = {
     "tool_004_consumption_forecast": tool_004_handler,
     "tool_008_product_adoption_pattern": tool_008_handler,
     "tool_010_champion_movement_detector": tool_010_handler,
+    "tool_013_cohort_retention_forecaster": tool_013_handler,
+    "tool_014_segment_ltv_decomposer": tool_014_handler,
     "tool_015_consumption_margin_decomposer": tool_015_handler,
 }
 
