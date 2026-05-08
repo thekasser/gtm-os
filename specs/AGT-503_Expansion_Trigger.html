@@ -39,6 +39,7 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
   <span class="badge badge-status">Specced · v19 original + v25 ripple update</span>
   <span class="badge badge-ripple">L8 ripple: UsageMeteringLog explicitly named as usage signal source for overage and seat utilization signals</span>
   <span class="badge badge-ripple">v38 update: tier-migration as expansion type for consumption-pricing tiered platforms</span>
+  <span class="badge badge-ripple">v38.5 update: tier-migration is two-axis (margin axis + control axis)</span>
 </div>
 
 <!-- ── L8 RIPPLE UPDATE ────────────────────────────────────── -->
@@ -144,6 +145,48 @@ code{font-family:monospace;font-size:11px;background:#f0f0f0;padding:1px 4px;bor
   <div class="alert-box alert-gold"><strong>v38 ripple to ExpansionLog schema:</strong> add fields <code>play_type ENUM('new_play','tier_migration','enrichment')</code>, <code>tier_migration_from</code>, <code>tier_migration_to</code>, <code>projected_gp_uplift_pct</code>, <code>switching_cost_class</code>, <code>realized_gp_uplift_pct</code> (post-migration retrospective). Companion v38 ripple to AGT-101 + AGT-103: GP-overlay comp variant rewards reps on realized GP uplift, not just on ARR delta — see AGT-101 v38.</div>
 
   <div class="alert-box alert-amber"><strong>Why tier-migration belongs in AGT-503 and not elsewhere.</strong> Tier-migration is a post-sale motion against an existing customer with an existing relationship; AM is the executor; success is measured in GP delta on the same revenue. That's structurally an expansion play, not a new-deal motion. The only deviation from classic expansion is that ARR may not move &mdash; which is why the 6th signal scores GP uplift, not ARR uplift, and why AGT-101 v38 introduces a GP-overlay comp variant aligned to this motion.</div>
+</div>
+
+<!-- ── TIER-MIGRATION AXIS EXTENSION (v38.5) ──────────────────── -->
+<div class="section">
+  <div class="section-title">Tier-migration two-axis extension (v38.5)</div>
+  <p class="prose" style="margin-bottom:10px">v38 modeled tier-migration on a single axis: the <strong>margin axis</strong> (low_margin → mid_margin → high_margin, mapping to e.g. shared / dedicated / BYOC infrastructure tiers). v38.5 recognizes a <em>parallel and independent</em> <strong>control axis</strong> that drives a distinct expansion motion: <code>fully_managed → off_the_shelf → low_level_control</code> (per AGT-201 v38.5 <code>gtm_motion_class</code>). Customers can move along either axis independently. Two motions; two play types; two distinct GP-uplift mechanisms.</p>
+
+  <div class="subsection-title">Two axes, four motion intersections</div>
+  <table>
+    <tr><th>Margin axis</th><th>Control axis</th><th>Migration motion</th></tr>
+    <tr><td>low_margin → high_margin</td><td>(unchanged)</td><td>Classic margin-tier migration. Customer moves to dedicated / BYOC infrastructure for technical or commercial reasons. ARR may stay flat; GP uplift.</td></tr>
+    <tr><td>(unchanged)</td><td>fully_managed → off_the_shelf</td><td>Customer's ML team grows or matures; they want cookbook-style training paths. ARR may grow as workflow scope expands. GP uplift modest.</td></tr>
+    <tr><td>(unchanged)</td><td>off_the_shelf → low_level_control</td><td>Customer's research team needs custom training loop / alignment / RL behavior. ARR grows materially with R&D budget. GP uplift significant — low-level-control is highest WTP.</td></tr>
+    <tr><td>low_margin → high_margin</td><td>fully_managed → low_level_control</td><td>Two-axis combined motion. Rare but high-value (e.g., enterprise customer maturing both their infra strategy and their ML team simultaneously). Expensive multi-quarter motion involving AGT-602 throughout.</td></tr>
+  </table>
+
+  <div class="subsection-title">7th signal — control-axis migration eligibility</div>
+  <table>
+    <tr><th>Signal</th><th>Pts</th><th>Mode</th><th>Source</th></tr>
+    <tr><td>Control-axis migration eligibility</td><td>+20 to +45</td><td>Digest (weekly)</td><td>AGT-201 <code>gtm_motion_class_last_evaluated</code> change since prior cycle (forward direction only — reclassification from off_the_shelf to low_level_control fires the signal; reverse reclassification suppresses the signal). Pts scale with revenue size of the account at time of reclassification.</td></tr>
+  </table>
+
+  <div class="subsection-title">play_type axis labeling (v38.5 schema extension)</div>
+  <p class="prose" style="margin-bottom:10px">ExpansionLog gains a <code>tier_migration_axis</code> field on tier-migration plays:</p>
+  <table>
+    <tr><th>tier_migration_axis</th><th>Meaning</th></tr>
+    <tr><td><code>margin</code></td><td>Shared → dedicated → BYOC (existing v38). GP-uplift driven by infrastructure cost change.</td></tr>
+    <tr><td><code>control</code></td><td>Fully-managed → off-the-shelf → low-level-control. GP-uplift driven by per-unit price increase (low-level-control commands premium pricing) + scope expansion.</td></tr>
+    <tr><td><code>combined</code></td><td>Both axes moving simultaneously. Rare; flagged for SLM review at play creation.</td></tr>
+  </table>
+
+  <div class="subsection-title">Play structure differences by axis</div>
+  <table>
+    <tr><th>Field</th><th>margin axis</th><th>control axis</th></tr>
+    <tr><td>Hypothesis pre-fill</td><td>From TOOL-015 GP-uplift projection (existing)</td><td>From AGT-201 reclassification event + EnrichmentLog ML-team evidence + ConvIntelligence research-pattern signal</td></tr>
+    <tr><td>Switching cost</td><td>Driven by infrastructure customer-side work (BYOC requires cloud account + integration)</td><td>Driven by ML-team capacity uplift on customer side. Often <em>lower</em> switching cost than margin-axis BYOC because no customer-side infra change is needed.</td></tr>
+    <tr><td>Technical-prerequisite gate (AGT-602)</td><td>Customer-side cloud account exists for BYOC</td><td>Customer-side ML / Research team identified; engineering capacity for custom training loop confirmed</td></tr>
+    <tr><td>credible_alternative pre-fill</td><td>From TOOL-015</td><td>From conversation-intel: typical case is "team isn't ready / will hire later" — explicitly surfaced so AM has the contrary view</td></tr>
+    <tr><td>Comp signal (AGT-101 v38 GP-overlay)</td><td>Realized GP uplift on existing revenue</td><td>Realized GP uplift + new revenue from expanded scope (low-level-control plays often add scope)</td></tr>
+  </table>
+
+  <div class="alert-box alert-blue" style="font-size:12px;padding:10px 14px;border-radius:8px;margin-top:8px;line-height:1.7;background:#E6F1FB;border-left:3px solid #85B7EB;color:#0C447C"><strong>Why two axes.</strong> A customer may have been on shared infrastructure (low_margin) AND fully_managed (control axis) — classic Uber-style "give me an API and let me ship." Their natural growth path branches: (a) move to dedicated infra for predictable performance (margin axis only) — sales motion is infrastructure-led; (b) grow their ML team and demand custom training (control axis only) — sales motion is research-led; (c) both. AGT-503 must distinguish so the right play type fires with the right cadence + the right comp incentive.</div>
 </div>
 
 <div class="footer">
