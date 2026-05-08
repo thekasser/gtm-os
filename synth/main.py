@@ -27,6 +27,9 @@ from usage import generate_usage_log
 from health import generate_health_log
 from payments import generate_payment_events
 from feature_engagement import generate_feature_engagement
+# v38 additions — both seed off sha256(account_id) per corpus invariant
+from consumption_events import generate_consumption_events
+from developer_signals import generate_developer_signals
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -149,6 +152,26 @@ def generate_account_corpus(
         seed=feature_seed,
     )
 
+    # v38 — consumption-event log + developer-signal block. Both generators
+    # derive their own per-account seeds via sha256(account_id|salt) — they do
+    # NOT consume from the main rng, so adding them does not shift account
+    # UUIDs or break existing conversation/feature/payment caches.
+    consumption_block = generate_consumption_events(
+        account_id=account["account_id"],
+        archetype_key=archetype_key,
+        contract_start=contract_start,
+        contract_age_days=contract_age,
+        arr_usd=account["arr_usd"],
+    )
+    developer_block = generate_developer_signals(
+        account_id=account["account_id"],
+        company_name=account["company_name"],
+        archetype_key=archetype_key,
+        contract_start=contract_start,
+        contract_age_days=contract_age,
+        licensed_seats=account["licensed_seats"],
+    )
+
     return {
         "account": account,
         "archetype_key": archetype_key,
@@ -158,6 +181,12 @@ def generate_account_corpus(
         "payment_event_log": payments,
         "feature_engagement": feature_block["feature_engagement_telemetry"],
         "feature_engagement_ground_truth_pattern": feature_block["ground_truth_pattern"],
+        # v38 — consumption events for TOOL-015, developer signals for AGT-208
+        "consumption_events": consumption_block["consumption_events"],
+        "consumption_summary": consumption_block["consumption_summary"],
+        "developer_roster": developer_block["developer_roster"],
+        "developer_event_stream": developer_block["developer_event_stream"],
+        "developer_signal_dimensions_pre_computed": developer_block["developer_signal_dimensions_pre_computed"],
         # Convenience aggregates for quick eyeballing — recomputable from raw rows
         "summary": {
             "total_units_consumed": round(sum(r["units_consumed"] for r in usage), 2),
@@ -166,6 +195,14 @@ def generate_account_corpus(
             "final_health_tier": health[-1]["tier"] if health else None,
             "payment_events_count": len(payments),
             "final_payment_state": payments[-1]["new_state"] if payments else "current",
+            # v38 summary additions
+            "consumption_realized_gp_usd": consumption_block["consumption_summary"]["realized_gp_usd"],
+            "consumption_realized_gp_pct": consumption_block["consumption_summary"]["realized_gp_pct"],
+            "consumption_tier_mix_label": consumption_block["consumption_summary"]["tier_mix_label"],
+            "consumption_tool15_refusal_expected": consumption_block["consumption_summary"]["tool15_refusal_expected"],
+            "developer_count": len(developer_block["developer_roster"]),
+            "developer_event_count": len(developer_block["developer_event_stream"]),
+            "developer_account_stakeholder_breadth_pts": developer_block["developer_signal_dimensions_pre_computed"]["account_level"]["stakeholder_breadth_pts"],
         },
     }
 
