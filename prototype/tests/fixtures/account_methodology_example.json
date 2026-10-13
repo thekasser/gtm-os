@@ -1,0 +1,122 @@
+{
+  "note": "Offline synthetic example, manually authored for display and prompt checks. Not an AI response or a passing evaluation sample.",
+  "preparation_view": {
+    "account_id": "synthetic-example",
+    "view_metadata": {
+      "last_refresh_timestamp": "2026-01-01T00:00:00Z",
+      "staleness_threshold_hours": 24,
+      "is_stale": true,
+      "stale_components": [
+        "all"
+      ]
+    },
+    "components": {
+      "account_root": {
+        "company_name": "Synthetic Example Account"
+      },
+      "usage_metering": {
+        "trailing_30d": {
+          "n_days": 3,
+          "total_units_consumed": 30,
+          "mean_daily_units": 10,
+          "total_overage_units": 6,
+          "days_with_overage": 3
+        },
+        "trailing_90d": {
+          "n_days": 3,
+          "total_units_consumed": 30,
+          "mean_daily_units": 10,
+          "total_overage_units": 6,
+          "days_with_overage": 3
+        },
+        "monthly_aggregates": [
+          {
+            "month": "2026-01",
+            "units_consumed": 30,
+            "overage_units": 6,
+            "overage_amount_usd": 3,
+            "days_in_bucket": 3,
+            "days_with_overage": 3
+          }
+        ]
+      },
+      "conversation_intel": [],
+      "qbr_history": "not_in_corpus"
+    }
+  },
+  "sample_count": 1,
+  "total_cost_usd": 0,
+  "by_writer": {
+    "AGT-902": 1
+  },
+  "samples": [
+    {
+      "fixture_id": "OFFLINE-EXAMPLE",
+      "fixture_summary": {
+        "question_type": "offline_example",
+        "difficulty": "illustrative",
+        "comment": "Manually authored synthetic example; no model call or live-model evaluation."
+      },
+      "company_name": "Synthetic Example Account",
+      "archetype_key": "offline_example",
+      "criterion_results": [],
+      "brain_row": {
+        "analysis_id": "offline-example-not-a-model-run",
+        "writer_agent_id": "AGT-902",
+        "account_id": "synthetic-example",
+        "question": "OFFLINE EXAMPLE \u2014 manually authored, no model call: What should the account team do?",
+        "narrative_output": "Do not qualify an expansion from this example alone: the supplied usage summary is based on only 3 records [src:1], and no conversation records were supplied [src:3]. Refresh the stale data [src:1] and validate customer intent before proposing a play.\n\nHow this was pulled:\n1. Reviewed the supplied account_brain_view for Synthetic Example Account [src:2]. This fixture is synthetic, not a live CRM query.\n2. Used the last available 3 usage records for both trailing summaries: 30 total units and 10 mean units per record [src:1]. The 30/90 window labels describe record selection, not guaranteed calendar-day coverage.\n3. Monthly usage is grouped into January 2026 [src:1]. Exact trailing-window dates and additional upstream exclusions were not captured.\n4. No conversation records were supplied [src:3]; QBR history is unavailable in this prototype fixture.\n5. Data is stale; the supplied refresh timestamp is 2026-01-01T00:00:00Z [src:1]. For the default synthetic source, freshness means file modification time. Access permissions were not captured.\n6. No specialist tool was called in this offline example.",
+        "sources_read": [
+          {
+            "source_index": 1,
+            "table_name": "usage_metering",
+            "view_name": "account_brain_view",
+            "row_count_consumed": 3,
+            "last_refresh_timestamp": "2026-01-01T00:00:00Z"
+          },
+          {
+            "source_index": 2,
+            "table_name": "account_root",
+            "view_name": "account_brain_view",
+            "row_count_consumed": 1,
+            "last_refresh_timestamp": "2026-01-01T00:00:00Z"
+          },
+          {
+            "source_index": 3,
+            "table_name": "conversation_intel",
+            "view_name": "account_brain_view",
+            "row_count_consumed": 0,
+            "last_refresh_timestamp": "2026-01-01T00:00:00Z"
+          }
+        ],
+        "proposed_actions": [],
+        "confidence_flags": [
+          {
+            "claim": "Usage summary contains only 3 records",
+            "level": "high_confidence",
+            "supporting_source_indices": [
+              1
+            ]
+          },
+          {
+            "claim": "Validate intent before qualifying expansion",
+            "level": "inference",
+            "supporting_source_indices": [
+              1,
+              3
+            ]
+          }
+        ],
+        "data_staleness_acknowledged": true,
+        "stale_sources": [
+          1,
+          2,
+          3
+        ],
+        "tool_calls_made": [],
+        "model_used": "OFFLINE EXAMPLE \u2014 no model call",
+        "cost_usd_estimate": 0
+      }
+    }
+  ]
+}

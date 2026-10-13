@@ -360,6 +360,21 @@ Rules (these are eval-enforced, treat as hard requirements):
 
 7. OUTPUT JSON ONLY. No preamble, no commentary, no markdown fences. Pure JSON object that parses cleanly.
 
+RESPONSE CONVENTION (prompt-guided; not a new eval-enforced rule):
+
+HOW THIS WAS PULLED. Lead narrative_output with the account insight and recommendation,
+then end that same string with "How this was pulled:" and a short numbered list.
+Describe the account and components consulted, relevant selection rules/calculations,
+available record counts/dates, missing data, known exclusions, and freshness limits.
+Use the account view preparation note below and the supplied view; describe tools
+only if you actually called them, using their supplied inputs/results. Keep existing
+[src:N] citations for data claims in this section too. Do not invent SQL/SOQL,
+connectors, permissions, filters, exclusions, record counts, or exact date ranges.
+Say "not captured" when a relevant detail is unavailable. Distinguish records from
+calendar days, prepared summaries from raw rows, and synthetic data from live systems.
+This is a methodology summary, not proof that every claim was independently verified.
+Do not add a new JSON field or put the section outside the JSON object.
+
 AVAILABLE TIER 3 TOOLS:
 
 You have access to Tier 3 specialist tools. Call them when relevant. Tool output is canonical for its domain — when you cite a number from a tool, treat the tool itself as a source (add a sources_read entry with table_name set to the tool name, e.g., "tool_004_consumption_forecast" or "tool_008_product_adoption_pattern", and reference it like any other source via [src:N]).
@@ -384,6 +399,37 @@ Per-account brain-ready view:
 ```json
 {json.dumps(view, indent=2, default=str)}
 ```
+
+Account view preparation:
+- Scope: the supplied account_brain_view, not a direct CRM query. The default
+  prototype uses synthetic corpus data; the view alone does not identify the
+  actual source connector or access permissions. Do not assert either from a
+  table name. Source/access details not supplied elsewhere are not captured.
+- Usage: trailing_30d/trailing_90d select the last 30/90 supplied records (or
+  all available if fewer), not calendar-date filters. n_days is a record count.
+  Totals sum units; mean_daily_units divides by that count; days_with_overage
+  counts records with overage_units > 0. Monthly aggregates group all supplied
+  usage by YYYY-MM. Exact trailing-window dates are not captured in this view.
+- Health: current and lookbacks select records by offsets 0/30/60/90/180 from
+  the end, assuming daily chronological input. Report the snapshot dates shown,
+  not guaranteed calendar-day lookbacks. The 30-record score change is improving
+  above +3, declining below -3, otherwise stable; unavailable lookbacks are omitted.
+- Payments: current state comes from the last supplied event; recent_events
+  contains at most the last 10. Transitions count all supplied events with a
+  nonempty prior_state different from new_state, not just those 10. The full
+  input event count is not captured; do not infer it from recent_events.
+- Conversations: all supplied conversations pass through with selected fields;
+  this preparation step applies no additional date or owner-role filter. Count
+  the displayed records and use their dates only for that supplied set.
+- Derived signals: expansion counts positive-overage records in the last 30;
+  consistent_overage requires at least 15. Renewal proximity uses contract end
+  minus runtime UTC time, not the corpus snapshot date. No independent expansion
+  or churn log was queried to produce these derived components.
+- Limits: empty components mean no records were supplied; not_in_corpus means
+  unavailable in the prototype. Freshness comes from view_metadata; for the
+  default synthetic source it is file modification time, not live CRM refresh.
+  Raw record IDs, additional upstream filters/exclusions, and access scope are
+  not captured. Do not turn an unavailable count or date into zero or a guess.
 
 Produce the BrainAnalysisLog JSON object per the schema in the system prompt. Output JSON only."""
 
